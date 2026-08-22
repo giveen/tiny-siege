@@ -2,7 +2,7 @@ import type { Game } from "./game";
 import type { Assets } from "./assets";
 import { asAsset } from "./assets";
 import { drawSprite } from "./sprite";
-import { TOWER_DEFS, TOWER_ORDER, MAX_LEVEL, upgradeCost } from "./tower";
+import { TOWER_DEFS, TOWER_ORDER, MAX_UPGRADE, upgradeCost, tracksFor, trackLabel, type UpgradeTrack } from "./tower";
 import { RARITY_COLOR } from "./boons";
 import { WORLD_W, WORLD_H } from "./config";
 import { fmt } from "./util";
@@ -28,16 +28,20 @@ export class Hud {
 
   // ------------------------------------------------------------- layout
   private computeLayout(game: Game) {
-    const topH = 54;
-    const btn = 42;
-    const rightBtns: Rect[] = [0, 1, 2].map((i) => ({
-      x: WORLD_W - 14 - (3 - i) * (btn + 8),
-      y: 6,
-      w: btn,
-      h: btn,
-    })); // [speed, pause, mute]
+    // Right-side vertical panel: castle HP, gold, wave, start-wave, controls.
+    // Placed over the grass margin right of the path so the top of the map is clear.
+    const rp = { x: WORLD_W - 172, y: 8, w: 164, h: 322 };
+    const ix = rp.x + 12;
+    const iw = rp.w - 24;
+    const castleHp = { x: ix, y: rp.y + 12, w: iw, h: 18 };
+    const goldRect = { x: ix, y: rp.y + 40, w: iw, h: 26 };
+    const waveRect = { x: ix, y: rp.y + 72, w: iw, h: 34 };
+    const startWave = { x: ix, y: rp.y + 112, w: iw, h: 40 };
+    const speed = { x: ix, y: rp.y + 162, w: iw, h: 40 };
+    const pause = { x: ix, y: speed.y + 46, w: iw, h: 40 };
+    const mute = { x: ix, y: pause.y + 46, w: iw, h: 40 };
 
-    // palette
+    // palette (bottom)
     const palH = 78;
     const palY = WORLD_H - palH - 8;
     const n = TOWER_ORDER.length;
@@ -50,26 +54,25 @@ export class Hud {
       palette[t] = { x: pad + i * (bw + gap), y: palY, w: bw, h: palH };
     });
 
-    // selected tower panel
-    let sel: { panel: Rect; upgrade: Rect; sell: Rect } | null = null;
+    // selected tower panel — per-stat upgrade tracks
+    let sel: { panel: Rect; upgrades: { track: UpgradeTrack; rect: Rect }[]; sell: Rect } | null = null;
     if (game.selectedTower && game.screen === "game" && game.wavePhase !== "boon") {
-      const pw = 210;
-      const ph = 150;
-      let px = game.selectedTower.x + 40;
-      let py = game.selectedTower.y - 90;
-      px = Math.min(Math.max(8, px), WORLD_W - pw - 8);
-      py = Math.min(Math.max(topH + 8, py), WORLD_H - palH - ph - 24);
-      sel = {
-        panel: { x: px, y: py, w: pw, h: ph },
-        upgrade: { x: px + 10, y: py + ph - 52, w: pw - 20, h: 22 },
-        sell: { x: px + 10, y: py + ph - 26, w: pw - 20, h: 22 },
-      };
-    }
-
-    // start-wave button (build phase only)
-    let startWave: Rect | null = null;
-    if (game.wavePhase === "build" && game.screen === "game" && !game.paused) {
-      startWave = { x: 468, y: 9, w: 186, h: 36 };
+      const t = game.selectedTower;
+      const tracks = tracksFor(t.type);
+      const pw = 240, ppad = 10, btnH = 24, btnGap = 5;
+      const headH = 66;
+      const ph = headH + tracks.length * (btnH + btnGap) + btnH + 16;
+      const maxLeft = rp.x - pw - 8; // keep clear of the right panel
+      let px = t.x + 44;
+      let py = t.y - ph / 2;
+      px = Math.min(Math.max(8, px), Math.max(8, maxLeft));
+      py = Math.min(Math.max(8, py), WORLD_H - palH - ph - 8);
+      const upgrades = tracks.map((track, i) => ({
+        track,
+        rect: { x: px + ppad, y: py + headH + i * (btnH + btnGap), w: pw - ppad * 2, h: btnH },
+      }));
+      const sell = { x: px + ppad, y: py + ph - btnH - 8, w: pw - ppad * 2, h: btnH };
+      sel = { panel: { x: px, y: py, w: pw, h: ph }, upgrades, sell };
     }
 
     // boon modal cards
@@ -84,7 +87,7 @@ export class Hud {
       cards = [0, 1, 2].map((i) => ({ x: x0 + i * (cw + gapC), y: y0, w: cw, h: ch }));
     }
 
-    return { topH, rightBtns, palette, sel, cards, startWave };
+    return { rp, castleHp, goldRect, waveRect, startWave, speed, pause, mute, palette, sel, cards };
   }
 
   private layout(game: Game) {
@@ -163,29 +166,29 @@ export class Hud {
       return;
     }
 
-    // top bar
-    this.panel(ctx, { x: 6, y: 4, w: WORLD_W - 12, h: L.topH - 4 }, 10);
+    // right-side panel
+    this.panel(ctx, L.rp, 10);
 
     // castle hp
     const cfrac = game.castle.hp / game.castle.maxHp;
-    this.bar(ctx, 18, 14, 190, 18, cfrac, cfrac > 0.5 ? "#6fe06f" : cfrac > 0.25 ? "#ffd24a" : "#e05555");
+    this.bar(ctx, L.castleHp.x, L.castleHp.y, L.castleHp.w, L.castleHp.h, cfrac, cfrac > 0.5 ? "#6fe06f" : cfrac > 0.25 ? "#ffd24a" : "#e05555");
     ctx.save();
     ctx.fillStyle = "#eaf6ff";
-    ctx.font = "700 12px 'Segoe UI', sans-serif";
+    ctx.font = "700 11px 'Segoe UI', sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(`CASTLE  ${Math.max(0, Math.ceil(game.castle.hp))}/${game.castle.maxHp}`, 24, 24);
+    ctx.fillText(`CASTLE ${Math.max(0, Math.ceil(game.castle.hp))}/${game.castle.maxHp}`, L.castleHp.x + 4, L.castleHp.y + 9);
     ctx.restore();
 
     // gold
     const coin = this.assets.manifest.ui.icons[2];
-    ctx.drawImage(this.assets.img(coin), 222, 12, 24, 24);
+    ctx.drawImage(this.assets.img(coin), L.goldRect.x, L.goldRect.y + 2, 22, 22);
     ctx.save();
     ctx.fillStyle = "#ffd24a";
-    ctx.font = "800 18px 'Segoe UI', sans-serif";
+    ctx.font = "800 17px 'Segoe UI', sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(fmt(game.gold), 252, 24);
+    ctx.fillText(fmt(game.gold), L.goldRect.x + 28, L.goldRect.y + 13);
     ctx.restore();
 
     // wave
@@ -194,29 +197,31 @@ export class Hud {
     ctx.font = "700 15px 'Segoe UI', sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(`Wave ${game.wave}`, 340, 22);
-    if (game.wavePhase === "active") {
-      ctx.font = "600 12px 'Segoe UI', sans-serif";
-      ctx.fillStyle = "#8fb8c8";
-      ctx.fillText(`${game.enemies.length + game.spawnQueue.length} foes`, 340, 38);
-    } else if (game.wavePhase === "build") {
-      ctx.font = "600 12px 'Segoe UI', sans-serif";
-      ctx.fillStyle = "#8fb8c8";
-      ctx.fillText(game.wave === 0 ? "place towers, then start" : "build phase", 340, 38);
-    }
+    ctx.fillText(`Wave ${game.wave}`, L.waveRect.x, L.waveRect.y + 8);
+    ctx.font = "600 11px 'Segoe UI', sans-serif";
+    ctx.fillStyle = "#8fb8c8";
+    const sub =
+      game.wavePhase === "active"
+        ? `${game.enemies.length + game.spawnQueue.length} foes`
+        : game.wavePhase === "build"
+          ? game.wave === 0
+            ? "build & start"
+            : "build phase"
+          : "";
+    ctx.fillText(sub, L.waveRect.x, L.waveRect.y + 25);
     ctx.restore();
 
-    // right buttons
-    const [sp, pa, mu] = L.rightBtns;
-    this.button(ctx, sp, `${game.speed}×`, { active: game.speedIdx > 0, small: true });
-    this.button(ctx, pa, game.paused ? "▶" : "❚❚", { small: true });
-    this.button(ctx, mu, game.audioEnabled ? "♪" : "∅", { small: true });
-
-    // Start Wave button (build phase)
-    if (L.startWave) {
-      const label = game.wave === 0 ? "⚔  Start Wave 1" : `⚔  Start Wave ${game.wave + 1}`;
-      this.button(ctx, L.startWave, label, { bg: "#c98a2e", fg: "#1a1206", active: true });
+    // start wave / status
+    if (game.wavePhase === "build" && !game.paused) {
+      this.button(ctx, L.startWave, `⚔  Wave ${game.wave + 1}`, { bg: "#c98a2e", fg: "#1a1206", active: true });
+    } else {
+      this.button(ctx, L.startWave, game.wavePhase === "active" ? "Waving…" : "—", { bg: "#22404e", disabled: true, small: true });
     }
+
+    // controls
+    this.button(ctx, L.speed, `${game.speed}×  (F)`, { active: game.speedIdx > 0, small: true });
+    this.button(ctx, L.pause, game.paused ? "▶  Resume" : "❚❚  Pause", { small: true });
+    this.button(ctx, L.mute, game.audioEnabled ? "♪  Sound" : "∅  Muted", { small: true });
 
     // palette
     for (const t of TOWER_ORDER) {
@@ -258,40 +263,51 @@ export class Hud {
       ctx.restore();
     }
 
-    // selected tower panel
+    // selected tower panel — per-stat upgrades
     if (L.sel && game.selectedTower) {
       const t = game.selectedTower;
       const s = this.statsFor(game, t);
-      const { panel, upgrade, sell } = L.sel;
+      const { panel, upgrades, sell } = L.sel;
       this.panel(ctx, panel, 8);
       ctx.save();
       ctx.textAlign = "left";
       ctx.fillStyle = "#ffd24a";
       ctx.font = "800 15px 'Segoe UI', sans-serif";
-      ctx.fillText(`${TOWER_DEFS[t.type].name}  ·  Lv ${t.level}`, panel.x + 12, panel.y + 24);
+      const total = t.totalUpgrades;
+      ctx.fillText(`${TOWER_DEFS[t.type].name}${total > 0 ? `  ·  +${total}` : ""}`, panel.x + 12, panel.y + 22);
       ctx.fillStyle = "#cfe6f0";
-      ctx.font = "600 13px 'Segoe UI', sans-serif";
-      let yy = panel.y + 46;
+      ctx.font = "600 12px 'Segoe UI', sans-serif";
       if (t.type === "monastery") {
-        ctx.fillText(`Buffs towers in range  ${Math.round(s.range)}`, panel.x + 12, yy);
-        ctx.fillText(`+${Math.round(TOWER_DEFS[t.type].buffDmg * 100)}% dmg · +${Math.round(TOWER_DEFS[t.type].buffSpeed * 100)}% speed`, panel.x + 12, (yy += 17));
+        ctx.fillText(`Aura ${Math.round(s.range)}   Bless +${Math.round(t.buffPower() * 100)}%`, panel.x + 12, panel.y + 44);
+        ctx.fillStyle = "rgba(180,210,225,0.7)";
+        ctx.font = "500 10px 'Segoe UI', sans-serif";
+        ctx.fillText("Dmg & fire-rate buff to towers in aura", panel.x + 12, panel.y + 58);
       } else {
-        ctx.fillText(`Damage ${Math.round(s.damage)}   Rate ${s.rate.toFixed(1)}/s`, panel.x + 12, yy);
-        yy += 17;
-        ctx.fillText(`Range ${Math.round(s.range)}`, panel.x + 12, yy);
-        if (t.type === "cannon") ctx.fillText(`Splash ${Math.round(s.splash)}`, panel.x + 12, (yy += 17));
-        if (t.type === "lancer") ctx.fillText(`Pierce ${s.pierce}`, panel.x + 12, (yy += 17));
+        ctx.fillText(`Dmg ${Math.round(s.damage)}   Rate ${s.rate.toFixed(1)}/s   Range ${Math.round(s.range)}`, panel.x + 12, panel.y + 44);
+        if (t.type === "cannon") {
+          ctx.fillStyle = "rgba(180,210,225,0.7)";
+          ctx.font = "500 10px 'Segoe UI', sans-serif";
+          ctx.fillText(`Splash ${Math.round(s.splash)}`, panel.x + 12, panel.y + 58);
+        } else if (t.type === "lancer") {
+          ctx.fillStyle = "rgba(180,210,225,0.7)";
+          ctx.font = "500 10px 'Segoe UI', sans-serif";
+          ctx.fillText(`Pierce ${s.pierce}`, panel.x + 12, panel.y + 58);
+        }
       }
       ctx.restore();
 
-      if (t.level >= MAX_LEVEL) {
-        this.button(ctx, upgrade, "MAX LEVEL", { bg: "#3a4a52", disabled: true });
-      } else {
-        const cost = upgradeCost(t.type, t.level);
-        this.button(ctx, upgrade, `⬆ Upgrade  ${cost}g`, { active: true, disabled: game.gold < cost });
+      for (const u of upgrades) {
+        const lvl = t.upg[u.track];
+        const label = trackLabel(t.type, u.track);
+        if (lvl >= MAX_UPGRADE) {
+          this.button(ctx, u.rect, `${label}  ·  MAX`, { bg: "#3a4a52", disabled: true, small: true });
+        } else {
+          const cost = upgradeCost(t.type, u.track, lvl);
+          this.button(ctx, u.rect, `⬆ ${label}  ${cost}g`, { active: true, disabled: game.gold < cost, small: true });
+        }
       }
       const refund = Math.round(t.totalInvested * 0.6);
-      this.button(ctx, sell, `Sell  +${refund}g`, { bg: "#6e3038" });
+      this.button(ctx, sell, `Sell  +${refund}g`, { bg: "#6e3038", small: true });
     }
 
     // boon modal
@@ -391,34 +407,37 @@ export class Hud {
       return true; // swallow clicks while modal open
     }
 
-    if (game.paused) return true;
-
-    // right buttons
-    const [sp, pa, mu] = L.rightBtns;
-    if (inRect(p, sp)) {
-      game.cycleSpeed();
-      return true;
-    }
-    if (inRect(p, pa)) {
+    // pause toggle works even while paused
+    if (inRect(p, L.pause)) {
       game.togglePause();
       return true;
     }
-    if (inRect(p, mu)) {
-      game.toggleMute();
-      return true;
-    }
+    if (game.paused) return true;
 
-    // start wave
-    if (L.startWave && inRect(p, L.startWave)) {
-      game.startWave();
-      return true;
-    }
-
-    // selected tower panel
-    if (L.sel && game.selectedTower) {
-      if (inRect(p, L.sel.upgrade)) {
-        game.upgradeTower(game.selectedTower);
+    // right panel (controls + start wave)
+    if (inRect(p, L.rp)) {
+      if (inRect(p, L.speed)) {
+        game.cycleSpeed();
         return true;
+      }
+      if (inRect(p, L.mute)) {
+        game.toggleMute();
+        return true;
+      }
+      if (game.wavePhase === "build" && inRect(p, L.startWave)) {
+        game.startWave();
+        return true;
+      }
+      return true; // swallow clicks on the panel
+    }
+
+    // selected tower panel (per-stat upgrades)
+    if (L.sel && game.selectedTower) {
+      for (const u of L.sel.upgrades) {
+        if (inRect(p, u.rect)) {
+          game.upgradeTower(game.selectedTower, u.track);
+          return true;
+        }
       }
       if (inRect(p, L.sel.sell)) {
         game.sellTower(game.selectedTower);

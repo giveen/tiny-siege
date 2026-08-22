@@ -5,7 +5,7 @@ import { Audio } from "./audio";
 import { RNG } from "./rng";
 import { Sprite, drawSprite } from "./sprite";
 import { Enemy, type EnemyType } from "./enemy";
-import { Tower, TOWER_DEFS, TOWER_ORDER, MAX_LEVEL, upgradeCost } from "./tower";
+import { Tower, TOWER_DEFS, TOWER_ORDER, MAX_UPGRADE, upgradeCost, type UpgradeTrack } from "./tower";
 import { Projectile } from "./projectile";
 import { Fx } from "./fx";
 import { generateWave, type SpawnEntry } from "./waves";
@@ -181,6 +181,11 @@ export class Game {
         e.y = p.y;
         this.enemies.push(e);
       }
+    }
+
+    // ?seltower — select the first tower (verifies the upgrade panel)
+    if (params.has("seltower") && this.towers.length > 0) {
+      this.selectedTower = this.towers[0];
     }
   }
 
@@ -448,16 +453,16 @@ export class Game {
     return true;
   }
 
-  upgradeTower(t: Tower): void {
-    if (t.level >= MAX_LEVEL) return;
-    const cost = upgradeCost(t.type, t.level);
+  upgradeTower(t: Tower, track: UpgradeTrack): void {
+    if (t.upg[track] >= MAX_UPGRADE) return;
+    const cost = upgradeCost(t.type, track, t.upg[track]);
     if (this.gold < cost) {
       this.addText(t.x, t.y - 30, "Need gold", "#ff9a3c");
       return;
     }
     this.gold -= cost;
     t.totalInvested += cost;
-    t.level++;
+    t.upg[track]++;
     this.spawnRingFx(t.x, t.y - 16, "#ffd24a", 0.9);
     this.sfx("upgrade");
   }
@@ -690,6 +695,9 @@ export class Game {
     // placement preview
     this.drawPlacementPreview(ctx);
 
+    // range ring for the selected tower
+    if (this.selectedTower) this.drawSelectedRange(ctx);
+
     ctx.restore();
 
     // HUD (screen space)
@@ -733,6 +741,23 @@ export class Game {
     // ghost building (matches the in-world tower scale)
     const b = asAsset(this.assets.building("blue", def.building));
     drawSprite(ctx, this.assets, b, 0, x, y + 6, { scale: 0.32, alpha: 0.7 });
+    ctx.restore();
+  }
+
+  private drawSelectedRange(ctx: CanvasRenderingContext2D): void {
+    const t = this.selectedTower;
+    if (!t) return;
+    const s = t.stats(this);
+    ctx.save();
+    ctx.globalAlpha = 0.13;
+    ctx.fillStyle = "#8fd0ff";
+    ctx.beginPath();
+    ctx.arc(t.x, t.y - 10, s.range, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = "#8fd0ff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
     ctx.restore();
   }
 

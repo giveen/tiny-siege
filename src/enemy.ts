@@ -35,26 +35,24 @@ export interface EnemyDef {
 
 // Base stats; scaled by wave number at spawn.
 export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
-  pawn: { type: "pawn", unit: "pawn", hp: 32, speed: 56, castleDamage: 6, reward: 2, scale: 1.0 },
-  archer: { type: "archer", unit: "archer", hp: 26, speed: 78, castleDamage: 7, reward: 3, scale: 1.0 },
-  warrior: { type: "warrior", unit: "warrior", hp: 78, speed: 40, castleDamage: 11, reward: 4, scale: 1.05 },
-  lancer: { type: "lancer", unit: "lancer", hp: 140, speed: 34, castleDamage: 17, reward: 7, scale: 1.12 },
-  healer: { type: "healer", unit: "monk", hp: 60, speed: 46, castleDamage: 5, reward: 6, scale: 1.0, healer: true },
-  // New enemy archetypes from the added packs.
-  mushroom: { type: "mushroom", unit: null, special: "mushroom", hp: 22, speed: 92, castleDamage: 5, reward: 3, scale: 1.1 },
+  // Distinct HP tiers: frail speedsters -> sturdy melee -> heavy tanks -> boss.
+  mantis: { type: "mantis", unit: null, special: "mantis", hp: 16, speed: 104, castleDamage: 4, reward: 3, scale: 1.7 },
+  mushroom: { type: "mushroom", unit: null, special: "mushroom", hp: 20, speed: 92, castleDamage: 5, reward: 3, scale: 1.1 },
+  archer: { type: "archer", unit: "archer", hp: 24, speed: 78, castleDamage: 7, reward: 3, scale: 1.0 },
+  fly3: { type: "fly3", unit: null, special: "fly3", flying: true, hp: 34, speed: 74, castleDamage: 6, reward: 3, scale: 1.4 },
+  pawn: { type: "pawn", unit: "pawn", hp: 42, speed: 56, castleDamage: 6, reward: 2, scale: 1.0 },
+  flydemon: { type: "flydemon", unit: null, special: "flydemon", flying: true, hp: 54, speed: 66, castleDamage: 8, reward: 4, scale: 1.05 },
+  healer: { type: "healer", unit: "monk", hp: 68, speed: 46, castleDamage: 5, reward: 6, scale: 1.0, healer: true },
+  beetle: { type: "beetle", unit: null, special: "beetle", hp: 84, speed: 33, castleDamage: 9, reward: 4, scale: 1.7 },
+  warrior: { type: "warrior", unit: "warrior", hp: 110, speed: 40, castleDamage: 11, reward: 4, scale: 1.05 },
   skeleton: {
     type: "skeleton", unit: null, special: "skeleton",
     variants: ["skeleton_white", "skeleton_yellow"],
-    hp: 96, speed: 44, castleDamage: 10, reward: 5, scale: 1.25,
+    hp: 145, speed: 44, castleDamage: 10, reward: 5, scale: 1.25,
   },
-  flydemon: { type: "flydemon", unit: null, special: "flydemon", flying: true, hp: 44, speed: 66, castleDamage: 8, reward: 4, scale: 1.05 },
-  // Insects — fast/sturdy ground bugs.
-  mantis: { type: "mantis", unit: null, special: "mantis", hp: 18, speed: 104, castleDamage: 4, reward: 3, scale: 1.7 },
-  beetle: { type: "beetle", unit: null, special: "beetle", hp: 58, speed: 33, castleDamage: 9, reward: 4, scale: 1.7 },
-  // A second, smaller flying type (forest sprite).
-  fly3: { type: "fly3", unit: null, special: "fly3", flying: true, hp: 30, speed: 74, castleDamage: 6, reward: 3, scale: 1.4 },
+  lancer: { type: "lancer", unit: "lancer", hp: 205, speed: 34, castleDamage: 17, reward: 7, scale: 1.12 },
   // The boss is the Minotaur.
-  boss: { type: "boss", unit: null, special: "minotaur", hp: 950, speed: 44, castleDamage: 60, reward: 90, scale: 2.3 },
+  boss: { type: "boss", unit: null, special: "minotaur", hp: 1200, speed: 44, castleDamage: 60, reward: 90, scale: 2.3 },
 };
 
 let nextId = 1;

@@ -29,8 +29,8 @@ const ISLAND = [
 const PATH_WAYPOINTS: [number, number][] = [
   [2, -1],
   [2, 1],
-  [25, 1],
-  [25, 5],
+  [24, 1],
+  [24, 5],
   [3, 5],
   [3, 9],
   [24, 9],
@@ -185,21 +185,22 @@ export class World {
     const cells = [...free];
     this.rng.shuffle(cells);
     const kinds: Deco["kind"][] = ["tree", "tree", "bush", "bush", "rock", "rock", "stump"];
-    let placed = 0;
-    for (const k of cells) {
-      if (placed >= 46) break;
+    // The map is large: place a deco on ~55% of free cells so trees/bushes/rocks
+    // are scattered across the whole island, not just a few patches.
+    const target = Math.floor(cells.length * 0.55);
+    for (let i = 0; i < target; i++) {
+      const k = cells[i];
       const p = cellCenter(...(k.split(",").map(Number) as [number, number]));
       const kind = this.rng.pick(kinds);
       const count = this.assets.manifest.deco[kind].length;
       this.decos.push({
-        x: p.x + this.rng.range(-12, 12),
-        y: p.y + this.rng.range(-6, 10),
+        x: p.x + this.rng.range(-14, 14),
+        y: p.y + this.rng.range(-8, 12),
         kind,
         idx: this.rng.int(0, count - 1),
         flip: this.rng.chance(0.5),
         scale: this.scaleFor(kind),
       });
-      placed++;
     }
   }
 

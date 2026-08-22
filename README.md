@@ -12,7 +12,8 @@ stack into a powerful — or delightfully cursed — run. How many waves can you
 
 - Enemies march from the top of the island along the dirt path toward your castle.
 - Pick a tower in the bottom bar (or press `1`–`4`), then click a green build spot to place it.
-- Click a built tower to **Upgrade** or **Sell** it.
+- Click a built tower to open its panel: **upgrade individual stats** (Damage, Fire Rate, Range —
+  the Monastery upgrades its Blessing and Aura) or **Sell** it. A range ring shows its coverage.
 - Hit **Start Wave** (or press `Space`) when you're ready.
 - Clear the wave to earn gold, then choose **1 of 3 random boons** for the rest of the run.
 - If the castle's health hits zero, the run ends. Your best wave count is saved locally.

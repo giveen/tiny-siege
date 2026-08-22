@@ -90,10 +90,27 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
 };
 
 export const TOWER_ORDER: TowerType[] = ["archer", "lancer", "cannon", "monastery"];
-export const MAX_LEVEL = 5;
+export const MAX_UPGRADE = 5;
 
-export function upgradeCost(type: TowerType, level: number): number {
-  return Math.round(TOWER_DEFS[type].cost * 0.8 * level);
+// Per-stat upgrade tracks. Each track has its own level (0..MAX_UPGRADE) and cost.
+export type UpgradeTrack = "damage" | "rate" | "range";
+
+const TRACK_COST_FACTOR: Record<UpgradeTrack, number> = { damage: 0.6, rate: 0.5, range: 0.45 };
+
+export function upgradeCost(type: TowerType, track: UpgradeTrack, level: number): number {
+  return Math.round(TOWER_DEFS[type].cost * TRACK_COST_FACTOR[track] * (level + 1));
+}
+
+/** Which upgrade tracks a tower offers (monastery blesses rather than shoots). */
+export function tracksFor(type: TowerType): UpgradeTrack[] {
+  return type === "monastery" ? ["damage", "range"] : ["damage", "rate", "range"];
+}
+
+export function trackLabel(type: TowerType, track: UpgradeTrack): string {
+  if (type === "monastery") return track === "damage" ? "Blessing" : "Aura";
+  if (track === "damage") return "Damage";
+  if (track === "rate") return "Fire Rate";
+  return "Range";
 }
 
 export class Tower {
@@ -102,7 +119,7 @@ export class Tower {
   spot: BuildSpot;
   x: number;
   y: number;
-  level = 1;
+  upg: Record<UpgradeTrack, number> = { damage: 0, rate: 0, range: 0 };
   cooldown = 0;
   facing = 1; // 1 = face right, -1 = face left
   private idle: Sprite;
@@ -135,15 +152,25 @@ export class Tower {
     }
   }
 
-  /** Effective stats after level + global buffs + monastery aura + synergy. */
+  /** Total upgrade points invested (for pips / display). */
+  get totalUpgrades(): number {
+    return this.upg.damage + this.upg.rate + this.upg.range;
+  }
+
+  /** Monastery: effective aura buff multiplier from Blessing upgrades. */
+  buffPower(): number {
+    return this.def.buffDmg * (1 + 0.5 * this.upg.damage);
+  }
+
+  /** Effective stats after per-track upgrades + global buffs + monastery aura + synergy. */
   stats(game: Game): TowerStats {
     const d = this.def;
-    const L = this.level - 1;
-    let damage = d.damage * (1 + 0.35 * L);
-    let rate = d.rate * (1 + 0.12 * L);
-    let range = d.range * (1 + 0.07 * L);
-    let splash = d.splash * (1 + 0.1 * L);
-    let pierce = d.pierce + Math.floor(L / 2);
+    const u = this.upg;
+    let damage = d.damage * (1 + 0.3 * u.damage);
+    let rate = d.rate * (1 + 0.2 * u.rate);
+    let range = d.range * (1 + 0.12 * u.range);
+    let splash = d.splash * (1 + 0.1 * u.damage);
+    let pierce = d.pierce + Math.floor(u.damage / 2);
 
     const b = game.buffs;
     damage *= b.damageMult;
@@ -163,8 +190,9 @@ export class Tower {
       if (t !== this && t.type === "monastery") {
         const ms = t.statsOnly(game);
         if (Math.hypot(t.x - this.x, t.y - this.y) <= ms.range) {
-          damage *= 1 + t.def.buffDmg * (1 + (t.level - 1) * 0.35);
-          rate *= 1 + t.def.buffSpeed * (1 + (t.level - 1) * 0.35);
+          const p = t.buffPower();
+          damage *= 1 + p;
+          rate *= 1 + p;
         }
       }
     }
@@ -183,8 +211,7 @@ export class Tower {
   /** stats without recursion (used by aura checks) */
   private statsOnly(game: Game): TowerStats {
     const d = this.def;
-    const L = this.level - 1;
-    const range = d.range * (1 + 0.07 * L) * game.buffs.rangeMult;
+    const range = d.range * (1 + 0.15 * this.upg.range) * game.buffs.rangeMult;
     return {
       damage: 0,
       rate: 0,
@@ -276,19 +303,23 @@ export class Tower {
       drawSprite(ctx, assets, def, idx, this.x + (flip ? -5 : 5), this.y, { scale: 0.46, flipX: flip });
     }
 
-    // level pips
-    for (let i = 0; i < this.level; i++) {
-      ctx.save();
-      ctx.fillStyle = i < 3 ? "#ffd24a" : "#ff8a3c";
-      ctx.strokeStyle = "rgba(0,0,0,0.5)";
-      ctx.lineWidth = 1;
-      const px = this.x - 8 + i * 5;
-      const py = this.y + 16;
-      ctx.beginPath();
-      ctx.arc(px, py, 2.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
+    // upgrade pips (one per upgrade point)
+    const pts = Math.min(this.totalUpgrades, 8);
+    if (pts > 0) {
+      const startX = this.x - ((pts - 1) * 5) / 2;
+      for (let i = 0; i < pts; i++) {
+        ctx.save();
+        ctx.fillStyle = i < 3 ? "#ffd24a" : "#ff8a3c";
+        ctx.strokeStyle = "rgba(0,0,0,0.5)";
+        ctx.lineWidth = 1;
+        const px = startX + i * 5;
+        const py = this.y + 16;
+        ctx.beginPath();
+        ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   }
 }
