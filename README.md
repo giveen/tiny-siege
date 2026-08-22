@@ -31,10 +31,16 @@ New towers unlock through boons as you get deeper.
 ### Enemies
 
 - **Pawns, Archers, Warriors, Lancers, Healers** — the classic Tiny Swords units, in four enemy colors.
-- **Mushroom** — a fast little runner (from wave 4).
-- **Skeleton** — a sturdier melee swordsman, in white or yellow (from wave 5).
+- **Mushroom** — a fast little runner (from wave 3).
+- **Mantis** — a speedy bug that darts down the path (from wave 3).
+- **Beetle** — a slow, sturdy bug (from wave 4).
+- **Skeleton** — a melee swordsman, in white or yellow (from wave 5).
+- **Forest Sprite** — a small hopping floater (from wave 6).
 - **Flying Demon** — a hovering bat that weaves over your defenses (from wave 7).
 - **Minotaur** — the **boss**, every 5th wave (double every 15th, with healer escorts).
+
+The map is a large island with a long winding path and **marked stone pads** — towers can only be
+built on those pads.
 
 ### Boons (the roguelite layer)
 

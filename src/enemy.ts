@@ -1,6 +1,7 @@
 import type { Game } from "./game";
 import { Sprite, drawSprite } from "./sprite";
 import type { UnitColor } from "./assets";
+import { PATH_SPEED_MULT } from "./config";
 
 export type EnemyType =
   | "pawn"
@@ -11,6 +12,9 @@ export type EnemyType =
   | "mushroom"
   | "skeleton"
   | "flydemon"
+  | "mantis"
+  | "beetle"
+  | "fly3"
   | "boss";
 
 export interface EnemyDef {
@@ -44,8 +48,13 @@ export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
     hp: 96, speed: 44, castleDamage: 10, reward: 5, scale: 1.25,
   },
   flydemon: { type: "flydemon", unit: null, special: "flydemon", flying: true, hp: 44, speed: 66, castleDamage: 8, reward: 4, scale: 1.05 },
+  // Insects — small ground bugs.
+  mantis: { type: "mantis", unit: null, special: "mantis", hp: 18, speed: 104, castleDamage: 4, reward: 3, scale: 1.0 },
+  beetle: { type: "beetle", unit: null, special: "beetle", hp: 58, speed: 33, castleDamage: 9, reward: 4, scale: 1.0 },
+  // A second, smaller flying type (forest sprite).
+  fly3: { type: "fly3", unit: null, special: "fly3", flying: true, hp: 30, speed: 74, castleDamage: 6, reward: 3, scale: 1.0 },
   // The boss is the Minotaur.
-  boss: { type: "boss", unit: null, special: "minotaur", hp: 950, speed: 26, castleDamage: 60, reward: 90, scale: 2.3 },
+  boss: { type: "boss", unit: null, special: "minotaur", hp: 950, speed: 44, castleDamage: 60, reward: 90, scale: 2.3 },
 };
 
 let nextId = 1;
@@ -92,7 +101,7 @@ export class Enemy {
     const dmgScale = 1 + wave * 0.04;
     this.maxHp = Math.round(base.hp * hpScale);
     this.hp = this.maxHp;
-    this.speed = base.speed * (1 + wave * 0.008);
+    this.speed = base.speed * PATH_SPEED_MULT * (1 + wave * 0.008);
     this.castleDamage = Math.round(base.castleDamage * dmgScale);
     this.reward = Math.round(base.reward * (1 + wave * 0.02));
     this.scale = base.scale;

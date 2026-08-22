@@ -1,47 +1,64 @@
 import type { Assets } from "./assets";
 import type { RNG } from "./rng";
-import { COLS, ROWS, TILE, WORLD_W, WORLD_H, CASTLE_CELL, BUILD_SPOT_PATH_DIST } from "./config";
+import { COLS, ROWS, TILE, WORLD_W, WORLD_H, CASTLE_CELL } from "./config";
 import { type Vec, v, dist, clamp } from "./util";
 
-// Island mask: 1 = grass, 0 = water. 16 wide x 10 tall.
+// Island mask: 1 = grass, 0 = water. 28 wide x 16 tall.
 const ISLAND = [
-  "0001111111110000",
-  "0011111111111000",
-  "0111111111111100",
-  "0111111111111110",
-  "0111111111111111",
-  "0111111111111111",
-  "0111111111111111",
-  "0111111111111111",
-  "0111111111111110",
-  "0011111111111100",
+  "00111111111111111111111100",
+  "01111111111111111111111110",
+  "01111111111111111111111110",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "11111111111111111111111111",
+  "01111111111111111111111110",
+  "00111111111111111111111100",
 ];
 
-// Enemy path as a list of cell waypoints (meandering top -> bottom to the castle).
-const PATH_CELLS: [number, number][] = [
+// Enemy path as corner waypoints; each consecutive pair is axis-aligned and the
+// polyline runs straight through the intermediate cell centers. Bands are spaced
+// 4 rows apart so the build pads form distinct strips with grass gaps between them.
+const PATH_WAYPOINTS: [number, number][] = [
   [2, -1],
-  [2, 0],
   [2, 1],
-  [2, 2],
-  [2, 3],
-  [3, 3],
-  [4, 3],
-  [5, 3],
-  [6, 3],
-  [6, 4],
-  [6, 5],
-  [5, 5],
-  [4, 5],
+  [25, 1],
+  [25, 5],
   [3, 5],
-  [3, 6],
-  [3, 7],
-  [4, 7],
-  [5, 7],
-  [6, 7],
-  [7, 7],
-  [8, 7],
-  [8, 8],
+  [3, 9],
+  [24, 9],
+  [24, 13],
+  [14, 13],
+  [14, 14],
 ];
+
+/** Expand axis-aligned waypoints into every cell the path passes through. */
+function expandPath(wps: [number, number][]): [number, number][] {
+  const out: [number, number][] = [wps[0]];
+  for (let i = 1; i < wps.length; i++) {
+    const [c0, r0] = wps[i - 1];
+    const [c1, r1] = wps[i];
+    const dc = Math.sign(c1 - c0);
+    const dr = Math.sign(r1 - r0);
+    let c = c0,
+      r = r0;
+    while (c !== c1 || r !== r1) {
+      c += dc;
+      r += dr;
+      out.push([c, r]);
+    }
+  }
+  return out;
+}
+
+const PATH_CELLS: [number, number][] = expandPath(PATH_WAYPOINTS);
 
 export interface BuildSpot {
   c: number;
@@ -105,19 +122,26 @@ export class World {
           this.castleCells.add(cellKey(c, r));
       }
 
-    // build spots: grass cells near the path, not on path, not on castle
+    // build spots: specific pads that hug the path — grass cells directly adjacent
+    // (Chebyshev distance 1) to a path cell, excluding the path and the castle.
+    const nearPath = new Set<string>();
+    for (const [c, r] of PATH_CELLS) {
+      if (r < 0) continue;
+      for (let dc = -1; dc <= 1; dc++)
+        for (let dr = -1; dr <= 1; dr++) {
+          if (dc === 0 && dr === 0) continue;
+          nearPath.add(cellKey(c + dc, r + dr));
+        }
+    }
     for (let r = 0; r < ROWS; r++)
       for (let c = 0; c < COLS; c++) {
         if (!this.isGrass(c, r)) continue;
         const k = cellKey(c, r);
-        if (this.pathCells.has(k) || this.castleCells.has(k)) continue;
+        if (!nearPath.has(k) || this.pathCells.has(k) || this.castleCells.has(k)) continue;
         const p = cellCenter(c, r);
-        const nearPath = this.path.some((wp) => dist(p, wp) <= BUILD_SPOT_PATH_DIST);
-        if (nearPath) {
-          const spot = { c, r, x: p.x, y: p.y };
-          this.buildSpots.push(spot);
-          this.buildSpotByCell.set(k, spot);
-        }
+        const spot = { c, r, x: p.x, y: p.y };
+        this.buildSpots.push(spot);
+        this.buildSpotByCell.set(k, spot);
       }
 
     // decorations on grass that is not path / build spot / castle
@@ -161,7 +185,7 @@ export class World {
     const kinds: Deco["kind"][] = ["tree", "tree", "bush", "bush", "rock", "rock", "stump"];
     let placed = 0;
     for (const k of cells) {
-      if (placed >= 18) break;
+      if (placed >= 46) break;
       const p = cellCenter(...(k.split(",").map(Number) as [number, number]));
       const kind = this.rng.pick(kinds);
       const count = this.assets.manifest.deco[kind].length;
@@ -221,6 +245,27 @@ export class World {
     ctx.lineWidth = 26;
     ctx.stroke();
     ctx.restore();
+
+    // build pads: subtle stone squares marking where towers may be placed
+    const pad = TILE * 0.82;
+    for (const s of this.buildSpots) {
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.beginPath();
+      ctx.roundRect(-pad / 2, -pad / 2, pad, pad, 9);
+      ctx.fillStyle = "rgba(122,102,66,0.30)";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(86,70,44,0.42)";
+      ctx.stroke();
+      // small inner highlight so the pad reads as a raised slab
+      ctx.beginPath();
+      ctx.roundRect(-pad / 2 + 4, -pad / 2 + 4, pad - 8, pad - 8, 6);
+      ctx.strokeStyle = "rgba(230,214,170,0.18)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // decorations (behind units) — trees are tall, draw sorted by y
     const sorted = this.decos.slice().sort((a, b) => a.y - b.y);

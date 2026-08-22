@@ -236,7 +236,7 @@ export class Tower {
 
   private fire(game: Game, target: Enemy, s: TowerStats): void {
     const ox = this.x;
-    const oy = this.y - 26;
+    const oy = this.y - 22;
     // trigger attack animation
     if (this.animDef && !this.animDef.loop) this.anim.playOnce();
     const angle = Math.atan2(target.visualY - oy, target.x - ox);
@@ -261,9 +261,9 @@ export class Tower {
     // building
     const b = assets.building(color, this.def.building);
     const bAsset = asAsset(b);
-    // scale building to fit ~1.1x tile
-    const bs = 0.95;
-    drawSprite(ctx, assets, bAsset, 0, this.x, this.y + 4, { scale: bs });
+    // towers occupy roughly a single tile; keep them compact on the larger map
+    const bs = 0.46;
+    drawSprite(ctx, assets, bAsset, 0, this.x, this.y + 6, { scale: bs });
 
     // unit operator in front
     if (this.def.unit || this.type === "cannon") {
@@ -273,7 +273,7 @@ export class Tower {
         : assets.unit(color, this.def.unit ?? "warrior", "idle");
       const idx = showAnim ? this.anim.frameIdx : this.idle.frameIdx;
       const flip = this.facing < 0;
-      drawSprite(ctx, assets, def, idx, this.x + (flip ? -10 : 10), this.y - 2, { scale: 1, flipX: flip });
+      drawSprite(ctx, assets, def, idx, this.x + (flip ? -7 : 7), this.y, { scale: 0.62, flipX: flip });
     }
 
     // level pips

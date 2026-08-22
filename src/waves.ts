@@ -27,12 +27,17 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
 
   const available: EnemyType[] = ["pawn"];
   if (N >= 2) available.push("archer");
-  if (N >= 3) available.push("warrior");
-  if (N >= 4) available.push("mushroom");
+  if (N >= 3) {
+    available.push("warrior");
+    available.push("mushroom");
+    available.push("mantis");
+  }
+  if (N >= 4) available.push("beetle");
   if (N >= 5) {
     available.push("lancer");
     available.push("skeleton");
   }
+  if (N >= 6) available.push("fly3");
   if (N >= 7) {
     available.push("healer");
     available.push("flydemon");
@@ -47,21 +52,31 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
     mushroom: 0,
     skeleton: 0,
     flydemon: 0,
+    mantis: 0,
+    beetle: 0,
+    fly3: 0,
     boss: 0,
   };
   // introduce + shift weight toward new/tougher types over time
-  if (N >= 4) weights.mushroom = 5;
+  if (N >= 3) {
+    weights.mushroom = 5;
+    weights.mantis = 4;
+  }
+  if (N >= 4) weights.beetle = 4;
   if (N >= 5) weights.skeleton = 4;
-  if (N >= 6) weights.warrior += 2;
+  if (N >= 6) weights.fly3 = 3;
   if (N >= 7) weights.flydemon = 4;
   if (N >= 8) {
+    weights.warrior += 2;
     weights.lancer += 2;
     weights.healer += 1;
     weights.skeleton += 1;
   }
+  if (N >= 9) weights.fly3 += 2;
   if (N >= 10) {
     weights.flydemon += 1;
-    weights.mushroom += 1;
+    weights.mantis += 1;
+    weights.beetle += 1;
   }
 
   let count = 5 + Math.floor(N * 1.35);

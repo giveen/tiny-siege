@@ -2868,6 +2868,55 @@
    "anchor": "bottom-center",
    "fps": 10,
    "loop": true
+  },
+  "mantis": {
+   "frames": [
+    "enemies/mantis_0.png",
+    "enemies/mantis_1.png",
+    "enemies/mantis_2.png",
+    "enemies/mantis_3.png"
+   ],
+   "cell": [
+    28,
+    123
+   ],
+   "anchor": "bottom-center",
+   "fps": 13,
+   "loop": true
+  },
+  "beetle": {
+   "frames": [
+    "enemies/beetle_0.png",
+    "enemies/beetle_1.png",
+    "enemies/beetle_2.png",
+    "enemies/beetle_3.png"
+   ],
+   "cell": [
+    22,
+    111
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "fly3": {
+   "frames": [
+    "enemies/fly3_0.png",
+    "enemies/fly3_1.png",
+    "enemies/fly3_2.png",
+    "enemies/fly3_3.png",
+    "enemies/fly3_4.png",
+    "enemies/fly3_5.png",
+    "enemies/fly3_6.png",
+    "enemies/fly3_7.png"
+   ],
+   "cell": [
+    40,
+    53
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
   }
  }
 }

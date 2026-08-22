@@ -508,6 +508,11 @@ def main():
         "Skeletons_Free_Pack/Skeleton_Sword/Skeleton_Yellow/Skeleton_Without_VFX/Skeleton_01_Yellow_Walk.png", fps=12)
     # Minotaur — the boss (walk row of the grid)
     special_grid_row("minotaur", "Minotaur - Sprite Sheet.png", row=1, fps=10)
+    # Insects — small ground bugs (variable-width strips)
+    special_anim("mantis", "Animated insect enemy assets/MantisMove.png", fps=13)
+    special_anim("beetle", "Animated insect enemy assets/BeetleMove.png", fps=9)
+    # Enemy3 — a second, smaller flying type
+    special_anim("fly3", "FlyingForestEnemies_FREE/Enemy3/Enemy3-Movement-In-Animation/Enemy3-Fly.png", fps=11)
 
     # ---- write manifest --------------------------------------------------
     mpath = os.path.join(OUT, "manifest.json")
