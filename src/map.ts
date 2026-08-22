@@ -14,27 +14,27 @@ export const cellKey = (c: number, r: number) => `${c},${r}`;
 // appears, the enemy route gets longer, and a few more pads are carved out.
 //
 // The stage routes form a CUMULATIVE chain: every route still traverses the
-// previous stage's walk (only the spawn side and length change), so growing
-// never strands a player's towers far from the road. Build spots are never
-// placed on a cell of ANY stage's route, so a newly revealed route can never
-// cross a player's tower. Every route spawns over the top water and ends at
-// the castle.
+// previous stage's walk in full (only the spawn side and length change), so
+// growing never strands a player's towers far from the road. The growth
+// always extends the top edge to the RIGHT: each stage adds a new entrance
+// over the top water and lengthens the straight run along the top row, so
+// the island keeps expanding along the top of the map and the left side is
+// never touched. Build spots are never placed on a cell of ANY stage's
+// route, so a newly revealed route can never cross a player's tower.
 //
-//   stage 1: spawn W,  row 1  6→12, drop col 12, row 2 12→16, tail
-//   stage 2: spawn E,  over the TOP row (24→6), then stage 1's exact walk
-//   stage 3: spawn far W, row 1 2→24 (both arms), row 2 24→16, tail
+//   stage 1: spawn top col 17, top-row run 17→12, drop col 12, row 2 12→16, tail
+//   stage 2: spawn top col 21, top-row run 21→12, then stage 1's exact walk
+//   stage 3: spawn top col 26, top-row run 26→12, then stage 2's exact walk
 
 const STAGE_WAYPOINTS: [number, number][][] = [
   // Stage 0 (waves 1-5): a compact S — the opening island.
   [[12, -1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
-  // Stage 1 (waves 6-10): the western arm joins in.
-  [[6, -1], [6, 1], [12, 1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
-  // Stage 2 (waves 11-15): the eastern arm joins in; the walk detours over
-  // the top row and then follows stage 1's walk, so western towers stay live.
-  [[24, -1], [24, 0], [6, 0], [6, 1], [12, 1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
-  // Stage 3 (waves 16+): the full span — one row-1 crossing of both arms,
-  // then row 2 back to the shared tail.
-  [[2, -1], [2, 1], [24, 1], [24, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 1 (waves 6-10): the top-row arm extends right to col 17.
+  [[17, -1], [17, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 2 (waves 11-15): the top-row arm extends to col 21.
+  [[21, -1], [21, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 3 (waves 16+): the top-row arm reaches the far corner (col 26).
+  [[26, -1], [26, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
 ];
 
 /** Which island stage a given (1-based) wave belongs to. */
@@ -198,6 +198,7 @@ export class World {
           nearPath.add(cellKey(c + dc, r + dr));
         }
     }
+    const added: BuildSpot[] = [];
     for (let r = 0; r < ROWS; r++)
       for (let c = 0; c < COLS; c++) {
         if (!this.isGrass(c, r) || (c + r) % 2 !== 0) continue;
@@ -208,7 +209,16 @@ export class World {
         const spot = { c, r, x: p.x, y: p.y };
         this.buildSpots.push(spot);
         this.buildSpotByCell.set(k, spot);
+        added.push(spot);
       }
+    // A pad's slab is a 64px tile but deco sprites (rocks, tree canopies)
+    // spill well beyond their own cell — keep the pad's ring clear so a rock
+    // never sits on top of a freshly carved spot.
+    if (added.length > 0)
+      this.decos = this.decos.filter((d) => {
+        const [dc, dr] = d.cell.split(",").map(Number);
+        return !added.some((s) => Math.abs(s.c - dc) <= 1 && Math.abs(s.r - dr) <= 1);
+      });
   }
 
   /**
@@ -238,13 +248,23 @@ export class World {
     spot.x = p.x;
     spot.y = p.y;
     this.buildSpotByCell.set(cellKey(c, r), spot);
-    this.decos = this.decos.filter((d) => d.cell !== cellKey(c, r));
+    // Clear the whole 3x3 ring so no neighbouring rock/canopy covers the slab.
+    this.decos = this.decos.filter((d) => {
+      const [dc, dr] = d.cell.split(",").map(Number);
+      return Math.abs(dc - c) > 1 || Math.abs(dr - r) > 1;
+    });
     this.renderBackground(this.bg.getContext("2d")!);
   }
 
   /** Grass cells carrying no route / pad / castle — deco candidates.
-   *  ANY stage's route is excluded so a tree never sits under a future road. */
+   *  ANY stage's route is excluded so a tree never sits under a future road.
+   *  The 3x3 ring around every pad is excluded too, because deco sprites
+   *  (rocks, tree canopies) spill past their cell and would cover the slab. */
   private freeCells(): Set<string> {
+    const padRing = new Set<string>();
+    for (const s of this.buildSpots)
+      for (let dc = -1; dc <= 1; dc++)
+        for (let dr = -1; dr <= 1; dr++) padRing.add(cellKey(s.c + dc, s.r + dr));
     const free = new Set<string>();
     for (let r = 0; r < ROWS; r++)
       for (let c = 0; c < COLS; c++) {
@@ -254,6 +274,7 @@ export class World {
           !this.pathCells.has(k) &&
           !RESERVED_CELLS.has(k) &&
           !this.buildSpotByCell.has(k) &&
+          !padRing.has(k) &&
           !this.castleCells.has(k)
         )
           free.add(k);

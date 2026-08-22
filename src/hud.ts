@@ -116,10 +116,15 @@ export class Hud {
           : 0;
       const hintH = !t.spec && !t.specReady ? 16 : 0;
       const ph = headH + tracks.length * (btnH + btnGap) + specSection * (btnH + btnGap) + hintH + btnH + 16;
-      let px = t.x + 44;
-      let py = t.y - ph / 2;
-      px = Math.min(Math.max(8, px), WORLD_W - pw - 8);
-      py = Math.min(Math.max(8, py), WORLD_H - ph - 8);
+      // The panel is drawn in screen space, so anchor it to the tower's
+      // on-screen position (world -> canvas through the camera).
+      const z = game.cam.zoom,
+        cx = game.cam.x,
+        cy = game.cam.y;
+      let px = t.x * z + cx + 44;
+      let py = t.y * z + cy - ph / 2;
+      px = Math.min(Math.max(8, px), CANVAS_W - pw - 8);
+      py = Math.min(Math.max(8, py), CANVAS_H - ph - 8);
       const upgrades = tracks.map((track, i) => ({
         track,
         rect: { x: px + ppad, y: py + headH + i * (btnH + btnGap), w: pw - ppad * 2, h: btnH },
@@ -766,13 +771,15 @@ export class Hud {
       "• Spend runes in The Codex on relics that carry over between sieges.",
       "",
       "Keys: 1-6 build · Space start wave · P pause · F speed · M mute · Esc cancel",
+      "Mouse: drag the map to slide around · wheel to zoom in and out",
       "",
       "Click anywhere to close.",
     ];
     ctx.font = "700 22px 'Segoe UI', sans-serif";
     let y = 120;
     for (const ln of lines) {
-      ctx.fillStyle = ln.startsWith("HOW") ? "#ffd24a" : ln.startsWith("Keys") ? "#8fd0ff" : "#dcecf4";
+      ctx.fillStyle =
+        ln.startsWith("HOW") ? "#ffd24a" : ln.startsWith("Keys") || ln.startsWith("Mouse") ? "#8fd0ff" : "#dcecf4";
       ctx.fillText(ln, 120, y);
       y += 30;
     }

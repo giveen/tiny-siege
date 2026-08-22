@@ -18,6 +18,7 @@ import {
   type UpgradeTrack,
 } from "./tower";
 import { Projectile, type SpecMods } from "./projectile";
+import { clamp } from "./util";
 import { Soldier } from "./soldier";
 import { Fx } from "./fx";
 import { generateWave, type SpawnEntry } from "./waves";
@@ -127,7 +128,20 @@ export class Game {
   _showHelp = false;
   _showCodex = false;
   _showArmory = false;
+  /** World-space cursor (through the camera). */
   mouse = { x: 0, y: 0, over: false };
+  /** Canvas-space cursor — the HUD is screen-space, so it clicks here. */
+  mouseCanvas = { x: 0, y: 0 };
+
+  /**
+   * World viewport camera. x/y are the pan offset in canvas px (the world's
+   * top-left in canvas space); zoom is a multiplier (1 = whole island fits).
+   * Drag to pan, wheel to zoom in around the cursor; zoom < 1 is not
+   * allowed so the viewport never shows past the world's edges.
+   */
+  cam = { x: 0, y: 0, zoom: 1 };
+  static readonly CAM_ZOOM_MIN = 1;
+  static readonly CAM_ZOOM_MAX = 3;
 
   // intermission boons
   boonChoices: Boon[] = [];
@@ -372,6 +386,7 @@ export class Game {
     this.rng = this.rngSeed != null ? new RNG(this.rngSeed) : new RNG();
     this.world = new World(this.assets, this.rng);
     if (this.debugStage > 0) this.world.growToStage(this.debugStage);
+    this.cam = { x: 0, y: 0, zoom: 1 };
     this.castle.x = this.world.castlePos.x;
     this.castle.y = this.world.castlePos.y;
     // Meta-progression: apply purchased relics to this run's starting state.
@@ -975,9 +990,27 @@ export class Game {
   // ---------------------------------------------------------------- input
   private handleInput(): void {
     if (this.screen === "loading") return;
-    this.mouse.x = this.input.world.x;
-    this.mouse.y = this.input.world.y;
-    this.mouse.over = this.mouse.x >= 0 && this.mouse.x <= WORLD_W && this.mouse.y >= 0 && this.mouse.y <= WORLD_H;
+    // Camera input is consumed on every screen so a wheel/drag queued during
+    // a screen transition never fires on the next one.
+    const wheel = this.input.consumeWheel();
+    const pan = this.input.consumePan();
+    if (this.screen === "game") {
+      if (pan.x !== 0 || pan.y !== 0) {
+        this.cam.x += pan.x;
+        this.cam.y += pan.y;
+        this.clampCam();
+      }
+      if (wheel !== 0) this.zoomAt(this.input.world.x, this.input.world.y, wheel);
+    }
+    const z = this.screen === "game" ? this.cam.zoom : 1;
+    const ox = this.screen === "game" ? this.cam.x : 0;
+    const oy = this.screen === "game" ? this.cam.y : 0;
+    this.mouseCanvas.x = this.input.world.x;
+    this.mouseCanvas.y = this.input.world.y;
+    this.mouse.x = (this.input.world.x - ox) / z;
+    this.mouse.y = (this.input.world.y - oy) / z;
+    this.mouse.over =
+      this.mouse.x >= 0 && this.mouse.x <= WORLD_W && this.mouse.y >= 0 && this.mouse.y <= WORLD_H;
 
     // global keys
     if (this.input.key("KeyP") && !this._pKey) this.togglePause();
@@ -1019,21 +1052,23 @@ export class Game {
     // Any click is a user gesture: safe to unlock (resume) the AudioContext.
     this.audio.unlock();
 
+    // The HUD lives in screen space (unaffected by the camera), so it is
+    // hit-tested with the raw canvas cursor.
     if (this.screen === "menu") {
-      this.hud.handleMenuClick(this, this.mouse);
+      this.hud.handleMenuClick(this, this.mouseCanvas);
       return;
     }
     if (this.screen === "over") {
-      this.hud.handleOverClick(this, this.mouse);
+      this.hud.handleOverClick(this, this.mouseCanvas);
       return;
     }
     if (this.screen === "victory") {
-      this.hud.handleVictoryClick(this, this.mouse);
+      this.hud.handleVictoryClick(this, this.mouseCanvas);
       return;
     }
 
     // game screen: HUD first
-    if (this.hud.handleClick(this, this.mouse)) return;
+    if (this.hud.handleClick(this, this.mouseCanvas)) return;
 
     if (this.wavePhase === "boon") {
       // handled by HUD (modal covers)
@@ -1116,6 +1151,25 @@ export class Game {
     this.selectedTower = null;
   }
 
+  /** Wheel zoom centered on the cursor (cx/cy in canvas px). */
+  private zoomAt(cx: number, cy: number, deltaY: number): void {
+    const z0 = this.cam.zoom;
+    const z1 = clamp(z0 * Math.exp(-deltaY * 0.0012), Game.CAM_ZOOM_MIN, Game.CAM_ZOOM_MAX);
+    if (z1 === z0) return;
+    // Keep the world point under the cursor fixed while zooming.
+    this.cam.x = cx - ((cx - this.cam.x) / z0) * z1;
+    this.cam.y = cy - ((cy - this.cam.y) / z0) * z1;
+    this.cam.zoom = z1;
+    this.clampCam();
+  }
+
+  /** The zoomed world must always cover the viewport (no water gaps). */
+  private clampCam(): void {
+    const z = this.cam.zoom;
+    this.cam.x = clamp(this.cam.x, WORLD_W - WORLD_W * z, 0);
+    this.cam.y = clamp(this.cam.y, WORLD_H - WORLD_H * z, 0);
+  }
+
   togglePause(): void {
     if (this.screen !== "game") return;
     this.paused = !this.paused;
@@ -1168,6 +1222,14 @@ export class Game {
 
     // world
     ctx.save();
+    // Clip to the world viewport, then apply the camera (pan + zoom).
+    ctx.beginPath();
+    ctx.rect(0, 0, WORLD_W, WORLD_H);
+    ctx.clip();
+    if (this.cam.zoom !== 1 || this.cam.x !== 0 || this.cam.y !== 0) {
+      ctx.translate(this.cam.x, this.cam.y);
+      ctx.scale(this.cam.zoom, this.cam.zoom);
+    }
     if (this.shake > 0) {
       const s = this.shake * 6;
       ctx.translate((this.rng.next() - 0.5) * s, (this.rng.next() - 0.5) * s);
