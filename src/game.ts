@@ -34,6 +34,9 @@ import {
   metaDamageMult,
   metaGoldMult,
   metaStartTowers,
+  metaCostMult,
+  metaRangeMult,
+  metaRateMult,
   RELICS,
   type MetaState,
 } from "./meta";
@@ -103,6 +106,10 @@ export class Game {
   buffs: Buffs = defaultBuffs();
   archerDamageMult = 1;
   archerSpeedMult = 1;
+  /** Codex relic multipliers (recomputed per run). */
+  metaCostMult = 1; // Quartermaster: build/upgrade cost scale (<1)
+  metaRangeMult = 1; // Lookouts: tower range scale (>1)
+  metaRateMult = 1; // War Drums: tower fire-rate scale (>1)
   unlocked: Set<TowerType> = new Set(["archer"]);
   private boonCounts: Record<string, number> = {};
 
@@ -273,7 +280,7 @@ export class Game {
       let placed = 0;
       for (const s of spots) {
         if (placed >= 3) break;
-        if (this.gold >= TOWER_DEFS.archer.cost && !this.towerAt(s.c, s.r)) {
+        if (this.gold >= this.towerCost("archer") && !this.towerAt(s.c, s.r)) {
           this.buildTower("archer", s);
           placed++;
         }
@@ -401,6 +408,9 @@ export class Game {
     this.buffs.damageMult = metaDamageMult(relicLevel(this.meta, "armory"));
     this.buffs.goldKillMult = metaGoldMult(relicLevel(this.meta, "mint"));
     this.buffs.goldWaveMult = metaGoldMult(relicLevel(this.meta, "mint"));
+    this.metaCostMult = metaCostMult(relicLevel(this.meta, "quartermaster"));
+    this.metaRangeMult = metaRangeMult(relicLevel(this.meta, "lookouts"));
+    this.metaRateMult = metaRateMult(relicLevel(this.meta, "drums"));
     this.archerDamageMult = 1;
     this.archerSpeedMult = 1;
     this.unlocked = new Set(TOWER_ORDER.slice(0, metaStartTowers(relicLevel(this.meta, "recruit"))));
@@ -522,12 +532,22 @@ export class Game {
     }
   }
 
+  /** Build cost after the Quartermaster relic. */
+  towerCost(type: TowerType): number {
+    return Math.max(1, Math.round(TOWER_DEFS[type].cost * this.metaCostMult));
+  }
+
+  /** Per-track upgrade cost after the Quartermaster relic. */
+  upgradeCostFor(t: Tower, track: UpgradeTrack, lvl: number): number {
+    return Math.max(1, Math.round(upgradeCost(t.type, track, lvl) * this.metaCostMult));
+  }
+
   private demoAutoBuild(): boolean {
     const spots = this.world.buildSpots.filter((s) => !this.towerAt(s.c, s.r));
     if (spots.length === 0) return false;
     const types = TOWER_ORDER.filter((t) => this.unlocked.has(t));
     const type = this.rng.pick(types);
-    if (this.gold < TOWER_DEFS[type].cost) return false;
+    if (this.gold < this.towerCost(type)) return false;
     // bias toward spots with enemies nearby for satisfying fights
     const spot = this.rng.pick(spots);
     return this.buildTower(type, spot);
@@ -810,7 +830,7 @@ export class Game {
 
   // ---------------------------------------------------------------- building
   buildTower(type: TowerType, spot: { c: number; r: number; x: number; y: number }): boolean {
-    const cost = TOWER_DEFS[type].cost;
+    const cost = this.towerCost(type);
     if (this.gold < cost) {
       this.addText(spot.x, spot.y - 20, "Need gold", "#ff9a3c");
       return false;
@@ -826,7 +846,7 @@ export class Game {
 
   upgradeTower(t: Tower, track: UpgradeTrack): void {
     if (t.upg[track] >= MAX_UPGRADE) return;
-    const cost = upgradeCost(t.type, track, t.upg[track]);
+    const cost = this.upgradeCostFor(t, track, t.upg[track]);
     if (this.gold < cost) {
       this.addText(t.x, t.y - 30, "Need gold", "#ff9a3c");
       return;
@@ -859,7 +879,7 @@ export class Game {
   /** Upgrade an already-chosen specialization line. */
   upgradeSpec(t: Tower): void {
     if (!t.spec || t.specLvl >= MAX_SPEC) return;
-    const cost = specUpgradeCost(t.type, t.specLvl);
+    const cost = Math.max(1, Math.round(specUpgradeCost(t.type, t.specLvl) * this.metaCostMult));
     if (this.gold < cost) {
       this.addText(t.x, t.y - 30, "Need gold", "#ff9a3c");
       return;
@@ -1093,7 +1113,7 @@ export class Game {
       if (spot) {
         this.buildTower(this.placing, spot);
         // keep placing if still affordable
-        if (this.gold < TOWER_DEFS[this.placing].cost) this.placing = null;
+        if (this.gold < this.towerCost(this.placing)) this.placing = null;
       }
       return;
     }
@@ -1303,7 +1323,7 @@ export class Game {
     const s = this.spotAtWorld(this.mouse.x, this.mouse.y);
     const x = s ? s.x : this.mouse.x;
     const y = s ? s.y : this.mouse.y;
-    const valid = !!s && !this.towerAt(s.c, s.r) && this.gold >= TOWER_DEFS[this.placing].cost;
+    const valid = !!s && !this.towerAt(s.c, s.r) && this.gold >= this.towerCost(this.placing);
     const def = TOWER_DEFS[this.placing];
     // range
     ctx.save();

@@ -290,7 +290,8 @@ export class Tower {
       (1 + (this.spec === "vanguard" ? 0.35 * this.specLvl : 0)) *
       (1 + eq.damage);
     const deploy =
-      (13 * (1 - 0.08 * this.upg.rate) * (1 - (this.spec === "drill" ? 0.15 * this.specLvl : 0))) / (1 + eq.rate);
+      (13 * (1 - 0.08 * this.upg.rate) * (1 - (this.spec === "drill" ? 0.15 * this.specLvl : 0))) /
+      ((1 + eq.rate) * game.metaRateMult);
     const maxOut = 1 + Math.floor(this.upg.range / 2);
     return { hp, dmg, deploy, maxOut };
   }
@@ -330,6 +331,10 @@ export class Tower {
     range *= b.rangeMult;
     splash *= b.splashMult;
     pierce += b.pierceBonus;
+
+    // Codex relics: permanent fire-rate / range bonuses.
+    rate *= game.metaRateMult;
+    range *= game.metaRangeMult;
 
     // archer-specific boon multipliers
     if (this.type === "archer") {
@@ -374,7 +379,7 @@ export class Tower {
     const d = this.def;
     const eq = game.equipFor(this.type);
     const ground = this.spec === "ground" ? 1 + 0.25 * this.specLvl : 1;
-    const range = d.range * (1 + 0.15 * this.upg.range) * (1 + eq.range) * game.buffs.rangeMult * ground;
+    const range = d.range * (1 + 0.15 * this.upg.range) * (1 + eq.range) * game.buffs.rangeMult * game.metaRangeMult * ground;
     return {
       damage: 0,
       rate: 0,

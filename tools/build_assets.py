@@ -756,6 +756,9 @@ def main():
         "mint": "tile020.png",        # gold ring — wealth
         "sage": "tile010.png",        # red mage hood — insight
         "recruit": "tile002.png",     # viking horn helm — the old guard
+        "quartermaster": "tile016.png",  # plain green ring — the steward's seal
+        "lookouts": "tile014.png",    # grey cowl — watchful eyes
+        "drums": "tile035.png",       # armored boots — the marching cadence
     }
     relic_icons = {}
     for rid, tile in RELIC_TILES.items():

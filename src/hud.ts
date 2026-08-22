@@ -382,7 +382,8 @@ export class Hud {
       const def = TOWER_DEFS[t];
       const unlocked = game.unlocked.has(t);
       const placing = game.placing === t;
-      const afford = game.gold >= def.cost;
+      const cost = game.towerCost(t);
+      const afford = game.gold >= cost;
       this.panel(ctx, r, 8);
       if (placing) {
         ctx.save();
@@ -413,7 +414,7 @@ export class Hud {
         ctx.fillText("🔒 Locked", r.x + 60, r.y + 46);
       } else {
         ctx.fillStyle = afford ? "#ffd24a" : "#e07a5a";
-        ctx.fillText(`${def.cost}  gold`, r.x + 60, r.y + 46);
+        ctx.fillText(`${cost}  gold`, r.x + 60, r.y + 46);
       }
       ctx.fillStyle = "rgba(180,210,225,0.7)";
       ctx.font = "500 10px 'Segoe UI', sans-serif";
@@ -479,7 +480,7 @@ export class Hud {
         if (lvl >= MAX_UPGRADE) {
           this.button(ctx, u.rect, `${label}  ·  MAX`, { bg: "#3a4a52", disabled: true, small: true });
         } else {
-          const cost = upgradeCost(t.type, u.track, lvl);
+          const cost = Math.round(upgradeCost(t.type, u.track, lvl) * game.metaCostMult);
           this.button(ctx, u.rect, `⬆ ${label}  ${cost}g`, { active: true, disabled: game.gold < cost, small: true });
         }
       }
@@ -489,7 +490,7 @@ export class Hud {
         if (t.specLvl >= MAX_SPEC) {
           this.button(ctx, specUp, `⚑ ${sd?.name}  ·  L3 MAX`, { bg: "#3a4a52", disabled: true, small: true });
         } else {
-          const cost = specUpgradeCost(t.type, t.specLvl);
+          const cost = Math.round(specUpgradeCost(t.type, t.specLvl) * game.metaCostMult);
           this.button(ctx, specUp, `⚑ ${sd?.name} → L${t.specLvl + 1}  ${cost}g`, { active: true, disabled: game.gold < cost, small: true });
         }
       } else {
@@ -935,17 +936,26 @@ export class Hud {
 
   // ------------------------------------------------------------- codex (meta)
   private codexLayout() {
-    const panel = { x: 536, y: 96, w: 960, h: 872 } as Rect;
-    const header = { x: 576, y: 126, w: 880, h: 176 } as Rect;
+    const panel = { x: 446, y: 80, w: 1140, h: 860 } as Rect;
+    const header = { x: 486, y: 108, w: 1060, h: 176 } as Rect;
+    // Two columns of up to five relic rows — the tree keeps fitting as it grows.
+    const colW = 520,
+      colGap = 20,
+      rowH = 92,
+      rowGap = 10,
+      x0 = 486,
+      y0 = 316;
     const rows = RELICS.map((r, i) => {
-      const rect = { x: 576, y: 326 + i * 96, w: 880, h: 84 } as Rect;
+      const col = Math.floor(i / 5);
+      const row = i % 5;
+      const rect = { x: x0 + col * (colW + colGap), y: y0 + row * (rowH + rowGap), w: colW, h: rowH } as Rect;
       return {
         id: r.id,
         rect,
-        buy: { x: rect.x + rect.w - 30 - 172, y: rect.y + 21, w: 172, h: 42 } as Rect,
+        buy: { x: rect.x + rect.w - 152, y: rect.y + 12, w: 140, h: 36 } as Rect,
       };
     });
-    const close = { x: CANVAS_W / 2 - 110, y: 908, w: 220, h: 52 } as Rect;
+    const close = { x: CANVAS_W / 2 - 110, y: 828, w: 220, h: 52 } as Rect;
     return { panel, header, rows, close };
   }
 
@@ -1067,29 +1077,29 @@ export class Hud {
       const iconPath = relicIcons[relic.id];
       if (iconPath) {
         const im = this.assets.img(iconPath);
-        if (im) ctx.drawImage(im, r.x + 16, r.y + 16, 52, 52);
+        if (im) ctx.drawImage(im, r.x + 14, r.y + 12, 48, 48);
       }
 
       ctx.save();
       ctx.textAlign = "left";
       ctx.fillStyle = "#3a2a18";
-      ctx.font = "700 19px 'Segoe UI', sans-serif";
-      ctx.fillText(relic.name, r.x + 84, r.y + 36);
+      const ns = this.fitSize(relic.name, "700", 18, 14, r.w - 72 - 156);
+      ctx.font = `700 ${ns}px 'Segoe UI', sans-serif`;
+      ctx.fillText(relic.name, r.x + 72, r.y + 34);
       ctx.fillStyle = "#5a4632";
-      ctx.font = "600 14px 'Segoe UI', sans-serif";
-      ctx.fillText(relic.blurb, r.x + 84, r.y + 60);
+      ctx.font = "600 13px 'Segoe UI', sans-serif";
+      ctx.fillText(relic.blurb, r.x + 72, r.y + 56);
       // current effect
       ctx.fillStyle = lvl > 0 ? "#8a5a10" : "rgba(58,42,24,0.45)";
-      ctx.font = "700 15px 'Segoe UI', sans-serif";
-      ctx.textAlign = "right";
-      ctx.fillText(lvl > 0 ? relic.effect(lvl) : "—", r.x + r.w - 216, r.y + 36);
+      ctx.font = "700 14px 'Segoe UI', sans-serif";
+      ctx.fillText(lvl > 0 ? relic.effect(lvl) : "— not yet purchased", r.x + 72, r.y + 80);
       ctx.restore();
 
-      // level pips
+      // level pips (right-anchored on the effect line)
       ctx.save();
       for (let i = 0; i < relic.maxLevel; i++) {
         ctx.beginPath();
-        ctx.arc(r.x + r.w - 320 + i * 18, r.y + 56, 5, 0, Math.PI * 2);
+        ctx.arc(r.x + r.w - 30 - (relic.maxLevel - 1 - i) * 16, r.y + 76, 5, 0, Math.PI * 2);
         ctx.fillStyle = i < lvl ? "#c98a2e" : "rgba(58,42,24,0.18)";
         ctx.fill();
       }
@@ -1098,12 +1108,12 @@ export class Hud {
       // buy button — teal 9-slice
       ctx.save();
       if (!canBuy) ctx.globalAlpha = 0.55;
-      this.uiNine(ctx, u.buttons.sq_blue, row.buy.x, row.buy.y, row.buy.w, row.buy.h, 20, 12);
+      this.uiNine(ctx, u.buttons.sq_blue, row.buy.x, row.buy.y, row.buy.w, row.buy.h, 16, 10);
       ctx.globalAlpha = 1;
       ctx.textAlign = "center";
       ctx.fillStyle = "#0f2a33";
-      ctx.font = "800 16px 'Segoe UI', sans-serif";
-      ctx.fillText(maxed ? "MAX" : `Buy  ${cost} ◆`, row.buy.x + row.buy.w / 2, row.buy.y + row.buy.h / 2 + 6);
+      ctx.font = "800 15px 'Segoe UI', sans-serif";
+      ctx.fillText(maxed ? "MAX" : `Buy ${cost} ◆`, row.buy.x + row.buy.w / 2, row.buy.y + row.buy.h / 2 + 5);
       ctx.restore();
     }
 
@@ -1314,23 +1324,25 @@ export class Hud {
       if (img) ctx.drawImage(img, row.rect.x + 12, row.rect.y + 15, 44, 44);
 
       ctx.save();
+      // Name left, tier right-anchored so long names can never collide with it.
+      const ns = this.fitSize(def.name, "700", 17, 13, row.rect.w - 70 - 48);
       ctx.textAlign = "left";
       ctx.fillStyle = "#eaf6ff";
-      ctx.font = "700 17px 'Segoe UI', sans-serif";
+      ctx.font = `700 ${ns}px 'Segoe UI', sans-serif`;
       ctx.fillText(def.name, row.rect.x + 70, row.rect.y + 28);
       ctx.fillStyle = TIER_COLORS[row.inst.tier];
       ctx.font = "800 14px 'Segoe UI', sans-serif";
-      ctx.fillText(
-        `T${row.inst.tier}`,
-        row.rect.x + 70 + this.txtW(def.name, "700 17px 'Segoe UI', sans-serif") + 10,
-        row.rect.y + 28
-      );
+      ctx.textAlign = "right";
+      ctx.fillText(`T${row.inst.tier}`, row.rect.x + row.rect.w - 12, row.rect.y + 28);
+      // Bonus left, slot/tower right-anchored on the second line.
+      ctx.textAlign = "left";
       ctx.fillStyle = "#9fd8a8";
       ctx.font = "700 13px 'Segoe UI', sans-serif";
       ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
       ctx.fillStyle = "#8fb8c8";
       ctx.font = "600 12px 'Segoe UI', sans-serif";
-      ctx.fillText(`${SLOT_LABEL[def.slot]} · ${TOWER_DEFS[def.tower].name}`, row.rect.x + 70 + this.txtW(gearBonusText(def, row.inst.tier), "700 13px 'Segoe UI', sans-serif") + 14, row.rect.y + 50);
+      ctx.textAlign = "right";
+      ctx.fillText(`${SLOT_LABEL[def.slot]} · ${TOWER_DEFS[def.tower].name}`, row.rect.x + row.rect.w - 12, row.rect.y + 50);
       ctx.restore();
     }
 
@@ -1378,16 +1390,22 @@ export class Hud {
         const img = this.assets.img(icons[def.icon]);
         if (img) ctx.drawImage(img, s.rect.x + 12, s.rect.y + 18, 52, 52);
         ctx.save();
+        // Name shrinks to fit the card; tier sits right-anchored beside it.
+        const ns = this.fitSize(def.name, "700", 16, 11, s.rect.w - 78 - 34);
         ctx.textAlign = "left";
         ctx.fillStyle = "#eaf6ff";
-        ctx.font = "700 16px 'Segoe UI', sans-serif";
+        ctx.font = `700 ${ns}px 'Segoe UI', sans-serif`;
         ctx.fillText(def.name, s.rect.x + 78, s.rect.y + 34);
         ctx.fillStyle = TIER_COLORS[cur.tier];
         ctx.font = "800 13px 'Segoe UI', sans-serif";
-        ctx.fillText(`T${cur.tier}`, s.rect.x + 78, s.rect.y + 56);
+        ctx.textAlign = "right";
+        ctx.fillText(`T${cur.tier}`, s.rect.x + s.rect.w - 10, s.rect.y + 34);
+        ctx.textAlign = "left";
         ctx.fillStyle = "#9fd8a8";
         ctx.font = "700 13px 'Segoe UI', sans-serif";
-        ctx.fillText(gearBonusText(def, cur.tier), s.rect.x + 108, s.rect.y + 56);
+        const bs = this.fitSize(gearBonusText(def, cur.tier), "700", 13, 10, s.rect.w - 88);
+        ctx.font = `700 ${bs}px 'Segoe UI', sans-serif`;
+        ctx.fillText(gearBonusText(def, cur.tier), s.rect.x + 78, s.rect.y + 56);
         ctx.restore();
       } else {
         ctx.save();
@@ -1495,16 +1513,14 @@ export class Hud {
       ctx.save();
       if (!affordable) ctx.globalAlpha = 0.6;
       ctx.textAlign = "left";
+      const prog = maxed ? `T${row.inst.tier} MAX` : `T${row.inst.tier} → T${row.inst.tier + 1}`;
+      const ns = this.fitSize(def.name, "700", 17, 13, row.rect.w - 70 - this.txtW(prog, "800 14px 'Segoe UI', sans-serif") - 84);
       ctx.fillStyle = "#eaf6ff";
-      ctx.font = "700 17px 'Segoe UI', sans-serif";
+      ctx.font = `700 ${ns}px 'Segoe UI', sans-serif`;
       ctx.fillText(def.name, row.rect.x + 70, row.rect.y + 28);
       ctx.fillStyle = TIER_COLORS[row.inst.tier];
       ctx.font = "800 14px 'Segoe UI', sans-serif";
-      ctx.fillText(
-        maxed ? `T${row.inst.tier} MAX` : `T${row.inst.tier} → T${row.inst.tier + 1}`,
-        row.rect.x + 70 + this.txtW(def.name, "700 17px 'Segoe UI', sans-serif") + 16,
-        row.rect.y + 28
-      );
+      ctx.fillText(prog, row.rect.x + 70 + this.txtW(def.name, `700 ${ns}px 'Segoe UI', sans-serif`) + 16, row.rect.y + 28);
       ctx.fillStyle = "#9fd8a8";
       ctx.font = "700 13px 'Segoe UI', sans-serif";
       ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
@@ -1536,13 +1552,20 @@ export class Hud {
   }
 
   /** Measure text width without disturbing the caller's font. */
+  private _measureCtx: CanvasRenderingContext2D | null = null;
   private txtW(text: string, font: string): number {
-    // Cheap approximation: ~0.52em per char for the Segoe UI weights we use.
-    // The font string looks like "700 17px 'Segoe UI', sans-serif" — parse the
-    // size off the "NNpx" part, not the leading weight.
-    const m = /(\d+(?:\.\d+)?)px/.exec(font);
-    const size = m ? parseFloat(m[1]) : 14;
-    return text.length * size * 0.52;
+    if (!this._measureCtx) this._measureCtx = document.createElement("canvas").getContext("2d");
+    const c = this._measureCtx;
+    if (!c) return text.length * 9; // conservative fallback
+    c.font = font;
+    return c.measureText(text).width;
+  }
+
+  /** Largest font size (>= min) at which `text` fits within maxW px. */
+  private fitSize(text: string, weight: string, base: number, min: number, maxW: number): number {
+    let size = base;
+    while (size > min && this.txtW(text, `${weight} ${size}px 'Segoe UI', sans-serif`) > maxW) size -= 0.5;
+    return size;
   }
 
   handleArmoryClick(game: Game, p: { x: number; y: number }): boolean {

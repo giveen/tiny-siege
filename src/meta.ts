@@ -70,10 +70,34 @@ export const RELICS: Relic[] = [
   {
     id: "recruit",
     name: "Old Guard",
-    blurb: "More tower types ready at the start.",
-    maxLevel: 2,
+    blurb: "More tower types ready at the start — all six at max.",
+    maxLevel: 5,
     cost: (l) => 40 + l * 30,
-    effect: (l) => `Start with ${1 + l} tower types`,
+    effect: (l) => `Start with ${1 + l} tower type${l ? "s" : ""}`,
+  },
+  {
+    id: "quartermaster",
+    name: "Quartermaster",
+    blurb: "Builds and upgrades cost less, every run.",
+    maxLevel: 5,
+    cost: (l) => 16 + l * 12,
+    effect: (l) => `-${l * 8}% build & upgrade cost`,
+  },
+  {
+    id: "lookouts",
+    name: "Lookouts",
+    blurb: "Towers spot enemies from farther away.",
+    maxLevel: 5,
+    cost: (l) => 16 + l * 12,
+    effect: (l) => `+${l * 10}% tower range`,
+  },
+  {
+    id: "drums",
+    name: "War Drums",
+    blurb: "Every tower keeps a faster tempo.",
+    maxLevel: 5,
+    cost: (l) => 16 + l * 12,
+    effect: (l) => `+${l * 8}% tower fire rate`,
   },
 ];
 
@@ -130,5 +154,14 @@ export function metaGoldMult(level: number): number {
   return 1 + level * 0.08;
 }
 export function metaStartTowers(level: number): number {
-  return 1 + level; // 1..3 of TOWER_ORDER
+  return 1 + level; // 1..6 of TOWER_ORDER (all types at max)
+}
+export function metaCostMult(level: number): number {
+  return 1 - level * 0.08;
+}
+export function metaRangeMult(level: number): number {
+  return 1 + level * 0.1;
+}
+export function metaRateMult(level: number): number {
+  return 1 + level * 0.08;
 }
