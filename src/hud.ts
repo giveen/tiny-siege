@@ -8,6 +8,8 @@ import { TOWER_DEFS, TOWER_ORDER, MAX_UPGRADE, upgradeCost, tracksFor, trackLabe
 import { RARITY_COLOR } from "./boons";
 import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H } from "./config";
 import { VICTORY_RUNES, RELICS, relicLevel } from "./meta";
+import { GEAR_BY_ID, GEAR_SLOTS, SLOT_LABEL, TIER_COLORS, gearBonusText, type GearSlot } from "./gear";
+import type { TowerType } from "./types";
 import { fmt } from "./util";
 
 interface Rect {
@@ -23,6 +25,9 @@ const inRect = (p: { x: number; y: number }, r: Rect) =>
 export class Hud {
   assets: Assets;
   private layoutCache: ReturnType<Hud["computeLayout"]>;
+  // Armory (menu) temp state
+  private selectedGearUid: string | null = null;
+  private armoryPage = 0;
 
   constructor(assets: Assets) {
     this.assets = assets;
@@ -342,6 +347,14 @@ export class Hud {
       ctx.fillStyle = "rgba(180,210,225,0.7)";
       ctx.font = "500 10px 'Segoe UI', sans-serif";
       ctx.fillText(def.desc.slice(0, 26), r.x + 60, r.y + 62);
+      // gear pip: how many Armory pieces this tower type currently wears
+      const gearCount = GEAR_SLOTS.filter((sl) => game.equippedFor(t, sl)).length;
+      if (gearCount > 0) {
+        ctx.fillStyle = "#c58bff";
+        ctx.font = "800 13px 'Segoe UI', sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(`⚙ ${gearCount}`, r.x + r.w - 10, r.y + 26);
+      }
       ctx.restore();
     }
 
@@ -360,7 +373,7 @@ export class Hud {
       ctx.fillStyle = "#cfe6f0";
       ctx.font = "600 12px 'Segoe UI', sans-serif";
       if (t.type === "monastery") {
-        ctx.fillText(`Aura ${Math.round(s.range)}   Bless +${Math.round(t.buffPower() * 100)}%`, panel.x + 12, panel.y + 44);
+        ctx.fillText(`Aura ${Math.round(s.range)}   Bless +${Math.round(t.buffPower(game) * 100)}%`, panel.x + 12, panel.y + 44);
         ctx.fillStyle = "rgba(180,210,225,0.7)";
         ctx.font = "500 10px 'Segoe UI', sans-serif";
         ctx.fillText("Dmg & fire-rate buff to towers in aura", panel.x + 12, panel.y + 58);
@@ -551,12 +564,13 @@ export class Hud {
 
   // ------------------------------------------------------------- menu / over
   private menuRects() {
-    const w = 280;
+    const w = 300;
     const h = 58;
     return {
-      start: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 30, w, h } as Rect,
-      help: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 100, w, h } as Rect,
-      codex: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 170, w, h } as Rect,
+      start: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 10, w, h } as Rect,
+      help: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 78, w, h } as Rect,
+      codex: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 146, w, h } as Rect,
+      armory: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 214, w, h } as Rect,
     };
   }
 
@@ -599,6 +613,7 @@ export class Hud {
     this.button(ctx, r.start, "⚔  Start Siege", { bg: "#c98a2e", fg: "#1a1206", active: true });
     this.button(ctx, r.help, "How to Play", { small: true });
     this.button(ctx, r.codex, `◆  The Codex   (${game.meta.runes})`, { small: true });
+    this.button(ctx, r.armory, `⚙  The Armory   (${game.meta.gear.owned.length})`, { small: true });
 
     // best
     ctx.save();
@@ -608,7 +623,8 @@ export class Hud {
     ctx.fillText(`Best run: ${game.best} waves`, CANVAS_W / 2, CANVAS_H - 40);
     ctx.restore();
 
-    if (game._showCodex) this.drawCodex(game, ctx);
+    if (game._showArmory) this.drawArmory(game, ctx);
+    else if (game._showCodex) this.drawCodex(game, ctx);
     else if (game._showHelp) this.drawHelp(ctx);
   }
 
@@ -649,6 +665,10 @@ export class Hud {
   }
 
   handleMenuClick(game: Game, p: { x: number; y: number }): void {
+    if (game._showArmory) {
+      this.handleArmoryClick(game, p);
+      return;
+    }
     if (game._showCodex) {
       this.handleCodexClick(game, p);
       return;
@@ -670,6 +690,13 @@ export class Hud {
     }
     if (inRect(p, r.codex)) {
       game._showCodex = true;
+      game.sfx("click");
+      return;
+    }
+    if (inRect(p, r.armory)) {
+      game._showArmory = true;
+      this.selectedGearUid = null;
+      this.armoryPage = 0;
       game.sfx("click");
     }
   }
@@ -897,6 +924,277 @@ export class Hud {
         return true;
       }
     }
+    return true;
+  }
+
+  // ------------------------------------------------------------- armory
+  private armoryLayout(game: Game) {
+    const px = 90;
+    const pw = 720;
+    const colW = 350;
+    const rowH = 74;
+    const gap = 10;
+    const topY = 224;
+
+    // Vault list, sorted by tower → slot → tier (best first), paged 8/page.
+    const owned = game.meta.gear.owned
+      .filter((o) => GEAR_BY_ID.has(o.def))
+      .sort((a, b) => {
+        const da = GEAR_BY_ID.get(a.def)!;
+        const db = GEAR_BY_ID.get(b.def)!;
+        if (da.tower !== db.tower) return TOWER_ORDER.indexOf(da.tower) - TOWER_ORDER.indexOf(db.tower);
+        if (da.slot !== db.slot) return GEAR_SLOTS.indexOf(da.slot) - GEAR_SLOTS.indexOf(db.slot);
+        return b.tier - a.tier;
+      });
+    const perPage = 8;
+    const pages = Math.max(1, Math.ceil(owned.length / perPage));
+    const page = Math.min(Math.max(0, this.armoryPage), pages - 1);
+    const rows = owned.slice(page * perPage, (page + 1) * perPage).map((inst, i) => ({
+      inst,
+      rect: {
+        x: px + (i % 2) * (colW + gap),
+        y: topY + Math.floor(i / 2) * (rowH + gap),
+        w: colW,
+        h: rowH,
+      } as Rect,
+    }));
+
+    // Tower slot columns on the right.
+    const towerX0 = 900;
+    const tw = 240;
+    const tgap = 16;
+    const slots: { tower: TowerType; slot: GearSlot; rect: Rect }[] = [];
+    TOWER_ORDER.forEach((t, i) => {
+      const x = towerX0 + i * (tw + tgap);
+      GEAR_SLOTS.forEach((s, j) => {
+        slots.push({ tower: t, slot: s, rect: { x, y: topY + j * 100, w: tw, h: 88 } });
+      });
+    });
+
+    const prev = { x: px, y: 566, w: 96, h: 44 } as Rect;
+    const next = { x: px + colW + gap, y: 566, w: 96, h: 44 } as Rect;
+    const close = { x: CANVAS_W / 2 - 110, y: 648, w: 220, h: 52 } as Rect;
+    return { px, pw, topY, rows, slots, prev, next, close, page, pages, count: owned.length };
+  }
+
+  private drawArmory(game: Game, ctx: CanvasRenderingContext2D): void {
+    const L = this.armoryLayout(game);
+    ctx.save();
+    ctx.globalAlpha = 0.97;
+    ctx.fillStyle = "#08131a";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.restore();
+
+    // panel
+    ctx.save();
+    this.roundRect(ctx, { x: 60, y: 64, w: CANVAS_W - 120, h: 648 }, 12);
+    ctx.fillStyle = "#0c1c26";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(180,210,225,0.2)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    // header
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffd24a";
+    ctx.font = "900 34px 'Segoe UI', sans-serif";
+    ctx.fillText("THE ARMORY", CANVAS_W / 2, 112);
+    ctx.fillStyle = "#8fd0ff";
+    ctx.font = "700 20px 'Segoe UI', sans-serif";
+    ctx.fillText(`${L.count} piece${L.count === 1 ? "" : "s"} in the vault`, CANVAS_W / 2, 146);
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 14px 'Segoe UI', sans-serif";
+    ctx.fillText(
+      "Enemies drop gear as you clear waves — deeper waves drop higher tiers. Click a piece, then click its slot to equip. It carries into every siege.",
+      CANVAS_W / 2,
+      172
+    );
+    ctx.restore();
+
+    // "VAULT" label
+    ctx.save();
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#bfe6ef";
+    ctx.font = "700 16px 'Segoe UI', sans-serif";
+    ctx.fillText("VAULT", L.px, L.topY - 14);
+    ctx.restore();
+
+    // vault rows
+    const icons = game.assets.manifest.gear?.icons ?? {};
+    for (const row of L.rows) {
+      const def = GEAR_BY_ID.get(row.inst.def)!;
+      const equipped = game.equippedFor(def.tower, def.slot)?.uid === row.inst.uid;
+      const selected = this.selectedGearUid === row.inst.uid;
+
+      ctx.save();
+      this.roundRect(ctx, row.rect, 8);
+      ctx.fillStyle = selected ? "rgba(255,210,74,0.12)" : "rgba(255,255,255,0.03)";
+      ctx.fill();
+      if (selected) {
+        ctx.strokeStyle = "#ffd24a";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // icon
+      const img = this.assets.img(icons[def.icon]);
+      if (img) ctx.drawImage(img, row.rect.x + 12, row.rect.y + 15, 44, 44);
+
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 17px 'Segoe UI', sans-serif";
+      ctx.fillText(def.name, row.rect.x + 70, row.rect.y + 28);
+      ctx.fillStyle = TIER_COLORS[row.inst.tier];
+      ctx.font = "800 14px 'Segoe UI', sans-serif";
+      ctx.fillText(
+        `T${row.inst.tier}`,
+        row.rect.x + 70 + this.txtW(def.name, "700 17px 'Segoe UI', sans-serif") + 10,
+        row.rect.y + 28
+      );
+      ctx.fillStyle = "#9fd8a8";
+      ctx.font = "700 13px 'Segoe UI', sans-serif";
+      ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
+      ctx.fillStyle = "#8fb8c8";
+      ctx.font = "600 12px 'Segoe UI', sans-serif";
+      ctx.fillText(`${SLOT_LABEL[def.slot]} · ${TOWER_DEFS[def.tower].name}`, row.rect.x + 70 + this.txtW(gearBonusText(def, row.inst.tier), "700 13px 'Segoe UI', sans-serif") + 14, row.rect.y + 50);
+      if (equipped) {
+        ctx.fillStyle = "#ffd24a";
+        ctx.font = "800 12px 'Segoe UI', sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText("EQUIPPED", row.rect.x + row.rect.w - 12, row.rect.y + 28);
+      }
+      ctx.restore();
+    }
+
+    // pagination
+    this.button(ctx, L.prev, "‹", { small: true, disabled: L.page === 0 });
+    this.button(ctx, L.next, "›", { small: true, disabled: L.page >= L.pages - 1 });
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 14px 'Segoe UI', sans-serif";
+    ctx.fillText(`${L.page + 1} / ${L.pages}`, (L.prev.x + L.next.x + L.next.w) / 2, L.prev.y + 28);
+    ctx.restore();
+
+    // tower columns
+    for (const s of L.slots) {
+      const x0 = s.rect.x;
+      if (s.slot === GEAR_SLOTS[0]) {
+        ctx.save();
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#bfe6ef";
+        ctx.font = "700 16px 'Segoe UI', sans-serif";
+        ctx.fillText(TOWER_DEFS[s.tower].name.toUpperCase(), x0, L.topY - 14);
+        ctx.restore();
+      }
+      const cur = game.equippedFor(s.tower, s.slot);
+      const def = cur ? GEAR_BY_ID.get(cur.def) : null;
+
+      ctx.save();
+      this.roundRect(ctx, s.rect, 8);
+      ctx.fillStyle = "rgba(255,255,255,0.03)";
+      ctx.fill();
+      // highlight slots compatible with the selected piece
+      if (this.selectedGearUid) {
+        const sel = game.meta.gear.owned.find((o) => o.uid === this.selectedGearUid);
+        const selDef = sel ? GEAR_BY_ID.get(sel.def) : null;
+        if (selDef && selDef.tower === s.tower && selDef.slot === s.slot) {
+          ctx.strokeStyle = "rgba(255,210,74,0.8)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+
+      if (def && cur) {
+        const img = this.assets.img(icons[def.icon]);
+        if (img) ctx.drawImage(img, s.rect.x + 12, s.rect.y + 18, 52, 52);
+        ctx.save();
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#eaf6ff";
+        ctx.font = "700 16px 'Segoe UI', sans-serif";
+        ctx.fillText(def.name, s.rect.x + 78, s.rect.y + 34);
+        ctx.fillStyle = TIER_COLORS[cur.tier];
+        ctx.font = "800 13px 'Segoe UI', sans-serif";
+        ctx.fillText(`T${cur.tier}`, s.rect.x + 78, s.rect.y + 56);
+        ctx.fillStyle = "#9fd8a8";
+        ctx.font = "700 13px 'Segoe UI', sans-serif";
+        ctx.fillText(gearBonusText(def, cur.tier), s.rect.x + 108, s.rect.y + 56);
+        ctx.restore();
+      } else {
+        ctx.save();
+        ctx.textAlign = "left";
+        ctx.fillStyle = "rgba(180,210,225,0.4)";
+        ctx.font = "600 14px 'Segoe UI', sans-serif";
+        ctx.fillText(`${SLOT_LABEL[s.slot]} — empty`, s.rect.x + 24, s.rect.y + 50);
+        ctx.restore();
+      }
+    }
+
+    this.button(ctx, L.close, "Close", { small: true });
+  }
+
+  /** Measure text width without disturbing the caller's font. */
+  private txtW(text: string, font: string): number {
+    // Cheap approximation: ~0.52em per char for the Segoe UI weights we use.
+    const size = parseInt(font, 10) || 14;
+    return text.length * size * 0.52;
+  }
+
+  handleArmoryClick(game: Game, p: { x: number; y: number }): boolean {
+    const L = this.armoryLayout(game);
+    if (inRect(p, L.close)) {
+      game._showArmory = false;
+      this.selectedGearUid = null;
+      game.sfx("click");
+      return true;
+    }
+    if (inRect(p, L.prev)) {
+      this.armoryPage = Math.max(0, this.armoryPage - 1);
+      game.sfx("click");
+      return true;
+    }
+    if (inRect(p, L.next)) {
+      this.armoryPage = Math.min(L.pages - 1, this.armoryPage + 1);
+      game.sfx("click");
+      return true;
+    }
+    // Vault rows: select / deselect.
+    for (const row of L.rows) {
+      if (inRect(p, row.rect)) {
+        this.selectedGearUid = this.selectedGearUid === row.inst.uid ? null : row.inst.uid;
+        game.sfx("click");
+        return true;
+      }
+    }
+    // Slots: equip the selected piece if compatible, else unequip.
+    for (const s of L.slots) {
+      if (inRect(p, s.rect)) {
+        if (this.selectedGearUid) {
+          const sel = game.meta.gear.owned.find((o) => o.uid === this.selectedGearUid);
+          const selDef = sel ? GEAR_BY_ID.get(sel.def) : null;
+          if (selDef && selDef.tower === s.tower && selDef.slot === s.slot && sel) {
+            game.equipGear(sel.uid, s.tower, s.slot);
+            this.selectedGearUid = null;
+            game.sfx("coin");
+            return true;
+          }
+        }
+        if (game.equippedFor(s.tower, s.slot)) {
+          game.unequipGear(s.tower, s.slot);
+          game.sfx("click");
+        } else {
+          game.sfx("click");
+        }
+        return true;
+      }
+    }
+    // Anything else: deselect.
+    this.selectedGearUid = null;
     return true;
   }
 }

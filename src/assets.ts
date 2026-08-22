@@ -49,6 +49,10 @@ export interface Manifest {
     sfx: Record<string, string>;
     music: Record<string, string>;
   };
+  /** Equipment icons (FREE RPG Icon Pack): gear def id -> file. */
+  gear?: {
+    icons: Record<string, string>;
+  };
   ui: {
     bars: Record<string, StaticDef>;
     buttons: Record<string, StaticDef>;
@@ -104,6 +108,7 @@ export class Assets {
     add(d.goldstone.image);
     for (const f of Object.values(m.fx)) f.frames.forEach(add);
     for (const f of Object.values(m.special)) f.frames.forEach(add);
+    Object.values(m.gear?.icons ?? {}).forEach(add);
     const u = m.ui;
     for (const b of Object.values(u.bars)) add(b.image);
     for (const b of Object.values(u.buttons)) add(b.image);

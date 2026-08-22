@@ -2941,5 +2941,33 @@
    "forest": "sound/music/forest.ogg",
    "cave": "sound/music/cave.ogg"
   }
+ },
+ "gear": {
+  "icons": {
+   "archer_sentinel": "gear/archer_sentinel.png",
+   "archer_ranger": "gear/archer_ranger.png",
+   "archer_warden": "gear/archer_warden.png",
+   "archer_hunter": "gear/archer_hunter.png",
+   "archer_eagle": "gear/archer_eagle.png",
+   "archer_swift": "gear/archer_swift.png",
+   "lancer_horned": "gear/lancer_horned.png",
+   "lancer_crimson": "gear/lancer_crimson.png",
+   "lancer_vanguard": "gear/lancer_vanguard.png",
+   "lancer_surcoat": "gear/lancer_surcoat.png",
+   "lancer_warlord": "gear/lancer_warlord.png",
+   "lancer_keen": "gear/lancer_keen.png",
+   "cannon_powder": "gear/cannon_powder.png",
+   "cannon_fusilier": "gear/cannon_fusilier.png",
+   "cannon_blast": "gear/cannon_blast.png",
+   "cannon_brass": "gear/cannon_brass.png",
+   "cannon_salvage": "gear/cannon_salvage.png",
+   "cannon_flint": "gear/cannon_flint.png",
+   "monastery_sage": "gear/monastery_sage.png",
+   "monastery_pilgrim": "gear/monastery_pilgrim.png",
+   "monastery_benevolent": "gear/monastery_benevolent.png",
+   "monastery_aura": "gear/monastery_aura.png",
+   "monastery_sanctum": "gear/monastery_sanctum.png",
+   "monastery_glow": "gear/monastery_glow.png"
+  }
  }
 }

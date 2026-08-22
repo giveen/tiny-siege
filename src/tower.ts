@@ -157,9 +157,10 @@ export class Tower {
     return this.upg.damage + this.upg.rate + this.upg.range;
   }
 
-  /** Monastery: effective aura buff multiplier from Blessing upgrades. */
-  buffPower(): number {
-    return this.def.buffDmg * (1 + 0.5 * this.upg.damage);
+  /** Monastery: effective aura buff multiplier from Blessing upgrades + gear. */
+  buffPower(game: Game): number {
+    const eq = game.equipFor("monastery");
+    return this.def.buffDmg * (1 + 0.5 * this.upg.damage) * (1 + eq.bless);
   }
 
   /** Effective stats after per-track upgrades + global buffs + monastery aura + synergy. */
@@ -171,6 +172,13 @@ export class Tower {
     let range = d.range * (1 + 0.12 * u.range);
     let splash = d.splash * (1 + 0.1 * u.damage);
     let pierce = d.pierce + Math.floor(u.damage / 2);
+
+    // Gear equipped in the Armory: flat % per equipped piece (tier-scaled).
+    const eq = game.equipFor(this.type);
+    damage *= 1 + eq.damage;
+    rate *= 1 + eq.rate;
+    range *= 1 + eq.range;
+    splash *= 1 + eq.splash;
 
     const b = game.buffs;
     damage *= b.damageMult;
@@ -190,7 +198,7 @@ export class Tower {
       if (t !== this && t.type === "monastery") {
         const ms = t.statsOnly(game);
         if (Math.hypot(t.x - this.x, t.y - this.y) <= ms.range) {
-          const p = t.buffPower();
+          const p = t.buffPower(game);
           damage *= 1 + p;
           rate *= 1 + p;
         }
@@ -212,7 +220,8 @@ export class Tower {
   /** stats without recursion (used by aura checks) */
   private statsOnly(game: Game): TowerStats {
     const d = this.def;
-    const range = d.range * (1 + 0.15 * this.upg.range) * game.buffs.rangeMult;
+    const eq = game.equipFor(this.type);
+    const range = d.range * (1 + 0.15 * this.upg.range) * (1 + eq.range) * game.buffs.rangeMult;
     return {
       damage: 0,
       rate: 0,

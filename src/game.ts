@@ -26,6 +26,17 @@ import {
 } from "./meta";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
 import {
+  EMPTY_GEAR_BONUS,
+  GEAR_BY_ID,
+  gearTierForWave,
+  makeGearDrop,
+  rollGearDrop,
+  TIER_COLORS,
+  type GearBonus,
+  type GearInstance,
+  type GearSlot,
+} from "./gear";
+import {
   WORLD_W,
   WORLD_H,
   CANVAS_W,
@@ -90,6 +101,7 @@ export class Game {
   selectedTower: Tower | null = null;
   _showHelp = false;
   _showCodex = false;
+  _showArmory = false;
   mouse = { x: 0, y: 0, over: false };
 
   // intermission boons
@@ -222,6 +234,26 @@ export class Game {
     // ?codex — open the meta Codex on the menu (verification / dev tool)
     if (params.has("codex")) {
       this._showCodex = true;
+    }
+    // ?armory — open the gear Armory on the menu (verification / dev tool)
+    if (params.has("armory")) {
+      this._showArmory = true;
+    }
+    // ?gearseed — bank a handful of random gear so the Armory has content
+    if (params.has("gearseed")) {
+      for (let i = 0; i < 8; i++) {
+        const inst = makeGearDrop(1 + Math.floor(this.rng.next() * 3), this.rng);
+        this.meta.gear.owned.push(inst);
+      }
+      // Demo-equip one piece per empty slot so filled slots are visible.
+      for (const inst of this.meta.gear.owned) {
+        const def = GEAR_BY_ID.get(inst.def);
+        if (!def) continue;
+        if (!this.meta.gear.equipped[def.tower]?.[def.slot]) {
+          this.equipGear(inst.uid, def.tower, def.slot);
+        }
+      }
+      saveMeta(this.meta);
     }
     // ?victory — jump straight to the victory screen (verification / dev tool)
     if (params.has("victory")) {
@@ -436,6 +468,11 @@ export class Game {
     this.addText(this.castle.x, this.castle.y - 84, `+${runes} ◆`, "#c58bff");
     this.sfx("coin");
 
+    // Enemies drop gear: guaranteed on boss waves, 40% otherwise (tier scales
+    // with the wave). Banked permanently — equip it in the Armory.
+    const drop = rollGearDrop(this.wave, this.rng);
+    if (drop) this.bankGearDrop(drop, -132);
+
     // Climax: clearing the Siege wave wins the run.
     if (this.wave === SIEGE_WAVE) {
       this.onVictory();
@@ -449,6 +486,8 @@ export class Game {
     this.runWon = true;
     this.meta.runes += VICTORY_RUNES;
     saveMeta(this.meta);
+    // Victory bonus: a guaranteed top-tier piece from the Siege.
+    this.bankGearDrop(makeGearDrop(gearTierForWave(SIEGE_WAVE), this.rng));
     this.screen = "victory";
     this.audio.music("forest"); // the calm after the siege
     this.sfx("over");
@@ -497,6 +536,62 @@ export class Game {
     this.meta.levels[id] = lvl + 1;
     saveMeta(this.meta);
     return true;
+  }
+
+  // ---------------------------------------------------------------- gear
+  /** Aggregated fractional stat bonuses for a tower type from its equipped gear. */
+  equipFor(type: TowerType): GearBonus {
+    const b: GearBonus = { ...EMPTY_GEAR_BONUS };
+    const eq = this.meta.gear.equipped[type] ?? {};
+    for (const uid of Object.values(eq)) {
+      if (!uid) continue;
+      const inst = this.meta.gear.owned.find((o) => o.uid === uid);
+      if (!inst) continue;
+      const def = GEAR_BY_ID.get(inst.def);
+      if (!def) continue;
+      b[def.stat] += (def.base * inst.tier) / 100;
+    }
+    return b;
+  }
+
+  /** The instance equipped in a (tower, slot), if any. */
+  equippedFor(type: TowerType, slot: GearSlot): GearInstance | null {
+    const uid = this.meta.gear.equipped[type]?.[slot];
+    return uid ? this.meta.gear.owned.find((o) => o.uid === uid) ?? null : null;
+  }
+
+  /** Equip an owned piece into a slot (replaces whatever was there). */
+  equipGear(uid: string, type: TowerType, slot: GearSlot): void {
+    const inst = this.meta.gear.owned.find((o) => o.uid === uid);
+    if (!inst) return;
+    const def = GEAR_BY_ID.get(inst.def);
+    if (!def || def.tower !== type || def.slot !== slot) return;
+    this.meta.gear.equipped[type] = { ...(this.meta.gear.equipped[type] ?? {}), [slot]: uid };
+    saveMeta(this.meta);
+  }
+
+  /** Remove a slot's equipped piece (it stays in the vault). */
+  unequipGear(type: TowerType, slot: GearSlot): void {
+    const cur = this.meta.gear.equipped[type];
+    if (!cur || !cur[slot]) return;
+    this.meta.gear.equipped[type] = { ...cur, [slot]: undefined };
+    saveMeta(this.meta);
+  }
+
+  /** Bank a drop into the vault (called on wave-clear loot + victory bonus). */
+  private bankGearDrop(inst: GearInstance, yOff = -108): void {
+    this.meta.gear.owned.push(inst);
+    saveMeta(this.meta);
+    const def = GEAR_BY_ID.get(inst.def);
+    if (def) {
+      this.addText(
+        this.castle.x,
+        this.castle.y + yOff,
+        `${def.name} T${inst.tier} → ${TOWER_DEFS[def.tower].name}`,
+        TIER_COLORS[inst.tier]
+      );
+    }
+    this.sfx("boon");
   }
 
   private spawnEnemy(entry: SpawnEntry): void {

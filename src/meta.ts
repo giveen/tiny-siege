@@ -1,12 +1,16 @@
 // Persistent meta-progression (between runs): a rune economy + relic unlock
-// tree. A lost (or won) run still banks runes, so every attempt moves you
-// closer to the build you're chasing. Stored in localStorage.
+// tree, and the gear vault (equipment dropped by enemies). A lost (or won)
+// run still banks runes + gear, so every attempt moves you closer to the
+// build you're chasing. Stored in localStorage.
+
+import { emptyGearState, type GearState } from "./gear";
 
 export const META_KEY = "tinysiege.meta.v1";
 
 export interface MetaState {
   runes: number;
   levels: Record<string, number>;
+  gear: GearState;
 }
 
 export interface Relic {
@@ -72,19 +76,23 @@ export const RELICS: Relic[] = [
 ];
 
 export function loadMeta(): MetaState {
+  const state = { runes: 0, levels: {} as Record<string, number>, gear: emptyGearState() };
   try {
     const raw = localStorage.getItem(META_KEY);
     if (raw) {
       const p = JSON.parse(raw);
-      return {
-        runes: typeof p.runes === "number" ? p.runes : 0,
-        levels: p.levels && typeof p.levels === "object" ? p.levels : {},
-      };
+      state.runes = typeof p.runes === "number" ? p.runes : 0;
+      state.levels = p.levels && typeof p.levels === "object" ? p.levels : {};
+      // Migrate pre-gear saves: keep owned/equipped only if the shapes are sane.
+      const g = p.gear;
+      if (g && typeof g === "object" && Array.isArray(g.owned) && g.equipped && typeof g.equipped === "object") {
+        state.gear = { owned: g.owned, equipped: g.equipped };
+      }
     }
   } catch {
     /* ignore */
   }
-  return { runes: 0, levels: {} };
+  return state;
 }
 
 export function saveMeta(m: MetaState): void {

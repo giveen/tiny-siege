@@ -606,6 +606,53 @@ def main():
 
     manifest["sound"] = {"sfx": sfx, "music": music}
 
+    # ---- gear icons (FREE RPG Icon Pack - Accessories and Armor) ---------
+    # Curated 24 icons for the equipment system (helm / armor / ring).
+    GEARP = os.path.join(
+        ROOT, "FREE RPG Icon Pack - 100+ Accessories and Armor - Clockwork Raven Studios", "64x64"
+    )
+    GEAR_TILES = {
+        # archer
+        "archer_sentinel": "tile007.png",  # white knight helm
+        "archer_ranger": "tile010.png",    # red hood
+        "archer_warden": "tile050.png",    # dark teal plate
+        "archer_hunter": "tile048.png",    # white tunic
+        "archer_eagle": "tile017.png",     # green ring
+        "archer_swift": "tile020.png",     # gold ring
+        # lancer
+        "lancer_horned": "tile002.png",    # viking horn helm
+        "lancer_crimson": "tile004.png",   # helm w/ red plume
+        "lancer_vanguard": "tile055.png",  # brown leather X
+        "lancer_surcoat": "tile074.png",   # white surcoat
+        "lancer_warlord": "tile044.png",   # ring w/ pink gem
+        "lancer_keen": "tile046.png",      # green ring
+        # cannon
+        "cannon_powder": "tile008.png",    # dark helm
+        "cannon_fusilier": "tile009.png",  # darker helm
+        "cannon_blast": "tile051.png",     # dark plate
+        "cannon_brass": "tile099.png",     # green plate
+        "cannon_salvage": "tile047.png",   # red lifebuoy ring
+        "cannon_flint": "tile040.png",     # diamond ring
+        # monastery
+        "monastery_sage": "tile014.png",   # dark hood
+        "monastery_pilgrim": "tile013.png",  # grey helm
+        "monastery_benevolent": "tile097.png",  # pink robe
+        "monastery_aura": "tile090.png",  # white vest
+        "monastery_sanctum": "tile022.png",  # purple ring
+        "monastery_glow": "tile023.png",  # ring w/ yellow gem
+    }
+    gear_icons = {}
+    for gid, tile in GEAR_TILES.items():
+        p = os.path.join(GEARP, tile)
+        if not os.path.exists(p):
+            print(f"  ! missing gear icon {tile}")
+            continue
+        d = os.path.join(OUT, "gear", gid + ".png")
+        os.makedirs(os.path.dirname(d), exist_ok=True)
+        shutil.copyfile(p, d)
+        gear_icons[gid] = f"gear/{gid}.png"
+    manifest["gear"] = {"icons": gear_icons}
+
     # ---- write manifest --------------------------------------------------
     mpath = os.path.join(OUT, "manifest.json")
     with open(mpath, "w") as f:
@@ -619,6 +666,7 @@ def main():
     print(f"  ui icons: {len(manifest['ui'].get('icons', []))}, avatars: {len(manifest['ui'].get('avatars', []))}")
     snd = manifest.get("sound", {})
     print(f"  sound: {len(snd.get('sfx', {}))} sfx, {list(snd.get('music', {}).keys())} music")
+    print(f"  gear: {len(manifest.get('gear', {}).get('icons', {}))} icons")
 
 
 if __name__ == "__main__":
