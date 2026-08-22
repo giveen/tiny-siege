@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Tiny Siege</title>
+    <meta name="description" content="Tiny Siege — a tower-defense roguelite built with the Tiny Swords asset pack." />
+    <style>
+      :root { color-scheme: dark; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #06222b;
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: none;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #app {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas {
+        display: block;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        background: #0a3540;
+        box-shadow: 0 20px 60px rgba(0,0,0,.55);
+        border-radius: 6px;
+        cursor: default;
+      }
+      #fallback {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #bfe6ef;
+        font-size: 18px;
+        text-align: center;
+        padding: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"><canvas id="game"></canvas></div>
+    <div id="fallback">Loading Tiny Siege…</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

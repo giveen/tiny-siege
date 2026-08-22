@@ -1,0 +1,2873 @@
+{
+ "tileSize": 64,
+ "units": {
+  "blue": {
+   "archer": {
+    "idle": {
+     "frames": [
+      "units/blue_archer_idle_0.png",
+      "units/blue_archer_idle_1.png",
+      "units/blue_archer_idle_2.png",
+      "units/blue_archer_idle_3.png",
+      "units/blue_archer_idle_4.png",
+      "units/blue_archer_idle_5.png"
+     ],
+     "cell": [
+      72,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/blue_archer_run_0.png",
+      "units/blue_archer_run_1.png",
+      "units/blue_archer_run_2.png",
+      "units/blue_archer_run_3.png"
+     ],
+     "cell": [
+      74,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "shoot": {
+     "frames": [
+      "units/blue_archer_shoot_0.png",
+      "units/blue_archer_shoot_1.png",
+      "units/blue_archer_shoot_2.png",
+      "units/blue_archer_shoot_3.png",
+      "units/blue_archer_shoot_4.png",
+      "units/blue_archer_shoot_5.png",
+      "units/blue_archer_shoot_6.png",
+      "units/blue_archer_shoot_7.png"
+     ],
+     "cell": [
+      88,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 14,
+     "loop": false
+    },
+    "arrow": {
+     "frames": [
+      "units/blue_archer_arrow.png"
+     ],
+     "cell": [
+      43,
+      12
+     ],
+     "anchor": "center"
+    }
+   },
+   "warrior": {
+    "idle": {
+     "frames": [
+      "units/blue_warrior_idle_0.png",
+      "units/blue_warrior_idle_1.png",
+      "units/blue_warrior_idle_2.png",
+      "units/blue_warrior_idle_3.png",
+      "units/blue_warrior_idle_4.png",
+      "units/blue_warrior_idle_5.png",
+      "units/blue_warrior_idle_6.png",
+      "units/blue_warrior_idle_7.png"
+     ],
+     "cell": [
+      84,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/blue_warrior_run_0.png",
+      "units/blue_warrior_run_1.png",
+      "units/blue_warrior_run_2.png",
+      "units/blue_warrior_run_3.png",
+      "units/blue_warrior_run_4.png",
+      "units/blue_warrior_run_5.png"
+     ],
+     "cell": [
+      94,
+      91
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack1": {
+     "frames": [
+      "units/blue_warrior_attack1_0.png",
+      "units/blue_warrior_attack1_1.png",
+      "units/blue_warrior_attack1_2.png",
+      "units/blue_warrior_attack1_3.png"
+     ],
+     "cell": [
+      120,
+      112
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "attack2": {
+     "frames": [
+      "units/blue_warrior_attack2_0.png",
+      "units/blue_warrior_attack2_1.png",
+      "units/blue_warrior_attack2_2.png",
+      "units/blue_warrior_attack2_3.png",
+      "units/blue_warrior_attack2_4.png"
+     ],
+     "cell": [
+      106,
+      104
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "guard": {
+     "frames": [
+      "units/blue_warrior_guard_0.png",
+      "units/blue_warrior_guard_1.png",
+      "units/blue_warrior_guard_2.png",
+      "units/blue_warrior_guard_3.png",
+      "units/blue_warrior_guard_4.png",
+      "units/blue_warrior_guard_5.png"
+     ],
+     "cell": [
+      70,
+      93
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "lancer": {
+    "idle": {
+     "frames": [
+      "units/blue_lancer_idle_0.png",
+      "units/blue_lancer_idle_1.png",
+      "units/blue_lancer_idle_2.png",
+      "units/blue_lancer_idle_3.png",
+      "units/blue_lancer_idle_4.png",
+      "units/blue_lancer_idle_5.png",
+      "units/blue_lancer_idle_6.png",
+      "units/blue_lancer_idle_7.png",
+      "units/blue_lancer_idle_8.png",
+      "units/blue_lancer_idle_9.png",
+      "units/blue_lancer_idle_10.png",
+      "units/blue_lancer_idle_11.png"
+     ],
+     "cell": [
+      70,
+      150
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/blue_lancer_run_0.png",
+      "units/blue_lancer_run_1.png",
+      "units/blue_lancer_run_2.png",
+      "units/blue_lancer_run_3.png",
+      "units/blue_lancer_run_4.png",
+      "units/blue_lancer_run_5.png"
+     ],
+     "cell": [
+      70,
+      149
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack": {
+     "frames": [
+      "units/blue_lancer_attack_0.png",
+      "units/blue_lancer_attack_1.png",
+      "units/blue_lancer_attack_2.png"
+     ],
+     "cell": [
+      164,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "defence": {
+     "frames": [
+      "units/blue_lancer_defence_0.png",
+      "units/blue_lancer_defence_1.png",
+      "units/blue_lancer_defence_2.png",
+      "units/blue_lancer_defence_3.png",
+      "units/blue_lancer_defence_4.png",
+      "units/blue_lancer_defence_5.png"
+     ],
+     "cell": [
+      154,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "monk": {
+    "idle": {
+     "frames": [
+      "units/blue_monk_idle_0.png",
+      "units/blue_monk_idle_1.png",
+      "units/blue_monk_idle_2.png",
+      "units/blue_monk_idle_3.png",
+      "units/blue_monk_idle_4.png",
+      "units/blue_monk_idle_5.png"
+     ],
+     "cell": [
+      58,
+      69
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/blue_monk_run_0.png",
+      "units/blue_monk_run_1.png",
+      "units/blue_monk_run_2.png",
+      "units/blue_monk_run_3.png"
+     ],
+     "cell": [
+      82,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "heal": {
+     "frames": [
+      "units/blue_monk_heal_0.png",
+      "units/blue_monk_heal_1.png",
+      "units/blue_monk_heal_2.png",
+      "units/blue_monk_heal_3.png",
+      "units/blue_monk_heal_4.png",
+      "units/blue_monk_heal_5.png",
+      "units/blue_monk_heal_6.png",
+      "units/blue_monk_heal_7.png",
+      "units/blue_monk_heal_8.png",
+      "units/blue_monk_heal_9.png",
+      "units/blue_monk_heal_10.png",
+      "units/blue_monk_heal_11.png",
+      "units/blue_monk_heal_12.png",
+      "units/blue_monk_heal_13.png"
+     ],
+     "cell": [
+      122,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": false
+    },
+    "heal_fx": {
+     "frames": [
+      "units/blue_monk_heal_fx_0.png",
+      "units/blue_monk_heal_fx_1.png",
+      "units/blue_monk_heal_fx_2.png",
+      "units/blue_monk_heal_fx_3.png",
+      "units/blue_monk_heal_fx_4.png",
+      "units/blue_monk_heal_fx_5.png",
+      "units/blue_monk_heal_fx_6.png",
+      "units/blue_monk_heal_fx_7.png",
+      "units/blue_monk_heal_fx_8.png",
+      "units/blue_monk_heal_fx_9.png",
+      "units/blue_monk_heal_fx_10.png",
+      "units/blue_monk_heal_fx_11.png",
+      "units/blue_monk_heal_fx_12.png",
+      "units/blue_monk_heal_fx_13.png",
+      "units/blue_monk_heal_fx_14.png",
+      "units/blue_monk_heal_fx_15.png",
+      "units/blue_monk_heal_fx_16.png",
+      "units/blue_monk_heal_fx_17.png",
+      "units/blue_monk_heal_fx_18.png",
+      "units/blue_monk_heal_fx_19.png",
+      "units/blue_monk_heal_fx_20.png",
+      "units/blue_monk_heal_fx_21.png",
+      "units/blue_monk_heal_fx_22.png",
+      "units/blue_monk_heal_fx_23.png",
+      "units/blue_monk_heal_fx_24.png",
+      "units/blue_monk_heal_fx_25.png"
+     ],
+     "cell": [
+      98,
+      128
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": true
+    }
+   },
+   "pawn": {
+    "idle": {
+     "frames": [
+      "units/blue_pawn_idle_0.png",
+      "units/blue_pawn_idle_1.png",
+      "units/blue_pawn_idle_2.png",
+      "units/blue_pawn_idle_3.png",
+      "units/blue_pawn_idle_4.png",
+      "units/blue_pawn_idle_5.png",
+      "units/blue_pawn_idle_6.png",
+      "units/blue_pawn_idle_7.png"
+     ],
+     "cell": [
+      54,
+      74
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/blue_pawn_run_0.png",
+      "units/blue_pawn_run_1.png",
+      "units/blue_pawn_run_2.png",
+      "units/blue_pawn_run_3.png",
+      "units/blue_pawn_run_4.png",
+      "units/blue_pawn_run_5.png"
+     ],
+     "cell": [
+      66,
+      77
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  "red": {
+   "archer": {
+    "idle": {
+     "frames": [
+      "units/red_archer_idle_0.png",
+      "units/red_archer_idle_1.png",
+      "units/red_archer_idle_2.png",
+      "units/red_archer_idle_3.png",
+      "units/red_archer_idle_4.png",
+      "units/red_archer_idle_5.png"
+     ],
+     "cell": [
+      72,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/red_archer_run_0.png",
+      "units/red_archer_run_1.png",
+      "units/red_archer_run_2.png",
+      "units/red_archer_run_3.png"
+     ],
+     "cell": [
+      74,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "shoot": {
+     "frames": [
+      "units/red_archer_shoot_0.png",
+      "units/red_archer_shoot_1.png",
+      "units/red_archer_shoot_2.png",
+      "units/red_archer_shoot_3.png",
+      "units/red_archer_shoot_4.png",
+      "units/red_archer_shoot_5.png",
+      "units/red_archer_shoot_6.png",
+      "units/red_archer_shoot_7.png"
+     ],
+     "cell": [
+      88,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 14,
+     "loop": false
+    },
+    "arrow": {
+     "frames": [
+      "units/red_archer_arrow.png"
+     ],
+     "cell": [
+      43,
+      12
+     ],
+     "anchor": "center"
+    }
+   },
+   "warrior": {
+    "idle": {
+     "frames": [
+      "units/red_warrior_idle_0.png",
+      "units/red_warrior_idle_1.png",
+      "units/red_warrior_idle_2.png",
+      "units/red_warrior_idle_3.png",
+      "units/red_warrior_idle_4.png",
+      "units/red_warrior_idle_5.png",
+      "units/red_warrior_idle_6.png",
+      "units/red_warrior_idle_7.png"
+     ],
+     "cell": [
+      84,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/red_warrior_run_0.png",
+      "units/red_warrior_run_1.png",
+      "units/red_warrior_run_2.png",
+      "units/red_warrior_run_3.png",
+      "units/red_warrior_run_4.png",
+      "units/red_warrior_run_5.png"
+     ],
+     "cell": [
+      94,
+      91
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack1": {
+     "frames": [
+      "units/red_warrior_attack1_0.png",
+      "units/red_warrior_attack1_1.png",
+      "units/red_warrior_attack1_2.png",
+      "units/red_warrior_attack1_3.png"
+     ],
+     "cell": [
+      120,
+      112
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "attack2": {
+     "frames": [
+      "units/red_warrior_attack2_0.png",
+      "units/red_warrior_attack2_1.png",
+      "units/red_warrior_attack2_2.png",
+      "units/red_warrior_attack2_3.png",
+      "units/red_warrior_attack2_4.png"
+     ],
+     "cell": [
+      106,
+      104
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "guard": {
+     "frames": [
+      "units/red_warrior_guard_0.png",
+      "units/red_warrior_guard_1.png",
+      "units/red_warrior_guard_2.png",
+      "units/red_warrior_guard_3.png",
+      "units/red_warrior_guard_4.png",
+      "units/red_warrior_guard_5.png"
+     ],
+     "cell": [
+      70,
+      93
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "lancer": {
+    "idle": {
+     "frames": [
+      "units/red_lancer_idle_0.png",
+      "units/red_lancer_idle_1.png",
+      "units/red_lancer_idle_2.png",
+      "units/red_lancer_idle_3.png",
+      "units/red_lancer_idle_4.png",
+      "units/red_lancer_idle_5.png",
+      "units/red_lancer_idle_6.png",
+      "units/red_lancer_idle_7.png",
+      "units/red_lancer_idle_8.png",
+      "units/red_lancer_idle_9.png",
+      "units/red_lancer_idle_10.png",
+      "units/red_lancer_idle_11.png"
+     ],
+     "cell": [
+      70,
+      150
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/red_lancer_run_0.png",
+      "units/red_lancer_run_1.png",
+      "units/red_lancer_run_2.png",
+      "units/red_lancer_run_3.png",
+      "units/red_lancer_run_4.png",
+      "units/red_lancer_run_5.png"
+     ],
+     "cell": [
+      70,
+      149
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack": {
+     "frames": [
+      "units/red_lancer_attack_0.png",
+      "units/red_lancer_attack_1.png",
+      "units/red_lancer_attack_2.png"
+     ],
+     "cell": [
+      164,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "defence": {
+     "frames": [
+      "units/red_lancer_defence_0.png",
+      "units/red_lancer_defence_1.png",
+      "units/red_lancer_defence_2.png",
+      "units/red_lancer_defence_3.png",
+      "units/red_lancer_defence_4.png",
+      "units/red_lancer_defence_5.png"
+     ],
+     "cell": [
+      154,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "monk": {
+    "idle": {
+     "frames": [
+      "units/red_monk_idle_0.png",
+      "units/red_monk_idle_1.png",
+      "units/red_monk_idle_2.png",
+      "units/red_monk_idle_3.png",
+      "units/red_monk_idle_4.png",
+      "units/red_monk_idle_5.png"
+     ],
+     "cell": [
+      58,
+      69
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/red_monk_run_0.png",
+      "units/red_monk_run_1.png",
+      "units/red_monk_run_2.png",
+      "units/red_monk_run_3.png"
+     ],
+     "cell": [
+      82,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "heal": {
+     "frames": [
+      "units/red_monk_heal_0.png",
+      "units/red_monk_heal_1.png",
+      "units/red_monk_heal_2.png",
+      "units/red_monk_heal_3.png",
+      "units/red_monk_heal_4.png",
+      "units/red_monk_heal_5.png",
+      "units/red_monk_heal_6.png",
+      "units/red_monk_heal_7.png",
+      "units/red_monk_heal_8.png",
+      "units/red_monk_heal_9.png",
+      "units/red_monk_heal_10.png",
+      "units/red_monk_heal_11.png",
+      "units/red_monk_heal_12.png",
+      "units/red_monk_heal_13.png"
+     ],
+     "cell": [
+      122,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": false
+    },
+    "heal_fx": {
+     "frames": [
+      "units/red_monk_heal_fx_0.png",
+      "units/red_monk_heal_fx_1.png",
+      "units/red_monk_heal_fx_2.png",
+      "units/red_monk_heal_fx_3.png",
+      "units/red_monk_heal_fx_4.png",
+      "units/red_monk_heal_fx_5.png",
+      "units/red_monk_heal_fx_6.png",
+      "units/red_monk_heal_fx_7.png",
+      "units/red_monk_heal_fx_8.png",
+      "units/red_monk_heal_fx_9.png",
+      "units/red_monk_heal_fx_10.png",
+      "units/red_monk_heal_fx_11.png",
+      "units/red_monk_heal_fx_12.png",
+      "units/red_monk_heal_fx_13.png",
+      "units/red_monk_heal_fx_14.png",
+      "units/red_monk_heal_fx_15.png",
+      "units/red_monk_heal_fx_16.png",
+      "units/red_monk_heal_fx_17.png",
+      "units/red_monk_heal_fx_18.png",
+      "units/red_monk_heal_fx_19.png",
+      "units/red_monk_heal_fx_20.png",
+      "units/red_monk_heal_fx_21.png",
+      "units/red_monk_heal_fx_22.png",
+      "units/red_monk_heal_fx_23.png",
+      "units/red_monk_heal_fx_24.png",
+      "units/red_monk_heal_fx_25.png"
+     ],
+     "cell": [
+      98,
+      128
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": true
+    }
+   },
+   "pawn": {
+    "idle": {
+     "frames": [
+      "units/red_pawn_idle_0.png",
+      "units/red_pawn_idle_1.png",
+      "units/red_pawn_idle_2.png",
+      "units/red_pawn_idle_3.png",
+      "units/red_pawn_idle_4.png",
+      "units/red_pawn_idle_5.png",
+      "units/red_pawn_idle_6.png",
+      "units/red_pawn_idle_7.png"
+     ],
+     "cell": [
+      54,
+      74
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/red_pawn_run_0.png",
+      "units/red_pawn_run_1.png",
+      "units/red_pawn_run_2.png",
+      "units/red_pawn_run_3.png",
+      "units/red_pawn_run_4.png",
+      "units/red_pawn_run_5.png"
+     ],
+     "cell": [
+      66,
+      77
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  "black": {
+   "archer": {
+    "idle": {
+     "frames": [
+      "units/black_archer_idle_0.png",
+      "units/black_archer_idle_1.png",
+      "units/black_archer_idle_2.png",
+      "units/black_archer_idle_3.png",
+      "units/black_archer_idle_4.png",
+      "units/black_archer_idle_5.png"
+     ],
+     "cell": [
+      72,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/black_archer_run_0.png",
+      "units/black_archer_run_1.png",
+      "units/black_archer_run_2.png",
+      "units/black_archer_run_3.png"
+     ],
+     "cell": [
+      74,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "shoot": {
+     "frames": [
+      "units/black_archer_shoot_0.png",
+      "units/black_archer_shoot_1.png",
+      "units/black_archer_shoot_2.png",
+      "units/black_archer_shoot_3.png",
+      "units/black_archer_shoot_4.png",
+      "units/black_archer_shoot_5.png",
+      "units/black_archer_shoot_6.png",
+      "units/black_archer_shoot_7.png"
+     ],
+     "cell": [
+      88,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 14,
+     "loop": false
+    },
+    "arrow": {
+     "frames": [
+      "units/black_archer_arrow.png"
+     ],
+     "cell": [
+      43,
+      12
+     ],
+     "anchor": "center"
+    }
+   },
+   "warrior": {
+    "idle": {
+     "frames": [
+      "units/black_warrior_idle_0.png",
+      "units/black_warrior_idle_1.png",
+      "units/black_warrior_idle_2.png",
+      "units/black_warrior_idle_3.png",
+      "units/black_warrior_idle_4.png",
+      "units/black_warrior_idle_5.png",
+      "units/black_warrior_idle_6.png",
+      "units/black_warrior_idle_7.png"
+     ],
+     "cell": [
+      84,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/black_warrior_run_0.png",
+      "units/black_warrior_run_1.png",
+      "units/black_warrior_run_2.png",
+      "units/black_warrior_run_3.png",
+      "units/black_warrior_run_4.png",
+      "units/black_warrior_run_5.png"
+     ],
+     "cell": [
+      94,
+      91
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack1": {
+     "frames": [
+      "units/black_warrior_attack1_0.png",
+      "units/black_warrior_attack1_1.png",
+      "units/black_warrior_attack1_2.png",
+      "units/black_warrior_attack1_3.png"
+     ],
+     "cell": [
+      120,
+      112
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "attack2": {
+     "frames": [
+      "units/black_warrior_attack2_0.png",
+      "units/black_warrior_attack2_1.png",
+      "units/black_warrior_attack2_2.png",
+      "units/black_warrior_attack2_3.png",
+      "units/black_warrior_attack2_4.png"
+     ],
+     "cell": [
+      106,
+      104
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "guard": {
+     "frames": [
+      "units/black_warrior_guard_0.png",
+      "units/black_warrior_guard_1.png",
+      "units/black_warrior_guard_2.png",
+      "units/black_warrior_guard_3.png",
+      "units/black_warrior_guard_4.png",
+      "units/black_warrior_guard_5.png"
+     ],
+     "cell": [
+      70,
+      93
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "lancer": {
+    "idle": {
+     "frames": [
+      "units/black_lancer_idle_0.png",
+      "units/black_lancer_idle_1.png",
+      "units/black_lancer_idle_2.png",
+      "units/black_lancer_idle_3.png",
+      "units/black_lancer_idle_4.png",
+      "units/black_lancer_idle_5.png",
+      "units/black_lancer_idle_6.png",
+      "units/black_lancer_idle_7.png",
+      "units/black_lancer_idle_8.png",
+      "units/black_lancer_idle_9.png",
+      "units/black_lancer_idle_10.png",
+      "units/black_lancer_idle_11.png"
+     ],
+     "cell": [
+      70,
+      150
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/black_lancer_run_0.png",
+      "units/black_lancer_run_1.png",
+      "units/black_lancer_run_2.png",
+      "units/black_lancer_run_3.png",
+      "units/black_lancer_run_4.png",
+      "units/black_lancer_run_5.png"
+     ],
+     "cell": [
+      70,
+      149
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack": {
+     "frames": [
+      "units/black_lancer_attack_0.png",
+      "units/black_lancer_attack_1.png",
+      "units/black_lancer_attack_2.png"
+     ],
+     "cell": [
+      164,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "defence": {
+     "frames": [
+      "units/black_lancer_defence_0.png",
+      "units/black_lancer_defence_1.png",
+      "units/black_lancer_defence_2.png",
+      "units/black_lancer_defence_3.png",
+      "units/black_lancer_defence_4.png",
+      "units/black_lancer_defence_5.png"
+     ],
+     "cell": [
+      154,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "monk": {
+    "idle": {
+     "frames": [
+      "units/black_monk_idle_0.png",
+      "units/black_monk_idle_1.png",
+      "units/black_monk_idle_2.png",
+      "units/black_monk_idle_3.png",
+      "units/black_monk_idle_4.png",
+      "units/black_monk_idle_5.png"
+     ],
+     "cell": [
+      58,
+      69
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/black_monk_run_0.png",
+      "units/black_monk_run_1.png",
+      "units/black_monk_run_2.png",
+      "units/black_monk_run_3.png"
+     ],
+     "cell": [
+      82,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "heal": {
+     "frames": [
+      "units/black_monk_heal_0.png",
+      "units/black_monk_heal_1.png",
+      "units/black_monk_heal_2.png",
+      "units/black_monk_heal_3.png",
+      "units/black_monk_heal_4.png",
+      "units/black_monk_heal_5.png",
+      "units/black_monk_heal_6.png",
+      "units/black_monk_heal_7.png",
+      "units/black_monk_heal_8.png",
+      "units/black_monk_heal_9.png",
+      "units/black_monk_heal_10.png",
+      "units/black_monk_heal_11.png",
+      "units/black_monk_heal_12.png",
+      "units/black_monk_heal_13.png"
+     ],
+     "cell": [
+      122,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": false
+    },
+    "heal_fx": {
+     "frames": [
+      "units/black_monk_heal_fx_0.png",
+      "units/black_monk_heal_fx_1.png",
+      "units/black_monk_heal_fx_2.png",
+      "units/black_monk_heal_fx_3.png",
+      "units/black_monk_heal_fx_4.png",
+      "units/black_monk_heal_fx_5.png",
+      "units/black_monk_heal_fx_6.png",
+      "units/black_monk_heal_fx_7.png",
+      "units/black_monk_heal_fx_8.png",
+      "units/black_monk_heal_fx_9.png",
+      "units/black_monk_heal_fx_10.png",
+      "units/black_monk_heal_fx_11.png",
+      "units/black_monk_heal_fx_12.png",
+      "units/black_monk_heal_fx_13.png",
+      "units/black_monk_heal_fx_14.png",
+      "units/black_monk_heal_fx_15.png",
+      "units/black_monk_heal_fx_16.png",
+      "units/black_monk_heal_fx_17.png",
+      "units/black_monk_heal_fx_18.png",
+      "units/black_monk_heal_fx_19.png",
+      "units/black_monk_heal_fx_20.png",
+      "units/black_monk_heal_fx_21.png",
+      "units/black_monk_heal_fx_22.png",
+      "units/black_monk_heal_fx_23.png",
+      "units/black_monk_heal_fx_24.png",
+      "units/black_monk_heal_fx_25.png"
+     ],
+     "cell": [
+      98,
+      128
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": true
+    }
+   },
+   "pawn": {
+    "idle": {
+     "frames": [
+      "units/black_pawn_idle_0.png",
+      "units/black_pawn_idle_1.png",
+      "units/black_pawn_idle_2.png",
+      "units/black_pawn_idle_3.png",
+      "units/black_pawn_idle_4.png",
+      "units/black_pawn_idle_5.png",
+      "units/black_pawn_idle_6.png",
+      "units/black_pawn_idle_7.png"
+     ],
+     "cell": [
+      54,
+      74
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/black_pawn_run_0.png",
+      "units/black_pawn_run_1.png",
+      "units/black_pawn_run_2.png",
+      "units/black_pawn_run_3.png",
+      "units/black_pawn_run_4.png",
+      "units/black_pawn_run_5.png"
+     ],
+     "cell": [
+      66,
+      77
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  "purple": {
+   "archer": {
+    "idle": {
+     "frames": [
+      "units/purple_archer_idle_0.png",
+      "units/purple_archer_idle_1.png",
+      "units/purple_archer_idle_2.png",
+      "units/purple_archer_idle_3.png",
+      "units/purple_archer_idle_4.png",
+      "units/purple_archer_idle_5.png"
+     ],
+     "cell": [
+      72,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/purple_archer_run_0.png",
+      "units/purple_archer_run_1.png",
+      "units/purple_archer_run_2.png",
+      "units/purple_archer_run_3.png"
+     ],
+     "cell": [
+      74,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "shoot": {
+     "frames": [
+      "units/purple_archer_shoot_0.png",
+      "units/purple_archer_shoot_1.png",
+      "units/purple_archer_shoot_2.png",
+      "units/purple_archer_shoot_3.png",
+      "units/purple_archer_shoot_4.png",
+      "units/purple_archer_shoot_5.png",
+      "units/purple_archer_shoot_6.png",
+      "units/purple_archer_shoot_7.png"
+     ],
+     "cell": [
+      88,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 14,
+     "loop": false
+    },
+    "arrow": {
+     "frames": [
+      "units/purple_archer_arrow.png"
+     ],
+     "cell": [
+      43,
+      12
+     ],
+     "anchor": "center"
+    }
+   },
+   "warrior": {
+    "idle": {
+     "frames": [
+      "units/purple_warrior_idle_0.png",
+      "units/purple_warrior_idle_1.png",
+      "units/purple_warrior_idle_2.png",
+      "units/purple_warrior_idle_3.png",
+      "units/purple_warrior_idle_4.png",
+      "units/purple_warrior_idle_5.png",
+      "units/purple_warrior_idle_6.png",
+      "units/purple_warrior_idle_7.png"
+     ],
+     "cell": [
+      84,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/purple_warrior_run_0.png",
+      "units/purple_warrior_run_1.png",
+      "units/purple_warrior_run_2.png",
+      "units/purple_warrior_run_3.png",
+      "units/purple_warrior_run_4.png",
+      "units/purple_warrior_run_5.png"
+     ],
+     "cell": [
+      94,
+      91
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack1": {
+     "frames": [
+      "units/purple_warrior_attack1_0.png",
+      "units/purple_warrior_attack1_1.png",
+      "units/purple_warrior_attack1_2.png",
+      "units/purple_warrior_attack1_3.png"
+     ],
+     "cell": [
+      120,
+      112
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "attack2": {
+     "frames": [
+      "units/purple_warrior_attack2_0.png",
+      "units/purple_warrior_attack2_1.png",
+      "units/purple_warrior_attack2_2.png",
+      "units/purple_warrior_attack2_3.png",
+      "units/purple_warrior_attack2_4.png"
+     ],
+     "cell": [
+      106,
+      104
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "guard": {
+     "frames": [
+      "units/purple_warrior_guard_0.png",
+      "units/purple_warrior_guard_1.png",
+      "units/purple_warrior_guard_2.png",
+      "units/purple_warrior_guard_3.png",
+      "units/purple_warrior_guard_4.png",
+      "units/purple_warrior_guard_5.png"
+     ],
+     "cell": [
+      70,
+      93
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "lancer": {
+    "idle": {
+     "frames": [
+      "units/purple_lancer_idle_0.png",
+      "units/purple_lancer_idle_1.png",
+      "units/purple_lancer_idle_2.png",
+      "units/purple_lancer_idle_3.png",
+      "units/purple_lancer_idle_4.png",
+      "units/purple_lancer_idle_5.png",
+      "units/purple_lancer_idle_6.png",
+      "units/purple_lancer_idle_7.png",
+      "units/purple_lancer_idle_8.png",
+      "units/purple_lancer_idle_9.png",
+      "units/purple_lancer_idle_10.png",
+      "units/purple_lancer_idle_11.png"
+     ],
+     "cell": [
+      70,
+      150
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/purple_lancer_run_0.png",
+      "units/purple_lancer_run_1.png",
+      "units/purple_lancer_run_2.png",
+      "units/purple_lancer_run_3.png",
+      "units/purple_lancer_run_4.png",
+      "units/purple_lancer_run_5.png"
+     ],
+     "cell": [
+      70,
+      149
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack": {
+     "frames": [
+      "units/purple_lancer_attack_0.png",
+      "units/purple_lancer_attack_1.png",
+      "units/purple_lancer_attack_2.png"
+     ],
+     "cell": [
+      164,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "defence": {
+     "frames": [
+      "units/purple_lancer_defence_0.png",
+      "units/purple_lancer_defence_1.png",
+      "units/purple_lancer_defence_2.png",
+      "units/purple_lancer_defence_3.png",
+      "units/purple_lancer_defence_4.png",
+      "units/purple_lancer_defence_5.png"
+     ],
+     "cell": [
+      154,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "monk": {
+    "idle": {
+     "frames": [
+      "units/purple_monk_idle_0.png",
+      "units/purple_monk_idle_1.png",
+      "units/purple_monk_idle_2.png",
+      "units/purple_monk_idle_3.png",
+      "units/purple_monk_idle_4.png",
+      "units/purple_monk_idle_5.png"
+     ],
+     "cell": [
+      58,
+      69
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/purple_monk_run_0.png",
+      "units/purple_monk_run_1.png",
+      "units/purple_monk_run_2.png",
+      "units/purple_monk_run_3.png"
+     ],
+     "cell": [
+      82,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "heal": {
+     "frames": [
+      "units/purple_monk_heal_0.png",
+      "units/purple_monk_heal_1.png",
+      "units/purple_monk_heal_2.png",
+      "units/purple_monk_heal_3.png",
+      "units/purple_monk_heal_4.png",
+      "units/purple_monk_heal_5.png",
+      "units/purple_monk_heal_6.png",
+      "units/purple_monk_heal_7.png",
+      "units/purple_monk_heal_8.png",
+      "units/purple_monk_heal_9.png",
+      "units/purple_monk_heal_10.png",
+      "units/purple_monk_heal_11.png",
+      "units/purple_monk_heal_12.png",
+      "units/purple_monk_heal_13.png"
+     ],
+     "cell": [
+      122,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": false
+    },
+    "heal_fx": {
+     "frames": [
+      "units/purple_monk_heal_fx_0.png",
+      "units/purple_monk_heal_fx_1.png",
+      "units/purple_monk_heal_fx_2.png",
+      "units/purple_monk_heal_fx_3.png",
+      "units/purple_monk_heal_fx_4.png",
+      "units/purple_monk_heal_fx_5.png",
+      "units/purple_monk_heal_fx_6.png",
+      "units/purple_monk_heal_fx_7.png",
+      "units/purple_monk_heal_fx_8.png",
+      "units/purple_monk_heal_fx_9.png",
+      "units/purple_monk_heal_fx_10.png",
+      "units/purple_monk_heal_fx_11.png",
+      "units/purple_monk_heal_fx_12.png",
+      "units/purple_monk_heal_fx_13.png",
+      "units/purple_monk_heal_fx_14.png",
+      "units/purple_monk_heal_fx_15.png",
+      "units/purple_monk_heal_fx_16.png",
+      "units/purple_monk_heal_fx_17.png",
+      "units/purple_monk_heal_fx_18.png",
+      "units/purple_monk_heal_fx_19.png",
+      "units/purple_monk_heal_fx_20.png",
+      "units/purple_monk_heal_fx_21.png",
+      "units/purple_monk_heal_fx_22.png",
+      "units/purple_monk_heal_fx_23.png",
+      "units/purple_monk_heal_fx_24.png",
+      "units/purple_monk_heal_fx_25.png"
+     ],
+     "cell": [
+      98,
+      128
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": true
+    }
+   },
+   "pawn": {
+    "idle": {
+     "frames": [
+      "units/purple_pawn_idle_0.png",
+      "units/purple_pawn_idle_1.png",
+      "units/purple_pawn_idle_2.png",
+      "units/purple_pawn_idle_3.png",
+      "units/purple_pawn_idle_4.png",
+      "units/purple_pawn_idle_5.png",
+      "units/purple_pawn_idle_6.png",
+      "units/purple_pawn_idle_7.png"
+     ],
+     "cell": [
+      54,
+      74
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/purple_pawn_run_0.png",
+      "units/purple_pawn_run_1.png",
+      "units/purple_pawn_run_2.png",
+      "units/purple_pawn_run_3.png",
+      "units/purple_pawn_run_4.png",
+      "units/purple_pawn_run_5.png"
+     ],
+     "cell": [
+      66,
+      77
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    }
+   }
+  },
+  "yellow": {
+   "archer": {
+    "idle": {
+     "frames": [
+      "units/yellow_archer_idle_0.png",
+      "units/yellow_archer_idle_1.png",
+      "units/yellow_archer_idle_2.png",
+      "units/yellow_archer_idle_3.png",
+      "units/yellow_archer_idle_4.png",
+      "units/yellow_archer_idle_5.png"
+     ],
+     "cell": [
+      72,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/yellow_archer_run_0.png",
+      "units/yellow_archer_run_1.png",
+      "units/yellow_archer_run_2.png",
+      "units/yellow_archer_run_3.png"
+     ],
+     "cell": [
+      74,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "shoot": {
+     "frames": [
+      "units/yellow_archer_shoot_0.png",
+      "units/yellow_archer_shoot_1.png",
+      "units/yellow_archer_shoot_2.png",
+      "units/yellow_archer_shoot_3.png",
+      "units/yellow_archer_shoot_4.png",
+      "units/yellow_archer_shoot_5.png",
+      "units/yellow_archer_shoot_6.png",
+      "units/yellow_archer_shoot_7.png"
+     ],
+     "cell": [
+      88,
+      90
+     ],
+     "anchor": "bottom-center",
+     "fps": 14,
+     "loop": false
+    },
+    "arrow": {
+     "frames": [
+      "units/yellow_archer_arrow.png"
+     ],
+     "cell": [
+      43,
+      12
+     ],
+     "anchor": "center"
+    }
+   },
+   "warrior": {
+    "idle": {
+     "frames": [
+      "units/yellow_warrior_idle_0.png",
+      "units/yellow_warrior_idle_1.png",
+      "units/yellow_warrior_idle_2.png",
+      "units/yellow_warrior_idle_3.png",
+      "units/yellow_warrior_idle_4.png",
+      "units/yellow_warrior_idle_5.png",
+      "units/yellow_warrior_idle_6.png",
+      "units/yellow_warrior_idle_7.png"
+     ],
+     "cell": [
+      84,
+      89
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/yellow_warrior_run_0.png",
+      "units/yellow_warrior_run_1.png",
+      "units/yellow_warrior_run_2.png",
+      "units/yellow_warrior_run_3.png",
+      "units/yellow_warrior_run_4.png",
+      "units/yellow_warrior_run_5.png"
+     ],
+     "cell": [
+      94,
+      91
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack1": {
+     "frames": [
+      "units/yellow_warrior_attack1_0.png",
+      "units/yellow_warrior_attack1_1.png",
+      "units/yellow_warrior_attack1_2.png",
+      "units/yellow_warrior_attack1_3.png"
+     ],
+     "cell": [
+      120,
+      112
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "attack2": {
+     "frames": [
+      "units/yellow_warrior_attack2_0.png",
+      "units/yellow_warrior_attack2_1.png",
+      "units/yellow_warrior_attack2_2.png",
+      "units/yellow_warrior_attack2_3.png",
+      "units/yellow_warrior_attack2_4.png"
+     ],
+     "cell": [
+      106,
+      104
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "guard": {
+     "frames": [
+      "units/yellow_warrior_guard_0.png",
+      "units/yellow_warrior_guard_1.png",
+      "units/yellow_warrior_guard_2.png",
+      "units/yellow_warrior_guard_3.png",
+      "units/yellow_warrior_guard_4.png",
+      "units/yellow_warrior_guard_5.png"
+     ],
+     "cell": [
+      70,
+      93
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "lancer": {
+    "idle": {
+     "frames": [
+      "units/yellow_lancer_idle_0.png",
+      "units/yellow_lancer_idle_1.png",
+      "units/yellow_lancer_idle_2.png",
+      "units/yellow_lancer_idle_3.png",
+      "units/yellow_lancer_idle_4.png",
+      "units/yellow_lancer_idle_5.png",
+      "units/yellow_lancer_idle_6.png",
+      "units/yellow_lancer_idle_7.png",
+      "units/yellow_lancer_idle_8.png",
+      "units/yellow_lancer_idle_9.png",
+      "units/yellow_lancer_idle_10.png",
+      "units/yellow_lancer_idle_11.png"
+     ],
+     "cell": [
+      70,
+      150
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/yellow_lancer_run_0.png",
+      "units/yellow_lancer_run_1.png",
+      "units/yellow_lancer_run_2.png",
+      "units/yellow_lancer_run_3.png",
+      "units/yellow_lancer_run_4.png",
+      "units/yellow_lancer_run_5.png"
+     ],
+     "cell": [
+      70,
+      149
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "attack": {
+     "frames": [
+      "units/yellow_lancer_attack_0.png",
+      "units/yellow_lancer_attack_1.png",
+      "units/yellow_lancer_attack_2.png"
+     ],
+     "cell": [
+      164,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 16,
+     "loop": false
+    },
+    "defence": {
+     "frames": [
+      "units/yellow_lancer_defence_0.png",
+      "units/yellow_lancer_defence_1.png",
+      "units/yellow_lancer_defence_2.png",
+      "units/yellow_lancer_defence_3.png",
+      "units/yellow_lancer_defence_4.png",
+      "units/yellow_lancer_defence_5.png"
+     ],
+     "cell": [
+      154,
+      75
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": false
+    }
+   },
+   "monk": {
+    "idle": {
+     "frames": [
+      "units/yellow_monk_idle_0.png",
+      "units/yellow_monk_idle_1.png",
+      "units/yellow_monk_idle_2.png",
+      "units/yellow_monk_idle_3.png",
+      "units/yellow_monk_idle_4.png",
+      "units/yellow_monk_idle_5.png"
+     ],
+     "cell": [
+      58,
+      69
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/yellow_monk_run_0.png",
+      "units/yellow_monk_run_1.png",
+      "units/yellow_monk_run_2.png",
+      "units/yellow_monk_run_3.png"
+     ],
+     "cell": [
+      82,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    },
+    "heal": {
+     "frames": [
+      "units/yellow_monk_heal_0.png",
+      "units/yellow_monk_heal_1.png",
+      "units/yellow_monk_heal_2.png",
+      "units/yellow_monk_heal_3.png",
+      "units/yellow_monk_heal_4.png",
+      "units/yellow_monk_heal_5.png",
+      "units/yellow_monk_heal_6.png",
+      "units/yellow_monk_heal_7.png",
+      "units/yellow_monk_heal_8.png",
+      "units/yellow_monk_heal_9.png",
+      "units/yellow_monk_heal_10.png",
+      "units/yellow_monk_heal_11.png",
+      "units/yellow_monk_heal_12.png",
+      "units/yellow_monk_heal_13.png"
+     ],
+     "cell": [
+      122,
+      71
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": false
+    },
+    "heal_fx": {
+     "frames": [
+      "units/yellow_monk_heal_fx_0.png",
+      "units/yellow_monk_heal_fx_1.png",
+      "units/yellow_monk_heal_fx_2.png",
+      "units/yellow_monk_heal_fx_3.png",
+      "units/yellow_monk_heal_fx_4.png",
+      "units/yellow_monk_heal_fx_5.png",
+      "units/yellow_monk_heal_fx_6.png",
+      "units/yellow_monk_heal_fx_7.png",
+      "units/yellow_monk_heal_fx_8.png",
+      "units/yellow_monk_heal_fx_9.png",
+      "units/yellow_monk_heal_fx_10.png",
+      "units/yellow_monk_heal_fx_11.png",
+      "units/yellow_monk_heal_fx_12.png",
+      "units/yellow_monk_heal_fx_13.png",
+      "units/yellow_monk_heal_fx_14.png",
+      "units/yellow_monk_heal_fx_15.png",
+      "units/yellow_monk_heal_fx_16.png",
+      "units/yellow_monk_heal_fx_17.png",
+      "units/yellow_monk_heal_fx_18.png",
+      "units/yellow_monk_heal_fx_19.png",
+      "units/yellow_monk_heal_fx_20.png",
+      "units/yellow_monk_heal_fx_21.png",
+      "units/yellow_monk_heal_fx_22.png",
+      "units/yellow_monk_heal_fx_23.png",
+      "units/yellow_monk_heal_fx_24.png",
+      "units/yellow_monk_heal_fx_25.png"
+     ],
+     "cell": [
+      98,
+      128
+     ],
+     "anchor": "bottom-center",
+     "fps": 12,
+     "loop": true
+    }
+   },
+   "pawn": {
+    "idle": {
+     "frames": [
+      "units/yellow_pawn_idle_0.png",
+      "units/yellow_pawn_idle_1.png",
+      "units/yellow_pawn_idle_2.png",
+      "units/yellow_pawn_idle_3.png",
+      "units/yellow_pawn_idle_4.png",
+      "units/yellow_pawn_idle_5.png",
+      "units/yellow_pawn_idle_6.png",
+      "units/yellow_pawn_idle_7.png"
+     ],
+     "cell": [
+      54,
+      74
+     ],
+     "anchor": "bottom-center",
+     "fps": 8,
+     "loop": true
+    },
+    "run": {
+     "frames": [
+      "units/yellow_pawn_run_0.png",
+      "units/yellow_pawn_run_1.png",
+      "units/yellow_pawn_run_2.png",
+      "units/yellow_pawn_run_3.png",
+      "units/yellow_pawn_run_4.png",
+      "units/yellow_pawn_run_5.png"
+     ],
+     "cell": [
+      66,
+      77
+     ],
+     "anchor": "bottom-center",
+     "fps": 10,
+     "loop": true
+    }
+   }
+  }
+ },
+ "buildings": {
+  "blue": {
+   "castle": {
+    "image": "buildings/blue_castle.png",
+    "size": [
+     312,
+     208
+    ],
+    "anchor": "bottom-center"
+   },
+   "tower": {
+    "image": "buildings/blue_tower.png",
+    "size": [
+     120,
+     184
+    ],
+    "anchor": "bottom-center"
+   },
+   "archery": {
+    "image": "buildings/blue_archery.png",
+    "size": [
+     183,
+     179
+    ],
+    "anchor": "bottom-center"
+   },
+   "barracks": {
+    "image": "buildings/blue_barracks.png",
+    "size": [
+     184,
+     187
+    ],
+    "anchor": "bottom-center"
+   },
+   "monastery": {
+    "image": "buildings/blue_monastery.png",
+    "size": [
+     160,
+     265
+    ],
+    "anchor": "bottom-center"
+   },
+   "house1": {
+    "image": "buildings/blue_house1.png",
+    "size": [
+     112,
+     157
+    ],
+    "anchor": "bottom-center"
+   },
+   "house2": {
+    "image": "buildings/blue_house2.png",
+    "size": [
+     128,
+     155
+    ],
+    "anchor": "bottom-center"
+   },
+   "house3": {
+    "image": "buildings/blue_house3.png",
+    "size": [
+     122,
+     135
+    ],
+    "anchor": "bottom-center"
+   }
+  },
+  "red": {
+   "castle": {
+    "image": "buildings/red_castle.png",
+    "size": [
+     312,
+     208
+    ],
+    "anchor": "bottom-center"
+   },
+   "tower": {
+    "image": "buildings/red_tower.png",
+    "size": [
+     120,
+     184
+    ],
+    "anchor": "bottom-center"
+   },
+   "archery": {
+    "image": "buildings/red_archery.png",
+    "size": [
+     183,
+     179
+    ],
+    "anchor": "bottom-center"
+   },
+   "barracks": {
+    "image": "buildings/red_barracks.png",
+    "size": [
+     184,
+     187
+    ],
+    "anchor": "bottom-center"
+   },
+   "monastery": {
+    "image": "buildings/red_monastery.png",
+    "size": [
+     160,
+     265
+    ],
+    "anchor": "bottom-center"
+   },
+   "house1": {
+    "image": "buildings/red_house1.png",
+    "size": [
+     112,
+     157
+    ],
+    "anchor": "bottom-center"
+   },
+   "house2": {
+    "image": "buildings/red_house2.png",
+    "size": [
+     128,
+     155
+    ],
+    "anchor": "bottom-center"
+   },
+   "house3": {
+    "image": "buildings/red_house3.png",
+    "size": [
+     122,
+     135
+    ],
+    "anchor": "bottom-center"
+   }
+  },
+  "black": {
+   "castle": {
+    "image": "buildings/black_castle.png",
+    "size": [
+     312,
+     208
+    ],
+    "anchor": "bottom-center"
+   },
+   "tower": {
+    "image": "buildings/black_tower.png",
+    "size": [
+     120,
+     184
+    ],
+    "anchor": "bottom-center"
+   },
+   "archery": {
+    "image": "buildings/black_archery.png",
+    "size": [
+     183,
+     179
+    ],
+    "anchor": "bottom-center"
+   },
+   "barracks": {
+    "image": "buildings/black_barracks.png",
+    "size": [
+     184,
+     187
+    ],
+    "anchor": "bottom-center"
+   },
+   "monastery": {
+    "image": "buildings/black_monastery.png",
+    "size": [
+     160,
+     265
+    ],
+    "anchor": "bottom-center"
+   },
+   "house1": {
+    "image": "buildings/black_house1.png",
+    "size": [
+     112,
+     157
+    ],
+    "anchor": "bottom-center"
+   },
+   "house2": {
+    "image": "buildings/black_house2.png",
+    "size": [
+     128,
+     155
+    ],
+    "anchor": "bottom-center"
+   },
+   "house3": {
+    "image": "buildings/black_house3.png",
+    "size": [
+     122,
+     135
+    ],
+    "anchor": "bottom-center"
+   }
+  },
+  "purple": {
+   "castle": {
+    "image": "buildings/purple_castle.png",
+    "size": [
+     312,
+     208
+    ],
+    "anchor": "bottom-center"
+   },
+   "tower": {
+    "image": "buildings/purple_tower.png",
+    "size": [
+     120,
+     184
+    ],
+    "anchor": "bottom-center"
+   },
+   "archery": {
+    "image": "buildings/purple_archery.png",
+    "size": [
+     183,
+     179
+    ],
+    "anchor": "bottom-center"
+   },
+   "barracks": {
+    "image": "buildings/purple_barracks.png",
+    "size": [
+     184,
+     187
+    ],
+    "anchor": "bottom-center"
+   },
+   "monastery": {
+    "image": "buildings/purple_monastery.png",
+    "size": [
+     160,
+     265
+    ],
+    "anchor": "bottom-center"
+   },
+   "house1": {
+    "image": "buildings/purple_house1.png",
+    "size": [
+     112,
+     157
+    ],
+    "anchor": "bottom-center"
+   },
+   "house2": {
+    "image": "buildings/purple_house2.png",
+    "size": [
+     128,
+     155
+    ],
+    "anchor": "bottom-center"
+   },
+   "house3": {
+    "image": "buildings/purple_house3.png",
+    "size": [
+     122,
+     135
+    ],
+    "anchor": "bottom-center"
+   }
+  },
+  "yellow": {
+   "castle": {
+    "image": "buildings/yellow_castle.png",
+    "size": [
+     312,
+     208
+    ],
+    "anchor": "bottom-center"
+   },
+   "tower": {
+    "image": "buildings/yellow_tower.png",
+    "size": [
+     120,
+     184
+    ],
+    "anchor": "bottom-center"
+   },
+   "archery": {
+    "image": "buildings/yellow_archery.png",
+    "size": [
+     183,
+     179
+    ],
+    "anchor": "bottom-center"
+   },
+   "barracks": {
+    "image": "buildings/yellow_barracks.png",
+    "size": [
+     184,
+     187
+    ],
+    "anchor": "bottom-center"
+   },
+   "monastery": {
+    "image": "buildings/yellow_monastery.png",
+    "size": [
+     160,
+     265
+    ],
+    "anchor": "bottom-center"
+   },
+   "house1": {
+    "image": "buildings/yellow_house1.png",
+    "size": [
+     112,
+     157
+    ],
+    "anchor": "bottom-center"
+   },
+   "house2": {
+    "image": "buildings/yellow_house2.png",
+    "size": [
+     128,
+     155
+    ],
+    "anchor": "bottom-center"
+   },
+   "house3": {
+    "image": "buildings/yellow_house3.png",
+    "size": [
+     122,
+     135
+    ],
+    "anchor": "bottom-center"
+   }
+  }
+ },
+ "tiles": {
+  "grass": [
+   [
+    "tiles/grass_0_0.png",
+    "tiles/grass_1_0.png",
+    "tiles/grass_2_0.png",
+    "tiles/grass_3_0.png"
+   ],
+   [
+    "tiles/grass_0_1.png",
+    "tiles/grass_1_1.png",
+    "tiles/grass_2_1.png",
+    "tiles/grass_3_1.png"
+   ],
+   [
+    "tiles/grass_0_2.png",
+    "tiles/grass_1_2.png",
+    "tiles/grass_2_2.png",
+    "tiles/grass_3_2.png"
+   ],
+   [
+    "tiles/grass_0_3.png",
+    "tiles/grass_1_3.png",
+    "tiles/grass_2_3.png",
+    "tiles/grass_3_3.png"
+   ]
+  ],
+  "grass_var": [
+   "tiles/grassvar_5_0.png",
+   "tiles/grassvar_6_0.png",
+   "tiles/grassvar_7_0.png",
+   "tiles/grassvar_8_0.png",
+   "tiles/grassvar_5_1.png",
+   "tiles/grassvar_6_1.png",
+   "tiles/grassvar_7_1.png",
+   "tiles/grassvar_8_1.png",
+   "tiles/grassvar_5_2.png",
+   "tiles/grassvar_6_2.png",
+   "tiles/grassvar_7_2.png",
+   "tiles/grassvar_8_2.png",
+   "tiles/grassvar_5_3.png",
+   "tiles/grassvar_6_3.png",
+   "tiles/grassvar_7_3.png",
+   "tiles/grassvar_8_3.png"
+  ],
+  "corners": {
+   "bl": "tiles/corner_bl.png",
+   "bl2": "tiles/corner_bl2.png",
+   "br": "tiles/corner_br.png",
+   "br2": "tiles/corner_br2.png"
+  },
+  "water": "tiles/water.png",
+  "waterfoam": "fx/waterfoam.png"
+ },
+ "deco": {
+  "tree": [
+   "deco/tree_0.png",
+   "deco/tree_1.png",
+   "deco/tree_2.png",
+   "deco/tree_3.png",
+   "deco/tree_4.png",
+   "deco/tree_5.png",
+   "deco/tree_6.png",
+   "deco/tree_7.png",
+   "deco/tree_8.png",
+   "deco/tree_9.png",
+   "deco/tree_10.png",
+   "deco/tree_11.png",
+   "deco/tree_12.png",
+   "deco/tree_13.png",
+   "deco/tree_14.png",
+   "deco/tree_15.png",
+   "deco/tree_16.png",
+   "deco/tree_17.png",
+   "deco/tree_18.png",
+   "deco/tree_19.png",
+   "deco/tree_20.png",
+   "deco/tree_21.png",
+   "deco/tree_22.png",
+   "deco/tree_23.png",
+   "deco/tree_24.png",
+   "deco/tree_25.png",
+   "deco/tree_26.png",
+   "deco/tree_27.png",
+   "deco/tree_28.png",
+   "deco/tree_29.png",
+   "deco/tree_30.png",
+   "deco/tree_31.png"
+  ],
+  "bush": [
+   "deco/bush_0.png",
+   "deco/bush_1.png",
+   "deco/bush_2.png",
+   "deco/bush_3.png",
+   "deco/bush_4.png",
+   "deco/bush_5.png",
+   "deco/bush_6.png",
+   "deco/bush_7.png",
+   "deco/bush_8.png",
+   "deco/bush_9.png",
+   "deco/bush_10.png",
+   "deco/bush_11.png",
+   "deco/bush_12.png",
+   "deco/bush_13.png",
+   "deco/bush_14.png",
+   "deco/bush_15.png",
+   "deco/bush_16.png",
+   "deco/bush_17.png",
+   "deco/bush_18.png",
+   "deco/bush_19.png",
+   "deco/bush_20.png",
+   "deco/bush_21.png",
+   "deco/bush_22.png",
+   "deco/bush_23.png",
+   "deco/bush_24.png",
+   "deco/bush_25.png",
+   "deco/bush_26.png",
+   "deco/bush_27.png",
+   "deco/bush_28.png",
+   "deco/bush_29.png",
+   "deco/bush_30.png",
+   "deco/bush_31.png"
+  ],
+  "stump": [
+   "deco/stump_0.png",
+   "deco/stump_1.png",
+   "deco/stump_2.png",
+   "deco/stump_3.png"
+  ],
+  "rock": [
+   "deco/rock_0.png",
+   "deco/rock_1.png",
+   "deco/rock_2.png",
+   "deco/rock_3.png"
+  ],
+  "duck": [
+   "deco/duck_0.png"
+  ],
+  "sheep_idle": {
+   "image": "deco/sheep_idle.png",
+   "size": [
+    685,
+    44
+   ],
+   "anchor": "bottom-center"
+  },
+  "sheep_grass": {
+   "image": "deco/sheep_grass.png",
+   "size": [
+    1453,
+    44
+   ],
+   "anchor": "bottom-center"
+  },
+  "sheep_move": {
+   "frames": [
+    "deco/sheep_move_0.png",
+    "deco/sheep_move_1.png",
+    "deco/sheep_move_2.png",
+    "deco/sheep_move_3.png"
+   ],
+   "cell": [
+    48,
+    47
+   ],
+   "anchor": "bottom-center",
+   "fps": 8,
+   "loop": true
+  },
+  "goldstone": {
+   "image": "deco/goldstone.png",
+   "size": [
+    32,
+    29
+   ],
+   "anchor": "center"
+  }
+ },
+ "fx": {
+  "explosion1": {
+   "frames": [
+    "fx/explosion1_0.png",
+    "fx/explosion1_1.png",
+    "fx/explosion1_2.png",
+    "fx/explosion1_3.png",
+    "fx/explosion1_4.png",
+    "fx/explosion1_5.png",
+    "fx/explosion1_6.png",
+    "fx/explosion1_7.png",
+    "fx/explosion1_8.png",
+    "fx/explosion1_9.png",
+    "fx/explosion1_10.png",
+    "fx/explosion1_11.png",
+    "fx/explosion1_12.png",
+    "fx/explosion1_13.png",
+    "fx/explosion1_14.png",
+    "fx/explosion1_15.png",
+    "fx/explosion1_16.png",
+    "fx/explosion1_17.png",
+    "fx/explosion1_18.png",
+    "fx/explosion1_19.png",
+    "fx/explosion1_20.png",
+    "fx/explosion1_21.png"
+   ],
+   "cell": [
+    64,
+    64
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
+  },
+  "explosion2": {
+   "frames": [
+    "fx/explosion2_0.png",
+    "fx/explosion2_1.png",
+    "fx/explosion2_2.png",
+    "fx/explosion2_3.png",
+    "fx/explosion2_4.png",
+    "fx/explosion2_5.png",
+    "fx/explosion2_6.png",
+    "fx/explosion2_7.png",
+    "fx/explosion2_8.png",
+    "fx/explosion2_9.png",
+    "fx/explosion2_10.png",
+    "fx/explosion2_11.png",
+    "fx/explosion2_12.png",
+    "fx/explosion2_13.png",
+    "fx/explosion2_14.png",
+    "fx/explosion2_15.png",
+    "fx/explosion2_16.png",
+    "fx/explosion2_17.png",
+    "fx/explosion2_18.png",
+    "fx/explosion2_19.png",
+    "fx/explosion2_20.png",
+    "fx/explosion2_21.png",
+    "fx/explosion2_22.png",
+    "fx/explosion2_23.png",
+    "fx/explosion2_24.png",
+    "fx/explosion2_25.png",
+    "fx/explosion2_26.png",
+    "fx/explosion2_27.png",
+    "fx/explosion2_28.png",
+    "fx/explosion2_29.png",
+    "fx/explosion2_30.png"
+   ],
+   "cell": [
+    106,
+    138
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
+  },
+  "fire1": {
+   "frames": [
+    "fx/fire1_0.png",
+    "fx/fire1_1.png",
+    "fx/fire1_2.png",
+    "fx/fire1_3.png",
+    "fx/fire1_4.png",
+    "fx/fire1_5.png",
+    "fx/fire1_6.png",
+    "fx/fire1_7.png",
+    "fx/fire1_8.png",
+    "fx/fire1_9.png",
+    "fx/fire1_10.png"
+   ],
+   "cell": [
+    22,
+    24
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
+  },
+  "fire2": {
+   "frames": [
+    "fx/fire2_0.png",
+    "fx/fire2_1.png",
+    "fx/fire2_2.png",
+    "fx/fire2_3.png",
+    "fx/fire2_4.png",
+    "fx/fire2_5.png",
+    "fx/fire2_6.png",
+    "fx/fire2_7.png",
+    "fx/fire2_8.png",
+    "fx/fire2_9.png",
+    "fx/fire2_10.png",
+    "fx/fire2_11.png",
+    "fx/fire2_12.png",
+    "fx/fire2_13.png"
+   ],
+   "cell": [
+    36,
+    43
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
+  },
+  "fire3": {
+   "frames": [
+    "fx/fire3_0.png",
+    "fx/fire3_1.png",
+    "fx/fire3_2.png",
+    "fx/fire3_3.png",
+    "fx/fire3_4.png",
+    "fx/fire3_5.png",
+    "fx/fire3_6.png",
+    "fx/fire3_7.png",
+    "fx/fire3_8.png",
+    "fx/fire3_9.png",
+    "fx/fire3_10.png",
+    "fx/fire3_11.png",
+    "fx/fire3_12.png",
+    "fx/fire3_13.png",
+    "fx/fire3_14.png",
+    "fx/fire3_15.png",
+    "fx/fire3_16.png",
+    "fx/fire3_17.png",
+    "fx/fire3_18.png",
+    "fx/fire3_19.png",
+    "fx/fire3_20.png",
+    "fx/fire3_21.png",
+    "fx/fire3_22.png",
+    "fx/fire3_23.png",
+    "fx/fire3_24.png",
+    "fx/fire3_25.png",
+    "fx/fire3_26.png",
+    "fx/fire3_27.png"
+   ],
+   "cell": [
+    54,
+    55
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
+  },
+  "water_splash": {
+   "frames": [
+    "fx/water_splash_0.png",
+    "fx/water_splash_1.png",
+    "fx/water_splash_2.png",
+    "fx/water_splash_3.png",
+    "fx/water_splash_4.png",
+    "fx/water_splash_5.png",
+    "fx/water_splash_6.png",
+    "fx/water_splash_7.png",
+    "fx/water_splash_8.png",
+    "fx/water_splash_9.png",
+    "fx/water_splash_10.png",
+    "fx/water_splash_11.png",
+    "fx/water_splash_12.png",
+    "fx/water_splash_13.png",
+    "fx/water_splash_14.png",
+    "fx/water_splash_15.png",
+    "fx/water_splash_16.png",
+    "fx/water_splash_17.png",
+    "fx/water_splash_18.png",
+    "fx/water_splash_19.png",
+    "fx/water_splash_20.png",
+    "fx/water_splash_21.png",
+    "fx/water_splash_22.png",
+    "fx/water_splash_23.png",
+    "fx/water_splash_24.png"
+   ],
+   "cell": [
+    88,
+    82
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
+  },
+  "dust1": {
+   "frames": [
+    "fx/dust1_0.png",
+    "fx/dust1_1.png",
+    "fx/dust1_2.png",
+    "fx/dust1_3.png",
+    "fx/dust1_4.png",
+    "fx/dust1_5.png",
+    "fx/dust1_6.png",
+    "fx/dust1_7.png",
+    "fx/dust1_8.png",
+    "fx/dust1_9.png",
+    "fx/dust1_10.png",
+    "fx/dust1_11.png",
+    "fx/dust1_12.png",
+    "fx/dust1_13.png",
+    "fx/dust1_14.png",
+    "fx/dust1_15.png"
+   ],
+   "cell": [
+    36,
+    33
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
+  },
+  "dust2": {
+   "frames": [
+    "fx/dust2_0.png",
+    "fx/dust2_1.png",
+    "fx/dust2_2.png",
+    "fx/dust2_3.png",
+    "fx/dust2_4.png",
+    "fx/dust2_5.png",
+    "fx/dust2_6.png",
+    "fx/dust2_7.png",
+    "fx/dust2_8.png",
+    "fx/dust2_9.png",
+    "fx/dust2_10.png",
+    "fx/dust2_11.png",
+    "fx/dust2_12.png",
+    "fx/dust2_13.png",
+    "fx/dust2_14.png",
+    "fx/dust2_15.png",
+    "fx/dust2_16.png",
+    "fx/dust2_17.png",
+    "fx/dust2_18.png",
+    "fx/dust2_19.png"
+   ],
+   "cell": [
+    64,
+    57
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
+  }
+ },
+ "ui": {
+  "bars": {
+   "big_base": {
+    "image": "ui/big_base.png",
+    "size": [
+     320,
+     64
+    ],
+    "anchor": "center"
+   },
+   "big_fill": {
+    "image": "ui/big_fill.png",
+    "size": [
+     64,
+     64
+    ],
+    "anchor": "center"
+   },
+   "small_base": {
+    "image": "ui/small_base.png",
+    "size": [
+     320,
+     64
+    ],
+    "anchor": "center"
+   },
+   "small_fill": {
+    "image": "ui/small_fill.png",
+    "size": [
+     64,
+     64
+    ],
+    "anchor": "center"
+   }
+  },
+  "buttons": {
+   "big_blue": {
+    "image": "ui/btn_big_blue.png",
+    "size": [
+     320,
+     320
+    ],
+    "anchor": "center"
+   },
+   "big_blue_p": {
+    "image": "ui/btn_big_blue_p.png",
+    "size": [
+     320,
+     320
+    ],
+    "anchor": "center"
+   },
+   "big_red": {
+    "image": "ui/btn_big_red.png",
+    "size": [
+     320,
+     320
+    ],
+    "anchor": "center"
+   },
+   "big_red_p": {
+    "image": "ui/btn_big_red_p.png",
+    "size": [
+     320,
+     320
+    ],
+    "anchor": "center"
+   },
+   "sq_blue": {
+    "image": "ui/btn_sq_blue.png",
+    "size": [
+     128,
+     128
+    ],
+    "anchor": "center"
+   },
+   "sq_blue_p": {
+    "image": "ui/btn_sq_blue_p.png",
+    "size": [
+     128,
+     128
+    ],
+    "anchor": "center"
+   },
+   "sq_red": {
+    "image": "ui/btn_sq_red.png",
+    "size": [
+     128,
+     128
+    ],
+    "anchor": "center"
+   },
+   "sq_red_p": {
+    "image": "ui/btn_sq_red_p.png",
+    "size": [
+     128,
+     128
+    ],
+    "anchor": "center"
+   },
+   "rd_blue": {
+    "image": "ui/btn_rd_blue.png",
+    "size": [
+     128,
+     128
+    ],
+    "anchor": "center"
+   },
+   "rd_blue_p": {
+    "image": "ui/btn_rd_blue_p.png",
+    "size": [
+     128,
+     128
+    ],
+    "anchor": "center"
+   },
+   "rd_red": {
+    "image": "ui/btn_rd_red.png",
+    "size": [
+     128,
+     128
+    ],
+    "anchor": "center"
+   },
+   "rd_red_p": {
+    "image": "ui/btn_rd_red_p.png",
+    "size": [
+     128,
+     128
+    ],
+    "anchor": "center"
+   }
+  },
+  "icons": [
+   "ui/icon_01.png",
+   "ui/icon_02.png",
+   "ui/icon_03.png",
+   "ui/icon_04.png",
+   "ui/icon_05.png",
+   "ui/icon_06.png",
+   "ui/icon_07.png",
+   "ui/icon_08.png",
+   "ui/icon_09.png",
+   "ui/icon_10.png",
+   "ui/icon_11.png",
+   "ui/icon_12.png"
+  ],
+  "avatars": [
+   "ui/avatar_01.png",
+   "ui/avatar_02.png",
+   "ui/avatar_03.png",
+   "ui/avatar_04.png",
+   "ui/avatar_05.png",
+   "ui/avatar_06.png",
+   "ui/avatar_07.png",
+   "ui/avatar_08.png",
+   "ui/avatar_09.png",
+   "ui/avatar_10.png",
+   "ui/avatar_11.png",
+   "ui/avatar_12.png",
+   "ui/avatar_13.png",
+   "ui/avatar_14.png",
+   "ui/avatar_15.png",
+   "ui/avatar_16.png",
+   "ui/avatar_17.png",
+   "ui/avatar_18.png",
+   "ui/avatar_19.png",
+   "ui/avatar_20.png",
+   "ui/avatar_21.png",
+   "ui/avatar_22.png",
+   "ui/avatar_23.png",
+   "ui/avatar_24.png",
+   "ui/avatar_25.png"
+  ],
+  "banner": {
+   "image": "ui/banner.png",
+   "size": [
+    448,
+    448
+   ],
+   "anchor": "center"
+  },
+  "banner_slots": {
+   "image": "ui/banner_slots.png",
+   "size": [
+    192,
+    192
+   ],
+   "anchor": "center"
+  },
+  "swords": {
+   "image": "ui/swords.png",
+   "size": [
+    448,
+    640
+   ],
+   "anchor": "center"
+  },
+  "paper": {
+   "image": "ui/paper.png",
+   "size": [
+    296,
+    281
+   ],
+   "anchor": "center"
+  },
+  "paper_special": {
+   "image": "ui/paper_special.png",
+   "size": [
+    302,
+    279
+   ],
+   "anchor": "center"
+  }
+ },
+ "special": {
+  "flydemon": {
+   "frames": [
+    "enemies/flydemon_0.png",
+    "enemies/flydemon_1.png",
+    "enemies/flydemon_2.png",
+    "enemies/flydemon_3.png"
+   ],
+   "cell": [
+    78,
+    66
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "mushroom": {
+   "frames": [
+    "enemies/mushroom_0.png",
+    "enemies/mushroom_1.png",
+    "enemies/mushroom_2.png",
+    "enemies/mushroom_3.png",
+    "enemies/mushroom_4.png",
+    "enemies/mushroom_5.png",
+    "enemies/mushroom_6.png",
+    "enemies/mushroom_7.png"
+   ],
+   "cell": [
+    30,
+    35
+   ],
+   "anchor": "bottom-center",
+   "fps": 12,
+   "loop": true
+  },
+  "skeleton_white": {
+   "frames": [
+    "enemies/skeleton_white_0.png",
+    "enemies/skeleton_white_1.png",
+    "enemies/skeleton_white_2.png",
+    "enemies/skeleton_white_3.png",
+    "enemies/skeleton_white_4.png",
+    "enemies/skeleton_white_5.png",
+    "enemies/skeleton_white_6.png",
+    "enemies/skeleton_white_7.png",
+    "enemies/skeleton_white_8.png",
+    "enemies/skeleton_white_9.png"
+   ],
+   "cell": [
+    40,
+    48
+   ],
+   "anchor": "bottom-center",
+   "fps": 12,
+   "loop": true
+  },
+  "skeleton_yellow": {
+   "frames": [
+    "enemies/skeleton_yellow_0.png",
+    "enemies/skeleton_yellow_1.png",
+    "enemies/skeleton_yellow_2.png",
+    "enemies/skeleton_yellow_3.png",
+    "enemies/skeleton_yellow_4.png",
+    "enemies/skeleton_yellow_5.png",
+    "enemies/skeleton_yellow_6.png",
+    "enemies/skeleton_yellow_7.png",
+    "enemies/skeleton_yellow_8.png",
+    "enemies/skeleton_yellow_9.png"
+   ],
+   "cell": [
+    40,
+    48
+   ],
+   "anchor": "bottom-center",
+   "fps": 12,
+   "loop": true
+  },
+  "minotaur": {
+   "frames": [
+    "enemies/minotaur_0.png",
+    "enemies/minotaur_1.png",
+    "enemies/minotaur_2.png",
+    "enemies/minotaur_3.png",
+    "enemies/minotaur_4.png",
+    "enemies/minotaur_5.png",
+    "enemies/minotaur_6.png"
+   ],
+   "cell": [
+    114,
+    44
+   ],
+   "anchor": "bottom-center",
+   "fps": 10,
+   "loop": true
+  }
+ }
+}
