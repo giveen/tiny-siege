@@ -117,7 +117,7 @@ export function gearBonusText(def: GearDef, tier: number): string {
 }
 
 // ---------------------------------------------------------------- drops
-/** Tier of a drop at a given wave: T1 (waves 1-4) ... T5 (wave 20+). */
+/** Tier of a drop at a given wave: T1 (waves 1-4) ... T5 (wave 21+). */
 export function gearTierForWave(wave: number): number {
   return Math.min(TIER_MAX, 1 + Math.floor(wave / 5));
 }

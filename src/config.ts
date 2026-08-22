@@ -42,7 +42,7 @@ export const PATH_SPEED_MULT = 2.2;
 export const TOWER_RANGE_PREVIEW = 1;
 
 // The run's climax: clearing this wave wins the run (the Siege).
-export const SIEGE_WAVE = 20;
+export const SIEGE_WAVE = 50;
 
 // Speed options
 export const SPEEDS = [1, 2, 3];

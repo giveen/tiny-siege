@@ -19,7 +19,7 @@ import {
   type UpgradeTrack,
 } from "./tower";
 import { RARITY_COLOR } from "./boons";
-import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST } from "./config";
+import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE } from "./config";
 import { VICTORY_RUNES, RELICS, relicLevel } from "./meta";
 import {
   GEAR_BY_ID,
@@ -35,6 +35,17 @@ import {
 } from "./gear";
 import type { TowerType } from "./types";
 import { fmt } from "./util";
+
+interface TipLine {
+  t: string;
+  c?: string;
+  b?: boolean;
+}
+interface Tip {
+  title: string;
+  accent?: string;
+  lines: TipLine[];
+}
 
 interface Rect {
   x: number;
@@ -516,6 +527,9 @@ export class Hud {
     if (game.wavePhase === "boon" && L.cards.length > 0) {
       this.drawBoonModal(game, ctx, L.cards);
     }
+
+    // tooltips go on top of everything
+    this.drawTooltip(game, ctx);
   }
 
   private statsFor(game: Game, t: Game["towers"][number]) {
@@ -679,6 +693,353 @@ export class Hud {
     return false;
   }
 
+  // ------------------------------------------------------------- tooltips
+  // Hover explanations so every button, row, tower and foe answers
+  // "what is this and what does it do?" before you click it.
+  private tooltipAt(game: Game, p: { x: number; y: number }): Tip | null {
+    if (game.screen === "menu") {
+      if (game._showCodex) return this.tipCodex(game, p);
+      if (game._showArmory) return this.tipArmory(game, p);
+      const M = this.menuRects();
+      if (inRect(p, M.start))
+        return {
+          title: "Start Siege",
+          accent: "#f0c060",
+          lines: [
+            { t: `Clear all ${SIEGE_WAVE} waves to win the campaign.`, c: "#cfe3f5" },
+            { t: "Between waves pick a Boon; surviving banks gear and runes." },
+          ],
+        };
+      if (inRect(p, M.codex))
+        return {
+          title: "Relic Codex",
+          lines: [
+            { t: "Permanent upgrades bought with runes.", c: "#cfe3f5" },
+            { t: "Each run you earn runes for how far you got — spend them here." },
+          ],
+        };
+      if (inRect(p, M.armory))
+        return {
+          title: "The Armory",
+          lines: [
+            { t: "Gear banked from your runs.", c: "#cfe3f5" },
+            { t: "Equip pieces on tower types — they boost every one of those towers." },
+          ],
+        };
+      if (inRect(p, M.help))
+        return { title: "How to Play", lines: [{ t: "Towers, boons, gear and relics in brief." }] };
+      return null;
+    }
+    if (game.screen !== "game") return null;
+
+    const L = this.layout(game);
+
+    // boon modal: hovering a card explains it
+    if (game.wavePhase === "boon") {
+      for (let i = 0; i < L.cards.length; i++) {
+        const b = game.boonChoices[i];
+        if (b && inRect(p, L.cards[i]))
+          return { title: b.name, accent: RARITY_COLOR[b.rarity], lines: [{ t: b.desc, c: "#cfe3f5" }] };
+      }
+      return null;
+    }
+
+    if (inRect(p, L.pause)) return { title: "Pause", lines: [{ t: "Freeze the action. Your build keeps waiting." }] };
+    if (inRect(p, L.menu))
+      return { title: "Menu", lines: [{ t: "Leave to the main menu — this run ends.", c: "#e08a8a" }] };
+    if (inRect(p, L.speed)) return { title: "Speed", lines: [{ t: `Cycle game speed — now ${game.speedIdx + 1}×.` }] };
+    if (inRect(p, L.mute)) return { title: "Sound", lines: [{ t: "Toggle sound effects." }] };
+    if (game.wavePhase === "build" && inRect(p, L.startWave))
+      return {
+        title: `Send wave ${game.wave + 1}`,
+        accent: "#f0c060",
+        lines: [{ t: "Start the next wave now — or keep building first." }],
+      };
+
+    // palette buttons: full description + stats (the card text is short on space)
+    for (const t of TOWER_ORDER) {
+      if (!inRect(p, L.palette[t])) continue;
+      const d = TOWER_DEFS[t];
+      const lines: TipLine[] = [];
+      if (game.unlocked.has(t)) {
+        lines.push({ t: `${game.towerCost(t)} gold to build`, c: "#e8c96a" });
+        lines.push({ t: d.desc, c: "#8fa8bd" });
+        lines.push({ t: this.baseStatLine(d), c: "#cfe3f5" });
+      } else {
+        lines.push({ t: "Locked.", c: "#7d93a8" });
+        lines.push({ t: "Recruit it permanently with the Old Guard relic in the Codex." });
+      }
+      return { title: d.name, lines };
+    }
+
+    // selected-tower panel: what each upgrade button buys
+    if (L.sel && game.selectedTower) {
+      const tw = game.selectedTower;
+      for (const u of L.sel.upgrades) {
+        if (!inRect(p, u.rect)) continue;
+        const lvl = tw.upg[u.track];
+        const cost = Math.round(upgradeCost(tw.type, u.track, lvl) * game.metaCostMult);
+        const desc =
+          tw.type === "monastery"
+            ? u.track === "damage"
+              ? "+30% blessing power per level (tower damage)."
+              : u.track === "rate"
+                ? "+20% blessing power per level (tower speed)."
+                : "+12% aura radius per level."
+            : u.track === "damage"
+              ? "+30% damage per level."
+              : u.track === "rate"
+                ? "+20% attack speed per level."
+                : "+12% range per level.";
+        return {
+          title: `${trackLabel(tw.type, u.track)}  L${lvl} → L${lvl + 1}`,
+          lines: [
+            { t: `Cost: ${cost} gold`, c: "#e8c96a" },
+            { t: desc, c: "#cfe3f5" },
+          ],
+        };
+      }
+      for (const sc of L.sel.specChoose) {
+        if (!inRect(p, sc.rect)) continue;
+        const s = SPECS[tw.type].find((x) => x.id === sc.specId);
+        if (s)
+          return {
+            title: s.name,
+            accent: s.color,
+            lines: [
+              { t: s.blurb, c: "#cfe3f5" },
+              { t: "Choose this specialization line (one-time choice).", c: "#8fa8bd" },
+            ],
+          };
+      }
+      if (L.sel.specUp && inRect(p, L.sel.specUp)) {
+        const cost = specUpgradeCost(tw.type, tw.specLvl);
+        return {
+          title: "Upgrade specialization",
+          lines: [
+            { t: `Cost: ${cost} gold`, c: "#e8c96a" },
+            { t: `Raise your specialization to L${tw.specLvl + 1} of ${MAX_SPEC}.`, c: "#cfe3f5" },
+          ],
+        };
+      }
+      if (inRect(p, L.sel.sell))
+        return {
+          title: "Sell tower",
+          lines: [
+            { t: `Refund ${Math.round(tw.totalInvested * 0.6)} gold (60% of everything spent).`, c: "#e08a8a" },
+          ],
+        };
+      if (inRect(p, L.sel.panel)) return this.towerTip(game, tw);
+    }
+
+    // world hover: towers, foes, the castle (world-space mouse)
+    if (game.mouse.over) {
+      const tower = game.towers.find((t) => Math.hypot(t.x - game.mouse.x, t.y - game.mouse.y) < 34);
+      if (tower) return this.towerTip(game, tower);
+      const enemy = game.enemies.find((e) => Math.hypot(e.x - game.mouse.x, e.y - game.mouse.y) < 26);
+      if (enemy) return this.enemyTip(enemy);
+      if (Math.hypot(game.castle.x - game.mouse.x, game.castle.y - game.mouse.y) < 110)
+        return {
+          title: "Your Castle",
+          accent: "#9fd8a8",
+          lines: [
+            { t: `HP ${Math.ceil(game.castle.hp)} / ${game.castle.maxHp}`, c: "#9fd8a8" },
+            { t: "Foes that reach it deal damage. If it falls, the run ends.", c: "#e08a8a" },
+          ],
+        };
+    }
+    return null;
+  }
+
+  /** Plain-text stat summary for a tower type's base definition. */
+  private baseStatLine(d: (typeof TOWER_DEFS)[TowerType]): string {
+    const bits: string[] = [];
+    if (d.damage > 0) bits.push(`damage ${d.damage}`);
+    if (d.rate > 0) bits.push(`${d.rate.toFixed(2)}/s`);
+    if (d.range > 0) bits.push(`range ${d.range}`);
+    if (d.splash > 0) bits.push(`splash ${d.splash}px`);
+    if (d.pierce > 0) bits.push(`pierce ${d.pierce + 1}`);
+    if (d.buffDmg > 0) bits.push(`bless +${Math.round(d.buffDmg * 100)}% damage`);
+    if (d.buffSpeed > 0) bits.push(`+${Math.round(d.buffSpeed * 100)}% speed`);
+    return bits.join(" · ") || "—";
+  }
+
+  private towerTip(game: Game, t: Game["towers"][number]): Tip {
+    const s = t.stats(game);
+    const lines: TipLine[] = [];
+    const upgTotal = t.upg.damage + t.upg.rate + t.upg.range;
+    lines.push({ t: `${upgTotal} upgrade${upgTotal === 1 ? "" : "s"}${t.spec ? ` · spec L${t.specLvl}` : ""}`, c: "#8fa8bd" });
+    if (t.type === "monastery")
+      lines.push({ t: `Blesses nearby towers: +${Math.round(s.buffDmg * 100)}% damage, +${Math.round(s.buffSpeed * 100)}% speed`, c: "#cfe3f5" });
+    else {
+      const bits: string[] = [`${s.damage.toFixed(0)} damage`];
+      if (s.rate > 0) bits.push(`${s.rate.toFixed(2)}/s`);
+      bits.push(`${s.range.toFixed(0)} range`);
+      if (s.splash > 0) bits.push(`splash ${s.splash.toFixed(0)}`);
+      if (s.pierce > 0) bits.push(`pierce ${s.pierce + 1}`);
+      lines.push({ t: bits.join(" · "), c: "#cfe3f5" });
+    }
+    // equipped armory gear, per slot
+    for (const slot of GEAR_SLOTS) {
+      const g = game.equippedFor(t.type, slot);
+      if (g) {
+        const def = GEAR_BY_ID.get(g.def);
+        if (def) lines.push({ t: `${SLOT_LABEL[slot]}: ${def.name} T${g.tier} — ${gearBonusText(def, g.tier)}`, c: "#c58bff" });
+      }
+    }
+    lines.push({ t: "Click to select — upgrade, specialize, sell.", c: "#7d93a8" });
+    return { title: t.def.name, accent: "#dceeff", lines };
+  }
+
+  private enemyTip(e: Game["enemies"][number]): Tip {
+    const NAME: Record<string, string> = {
+      mantis: "Mantis", mushroom: "Mushroom", archer: "Enemy Archer", fly3: "Fly Trio",
+      pawn: "Pawn", flydemon: "Fly Demon", healer: "Healer", beetle: "Beetle",
+      warrior: "Warrior", skeleton: "Skeleton", lancer: "Lancer", boss: "The Minotaur",
+    };
+    const lines: TipLine[] = [
+      { t: `HP ${Math.ceil(e.hp)} / ${e.maxHp}`, c: "#9fd8a8" },
+      { t: `worth ${e.reward} gold`, c: "#e8c96a" },
+    ];
+    if (e.flying) lines.push({ t: "Flies — cannons can't hit it.", c: "#8fa8bd" });
+    if (e.def.healer) lines.push({ t: "Heals nearby foes.", c: "#ff8a8a" });
+    if (e.armor > 0) lines.push({ t: `Armor ${e.armor} — each hit does less.`, c: "#8fa8bd" });
+    if (e.def.type === "boss") lines.push({ t: "Boss — slow, huge, and angry.", c: "#ffce5a" });
+    return { title: NAME[e.def.type] ?? e.def.type, accent: "#ffd24a", lines };
+  }
+
+  private tipCodex(game: Game, p: { x: number; y: number }): Tip | null {
+    const L = this.codexLayout();
+    for (const row of L.rows) {
+      if (!inRect(p, row.rect)) continue;
+      const def = RELICS.find((r) => r.id === row.id)!;
+      const lvl = relicLevel(game.meta, row.id);
+      const lines: TipLine[] = [{ t: def.blurb, c: "#8fa8bd" }];
+      if (lvl > 0) lines.push({ t: `Now: ${def.effect(lvl)}`, c: "#9fd8a8", b: true });
+      if (lvl < def.maxLevel) {
+        const cost = def.cost(lvl + 1);
+        const afford = game.meta.runes >= cost;
+        lines.push({ t: `Next: ${def.effect(lvl + 1)}`, c: "#cfe3f5" });
+        lines.push({ t: afford ? `Cost: ${cost} runes` : `Cost: ${cost} runes — not enough`, c: afford ? "#e8c96a" : "#e08a8a" });
+      } else lines.push({ t: "Fully upgraded.", c: "#9fd8a8" });
+      return { title: def.name, accent: "#dceeff", lines };
+    }
+    return null;
+  }
+
+  private tipArmory(game: Game, p: { x: number; y: number }): Tip | null {
+    const L = this.armoryLayout(game);
+    const vault = this.armoryTab === "vault";
+
+    // vault tab: banked pieces
+    if (vault) {
+      for (const row of L.rows) {
+        if (!inRect(p, row.rect)) continue;
+        const def = GEAR_BY_ID.get(row.inst.def)!;
+        return {
+          title: `${def.name}  T${row.inst.tier}`,
+          accent: TIER_COLORS[row.inst.tier],
+          lines: [
+            { t: `Bonus: ${gearBonusText(def, row.inst.tier)}`, c: "#9fd8a8", b: true },
+            { t: `Boosts every ${TOWER_DEFS[def.tower].name}.`, c: "#cfe3f5" },
+            { t: "Click the piece, then one of its tower's slots to equip.", c: "#8fa8bd" },
+          ],
+        };
+      }
+      // slot cards
+      for (const s of L.slots) {
+        if (!inRect(p, s.rect)) continue;
+        const cur = game.equippedFor(s.tower, s.slot);
+        if (cur) {
+          const def = GEAR_BY_ID.get(cur.def)!;
+          return {
+            title: `${def.name}  T${cur.tier}`,
+            accent: TIER_COLORS[cur.tier],
+            lines: [
+              { t: `Bonus: ${gearBonusText(def, cur.tier)}`, c: "#9fd8a8", b: true },
+              { t: "Equipped on all " + TOWER_DEFS[s.tower].name + "s.", c: "#cfe3f5" },
+              { t: "Click it to unequip back to the vault.", c: "#8fa8bd" },
+            ],
+          };
+        }
+        return {
+          title: `${SLOT_LABEL[s.slot]} — empty`,
+          lines: [{ t: `Slot for ${TOWER_DEFS[s.tower].name}s.`, c: "#cfe3f5" }, { t: "Select a piece in the vault, then this slot.", c: "#8fa8bd" }],
+        };
+      }
+      return null;
+    }
+
+    // smith tab: recycle rows + upgrade rows
+    for (const row of L.rRows) {
+      if (!inRect(p, row.rect)) continue;
+      const def = GEAR_BY_ID.get(row.inst.def)!;
+      return {
+        title: `${def.name}  T${row.inst.tier}`,
+        accent: TIER_COLORS[row.inst.tier],
+        lines: [
+          { t: `Bonus: ${gearBonusText(def, row.inst.tier)}`, c: "#9fd8a8" },
+          { t: `Recycle for ${scrapValue(row.inst)} scrap.`, c: "#e8c96a" },
+        ],
+      };
+    }
+    for (const row of L.uRows) {
+      if (!inRect(p, row.rect)) continue;
+      const def = GEAR_BY_ID.get(row.inst.def)!;
+      const maxed = row.inst.tier >= TIER_MAX;
+      return {
+        title: `${def.name}  T${row.inst.tier}`,
+        accent: TIER_COLORS[row.inst.tier],
+        lines: maxed
+          ? [{ t: "Max tier — this piece is as strong as it gets.", c: "#9fd8a8" }]
+          : [
+              { t: `T${row.inst.tier} → T${row.inst.tier + 1}: ${gearBonusText(def, row.inst.tier)} → ${gearBonusText(def, row.inst.tier + 1)}`, c: "#cfe3f5" },
+              { t: `Cost: ${gearUpgradeCost(row.inst)} scrap`, c: "#e8c96a" },
+            ],
+      };
+    }
+    return null;
+  }
+
+  /** Draw the hover tooltip (topmost). */
+  private drawTooltip(game: Game, ctx: CanvasRenderingContext2D): void {
+    const p = game.mouseCanvas;
+    if (p.x <= 0 && p.y <= 0) return;
+    const tip = this.tooltipAt(game, p);
+    if (!tip) return;
+    const F = "'Segoe UI', sans-serif";
+    const pad = 10, titleH = 18, lineH = 16;
+    ctx.save();
+    ctx.font = `700 13px ${F}`;
+    let w = this.txtW(tip.title, `700 13px ${F}`) + pad * 2;
+    for (const l of tip.lines) {
+      ctx.font = `${l.b ? 700 : 500} 12px ${F}`;
+      w = Math.max(w, this.txtW(l.t, `${l.b ? 700 : 500} 12px ${F}`) + pad * 2);
+    }
+    const h = pad + titleH + tip.lines.length * lineH;
+    let x = p.x + 16, y = p.y + 20;
+    if (x + w > CANVAS_W - 6) x = p.x - w - 14;
+    if (y + h > CANVAS_H - 6) y = p.y - h - 14;
+    x = Math.min(Math.max(6, x), CANVAS_W - w - 6);
+    y = Math.min(Math.max(6, y), CANVAS_H - h - 6);
+    ctx.fillStyle = "rgba(7,17,26,0.94)";
+    ctx.strokeStyle = "rgba(110,190,240,0.4)";
+    ctx.lineWidth = 1;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = tip.accent ?? "#dceeff";
+    ctx.font = `700 13px ${F}`;
+    ctx.fillText(tip.title, x + pad, y + pad + 9);
+    tip.lines.forEach((l, i) => {
+      ctx.fillStyle = l.c ?? "#b6cbdd";
+      ctx.font = `${l.b ? 700 : 500} 12px ${F}`;
+      ctx.fillText(l.t, x + pad, y + pad + titleH + 4 + i * lineH);
+    });
+    ctx.restore();
+  }
+
   // ------------------------------------------------------------- menu / over
   private menuRects() {
     const w = 300;
@@ -743,6 +1104,9 @@ export class Hud {
     if (game._showArmory) this.drawArmory(game, ctx);
     else if (game._showCodex) this.drawCodex(game, ctx);
     else if (game._showHelp) this.drawHelp(ctx);
+
+    // tooltips go on top of everything (menu + codex + armory)
+    this.drawTooltip(game, ctx);
   }
 
   private time(game: Game) {
@@ -1390,22 +1754,22 @@ export class Hud {
         const img = this.assets.img(icons[def.icon]);
         if (img) ctx.drawImage(img, s.rect.x + 12, s.rect.y + 18, 52, 52);
         ctx.save();
-        // Name shrinks to fit the card; tier sits right-anchored beside it.
-        const ns = this.fitSize(def.name, "700", 16, 11, s.rect.w - 78 - 34);
+        // Three text lines beside the icon: name (full width), tier, bonus.
+        // The name gets the card's full remaining width so long names like
+        // "Vanguard Cuirass" are never clipped; it shrinks only if needed.
+        const tw = s.rect.w - 80;
+        const ns = this.fitSize(def.name, "700", 14, 10, tw);
         ctx.textAlign = "left";
         ctx.fillStyle = "#eaf6ff";
         ctx.font = `700 ${ns}px 'Segoe UI', sans-serif`;
-        ctx.fillText(def.name, s.rect.x + 78, s.rect.y + 34);
+        ctx.fillText(def.name, s.rect.x + 72, s.rect.y + 32);
         ctx.fillStyle = TIER_COLORS[cur.tier];
         ctx.font = "800 13px 'Segoe UI', sans-serif";
-        ctx.textAlign = "right";
-        ctx.fillText(`T${cur.tier}`, s.rect.x + s.rect.w - 10, s.rect.y + 34);
-        ctx.textAlign = "left";
+        ctx.fillText(`T${cur.tier}`, s.rect.x + 72, s.rect.y + 54);
         ctx.fillStyle = "#9fd8a8";
-        ctx.font = "700 13px 'Segoe UI', sans-serif";
-        const bs = this.fitSize(gearBonusText(def, cur.tier), "700", 13, 10, s.rect.w - 88);
+        const bs = this.fitSize(gearBonusText(def, cur.tier), "700", 12, 9, tw);
         ctx.font = `700 ${bs}px 'Segoe UI', sans-serif`;
-        ctx.fillText(gearBonusText(def, cur.tier), s.rect.x + 78, s.rect.y + 56);
+        ctx.fillText(gearBonusText(def, cur.tier), s.rect.x + 72, s.rect.y + 73);
         ctx.restore();
       } else {
         ctx.save();

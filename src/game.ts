@@ -225,7 +225,7 @@ export class Game {
     this.demo = params.has("demo");
     // ?stage=N — start the island already grown to stage N (verification)
     const stageParam = parseInt(params.get("stage") ?? "", 10);
-    if (!Number.isNaN(stageParam)) this.debugStage = Math.max(0, Math.min(3, stageParam));
+    if (!Number.isNaN(stageParam)) this.debugStage = Math.max(0, Math.min(9, stageParam));
     // ?burn[=N] — archer arrows ignite for N dps (verification)
     const burnParam = params.get("burn");
     if (burnParam !== null) this.debugBurn = burnParam === "" ? 8 : Math.max(0, parseFloat(burnParam) || 0);

@@ -14,17 +14,25 @@ export const cellKey = (c: number, r: number) => `${c},${r}`;
 // appears, the enemy route gets longer, and a few more pads are carved out.
 //
 // The stage routes form a CUMULATIVE chain: every route still traverses the
-// previous stage's walk in full (only the spawn side and length change), so
-// growing never strands a player's towers far from the road. The growth
-// always extends the top edge to the RIGHT: each stage adds a new entrance
-// over the top water and lengthens the straight run along the top row, so
-// the island keeps expanding along the top of the map and the left side is
-// never touched. Build spots are never placed on a cell of ANY stage's
+// previous stage's walk in full (only the length and shape change), so
+// growing never strands a player's towers far from the road. Stages 1-4
+// extend the top edge to the RIGHT with new entrances over the top water;
+// stages 5+ keep that entrance and weave longer MEANDERS through the
+// island's land — first along the right side, then into the lower-left —
+// each spliced between two adjacent cells of the old walk, so the whole old
+// road stays in play. Build spots are never placed on a cell of ANY stage's
 // route, so a newly revealed route can never cross a player's tower.
 //
 //   stage 1: spawn top col 17, top-row run 17→12, drop col 12, row 2 12→16, tail
 //   stage 2: spawn top col 21, top-row run 21→12, then stage 1's exact walk
 //   stage 3: spawn top col 26, top-row run 26→12, then stage 2's exact walk
+//   stage 4: spawn top col 27 — the arm reaches the far corner
+//   stage 5: meander (rows 1-3, cols 21-27) spliced into the top run
+//   stage 6: deeper meander (rows 4-6, cols 17-27), in col 18 / out col 17
+//   stage 7: left-side serpentine (rows 1-5, cols 3-11) around the drop
+//   stage 8: tail meander into the lower-right land (rows 9-11, cols 15-27)
+//   stage 9: final sweep of the lower-left land (rows 8-11, cols 3-12)
+//
 
 const STAGE_WAYPOINTS: [number, number][][] = [
   // Stage 0 (waves 1-5): a compact S — the opening island.
@@ -33,13 +41,33 @@ const STAGE_WAYPOINTS: [number, number][][] = [
   [[17, -1], [17, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
   // Stage 2 (waves 11-15): the top-row arm extends to col 21.
   [[21, -1], [21, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
-  // Stage 3 (waves 16+): the top-row arm reaches the far corner (col 26).
+  // Stage 3 (waves 16-20): the top-row arm reaches col 26.
   [[26, -1], [26, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 4 (waves 21-25): the arm reaches the far corner (col 27).
+  [[27, -1], [27, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 5 (waves 26-30): a meander drops from the top run into the right
+  // land (rows 1-3) and rejoins the road at col 21.
+  [[27, -1], [27, 0], [22, 0], [22, 1], [23, 1], [24, 1], [25, 1], [26, 1], [27, 1], [27, 2], [27, 3], [26, 3], [25, 3], [24, 3], [23, 3], [22, 3], [21, 3], [21, 2], [21, 1], [21, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 6 (waves 31-35): a deeper meander (rows 4-6) enters the road at
+  // col 18 and returns at col 17.
+  [[27, -1], [27, 0], [22, 0], [22, 1], [23, 1], [24, 1], [25, 1], [26, 1], [27, 1], [27, 2], [27, 3], [26, 3], [25, 3], [24, 3], [23, 3], [22, 3], [21, 3], [21, 2], [21, 1], [21, 0], [20, 0], [19, 0], [18, 0], [18, 1], [18, 2], [18, 3], [18, 4], [19, 4], [20, 4], [21, 4], [22, 4], [23, 4], [24, 4], [25, 4], [26, 4], [27, 4], [27, 5], [27, 6], [26, 6], [25, 6], [24, 6], [23, 6], [22, 6], [21, 6], [20, 6], [19, 6], [18, 6], [17, 6], [17, 5], [17, 4], [17, 3], [17, 2], [17, 1], [17, 0], [12, 0], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 7 (waves 36-40): a serpentine across the upper-left land (rows
+  // 1-5, cols 3-11), spliced around the drop between (12,1) and (12,2).
+  [[27, -1], [27, 0], [22, 0], [22, 1], [23, 1], [24, 1], [25, 1], [26, 1], [27, 1], [27, 2], [27, 3], [26, 3], [25, 3], [24, 3], [23, 3], [22, 3], [21, 3], [21, 2], [21, 1], [21, 0], [20, 0], [19, 0], [18, 0], [18, 1], [18, 2], [18, 3], [18, 4], [19, 4], [20, 4], [21, 4], [22, 4], [23, 4], [24, 4], [25, 4], [26, 4], [27, 4], [27, 5], [27, 6], [26, 6], [25, 6], [24, 6], [23, 6], [22, 6], [21, 6], [20, 6], [19, 6], [18, 6], [17, 6], [17, 5], [17, 4], [17, 3], [17, 2], [17, 1], [17, 0], [16, 0], [15, 0], [14, 0], [13, 0], [12, 0], [12, 1], [11, 1], [10, 1], [9, 1], [8, 1], [7, 1], [6, 1], [5, 1], [4, 1], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [9, 5], [10, 5], [11, 5], [11, 4], [11, 3], [11, 2], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 8 (waves 41-45): the tail bends into the lower-right land (rows
+  // 9-11, cols 15-27) between the two row-8 corners.
+  [[27, -1], [27, 0], [22, 0], [22, 1], [23, 1], [24, 1], [25, 1], [26, 1], [27, 1], [27, 2], [27, 3], [26, 3], [25, 3], [24, 3], [23, 3], [22, 3], [21, 3], [21, 2], [21, 1], [21, 0], [20, 0], [19, 0], [18, 0], [18, 1], [18, 2], [18, 3], [18, 4], [19, 4], [20, 4], [21, 4], [22, 4], [23, 4], [24, 4], [25, 4], [26, 4], [27, 4], [27, 5], [27, 6], [26, 6], [25, 6], [24, 6], [23, 6], [22, 6], [21, 6], [20, 6], [19, 6], [18, 6], [17, 6], [17, 5], [17, 4], [17, 3], [17, 2], [17, 1], [17, 0], [16, 0], [15, 0], [14, 0], [13, 0], [12, 0], [12, 1], [11, 1], [10, 1], [9, 1], [8, 1], [7, 1], [6, 1], [5, 1], [4, 1], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [9, 5], [10, 5], [11, 5], [11, 4], [11, 3], [11, 2], [12, 2], [16, 2], [16, 8], [16, 9], [17, 9], [18, 9], [19, 9], [20, 9], [21, 9], [22, 9], [23, 9], [24, 9], [25, 9], [26, 9], [27, 9], [27, 10], [27, 11], [26, 11], [25, 11], [24, 11], [23, 11], [22, 11], [21, 11], [20, 11], [19, 11], [18, 11], [17, 11], [17, 10], [16, 10], [15, 10], [15, 9], [15, 8], [14, 8], [14, 14]],
+  // Stage 9 (waves 46-50): the final sweep of the lower-left land (rows
+  // 8-11, cols 3-12) between the last two tail cells.
+  [[27, -1], [27, 0], [22, 0], [22, 1], [23, 1], [24, 1], [25, 1], [26, 1], [27, 1], [27, 2], [27, 3], [26, 3], [25, 3], [24, 3], [23, 3], [22, 3], [21, 3], [21, 2], [21, 1], [21, 0], [20, 0], [19, 0], [18, 0], [18, 1], [18, 2], [18, 3], [18, 4], [19, 4], [20, 4], [21, 4], [22, 4], [23, 4], [24, 4], [25, 4], [26, 4], [27, 4], [27, 5], [27, 6], [26, 6], [25, 6], [24, 6], [23, 6], [22, 6], [21, 6], [20, 6], [19, 6], [18, 6], [17, 6], [17, 5], [17, 4], [17, 3], [17, 2], [17, 1], [17, 0], [16, 0], [15, 0], [14, 0], [13, 0], [12, 0], [12, 1], [11, 1], [10, 1], [9, 1], [8, 1], [7, 1], [6, 1], [5, 1], [4, 1], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [9, 5], [10, 5], [11, 5], [11, 4], [11, 3], [11, 2], [12, 2], [16, 2], [16, 8], [16, 9], [17, 9], [18, 9], [19, 9], [20, 9], [21, 9], [22, 9], [23, 9], [24, 9], [25, 9], [26, 9], [27, 9], [27, 10], [27, 11], [26, 11], [25, 11], [24, 11], [23, 11], [22, 11], [21, 11], [20, 11], [19, 11], [18, 11], [17, 11], [17, 10], [16, 10], [15, 10], [15, 9], [15, 8], [14, 8], [13, 8], [12, 8], [11, 8], [10, 8], [9, 8], [8, 8], [7, 8], [6, 8], [5, 8], [4, 8], [3, 8], [3, 9], [3, 10], [3, 11], [4, 11], [5, 11], [6, 11], [7, 11], [8, 11], [9, 11], [10, 11], [11, 11], [12, 11], [12, 10], [12, 9], [13, 9], [14, 9], [14, 14]],
 ];
 
 /** Which island stage a given (1-based) wave belongs to. */
+
+/** Which island stage a given (1-based) wave belongs to. One stage per 5
+ *  waves; the campaign climax (wave 50) plays on the final stage. */
 export function stageForWave(wave: number): number {
-  return wave < 6 ? 0 : wave < 11 ? 1 : wave < 16 ? 2 : 3;
+  return Math.min(9, Math.floor((wave - 1) / 5));
 }
 
 /** Expand axis-aligned waypoints into every cell the path passes through. */
