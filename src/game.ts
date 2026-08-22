@@ -774,6 +774,16 @@ export class Game {
     this.speedIdx = (this.speedIdx + 1) % SPEEDS.length;
     this.sfx("click");
   }
+  /** Abandon the current run and return to the main menu.
+   *  Runes already banked for cleared waves are kept (they're saved per wave). */
+  toMenu(): void {
+    this.screen = "menu";
+    this.placing = null;
+    this.selectedTower = null;
+    this.paused = false;
+    this.audio.music("forest");
+    this.sfx("click");
+  }
   setPlacing(type: TowerType | null): void {
     this.placing = type;
     this.selectedTower = null;

@@ -33,7 +33,7 @@ export class Hud {
   private computeLayout(game: Game) {
     // Right-margin info panel (off the map): castle HP, gold, wave, start-wave,
     // the telegraphed next-wave preview, and controls.
-    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 472 };
+    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 528 };
     const ix = rp.x + 12;
     const iw = rp.w - 24;
     const castleHp = { x: ix, y: rp.y + 12, w: iw, h: 18 };
@@ -44,6 +44,7 @@ export class Hud {
     const speed = { x: ix, y: rp.y + 164 + 150 + 8, w: iw, h: 40 };
     const pause = { x: ix, y: speed.y + 48, w: iw, h: 40 };
     const mute = { x: ix, y: pause.y + 48, w: iw, h: 40 };
+    const menu = { x: ix, y: mute.y + 48, w: iw, h: 40 };
 
     // bottom-margin palette (off the map), aligned to the map width
     const palH = 88;
@@ -90,7 +91,7 @@ export class Hud {
       cards = [0, 1, 2].map((i) => ({ x: x0 + i * (cw + gapC), y: y0, w: cw, h: ch }));
     }
 
-    return { rp, castleHp, goldRect, waveRect, startWave, previewRect, speed, pause, mute, palette, sel, cards };
+    return { rp, castleHp, goldRect, waveRect, startWave, previewRect, speed, pause, mute, menu, palette, sel, cards };
   }
 
   private layout(game: Game) {
@@ -281,6 +282,11 @@ export class Hud {
             : "build phase"
           : "";
     ctx.fillText(sub, L.waveRect.x, L.waveRect.y + 25);
+    // meta rune balance, right-aligned on the Wave line
+    ctx.fillStyle = "#c58bff";
+    ctx.font = "700 14px 'Segoe UI', sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`◆ ${game.meta.runes}`, L.waveRect.x + L.waveRect.w, L.waveRect.y + 14);
     ctx.restore();
 
     // start wave / status
@@ -297,6 +303,7 @@ export class Hud {
     this.button(ctx, L.speed, `${game.speed}×  (F)`, { active: game.speedIdx > 0, small: true });
     this.button(ctx, L.pause, game.paused ? "▶  Resume" : "❚❚  Pause", { small: true });
     this.button(ctx, L.mute, game.audioEnabled ? "♪  Sound" : "∅  Muted", { small: true });
+    this.button(ctx, L.menu, "⌂  Menu", { small: true });
 
     // palette
     for (const t of TOWER_ORDER) {
@@ -482,9 +489,13 @@ export class Hud {
       return true; // swallow clicks while modal open
     }
 
-    // pause toggle works even while paused
+    // pause toggle and menu work even while paused
     if (inRect(p, L.pause)) {
       game.togglePause();
+      return true;
+    }
+    if (inRect(p, L.menu)) {
+      game.toMenu();
       return true;
     }
     if (game.paused) return true;
@@ -620,6 +631,8 @@ export class Hud {
       "• Click a built tower to Upgrade or Sell it.",
       "• Survive the wave, then pick 1 of 3 random Boons (upgrades).",
       "• Unlock new towers and stack powers to go deeper.",
+      "• Every cleared wave banks ◆ runes (a lost run keeps them; winning the siege pays +40).",
+      "• Spend runes in The Codex on relics that carry over between sieges.",
       "",
       "Keys: 1-4 build · Space start wave · P pause · F speed · M mute · Esc cancel",
       "",
