@@ -8,7 +8,18 @@ import { TOWER_DEFS, TOWER_ORDER, MAX_UPGRADE, upgradeCost, tracksFor, trackLabe
 import { RARITY_COLOR } from "./boons";
 import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H } from "./config";
 import { VICTORY_RUNES, RELICS, relicLevel } from "./meta";
-import { GEAR_BY_ID, GEAR_SLOTS, SLOT_LABEL, TIER_COLORS, gearBonusText, type GearSlot } from "./gear";
+import {
+  GEAR_BY_ID,
+  GEAR_SLOTS,
+  SLOT_LABEL,
+  TIER_COLORS,
+  TIER_MAX,
+  gearBonusText,
+  gearUpgradeCost,
+  scrapValue,
+  type GearInstance,
+  type GearSlot,
+} from "./gear";
 import type { TowerType } from "./types";
 import { fmt } from "./util";
 
@@ -28,6 +39,10 @@ export class Hud {
   // Armory (menu) temp state
   private selectedGearUid: string | null = null;
   private armoryPage = 0;
+  /** Public: the ?smith debug param jumps straight to the Blacksmith tab. */
+  armoryTab: "vault" | "smith" = "vault";
+  private smithPageRecycle = 0;
+  private smithPageUpgrade = 0;
 
   constructor(assets: Assets) {
     this.assets = assets;
@@ -699,6 +714,9 @@ export class Hud {
       game._showArmory = true;
       this.selectedGearUid = null;
       this.armoryPage = 0;
+      this.armoryTab = "vault";
+      this.smithPageRecycle = 0;
+      this.smithPageUpgrade = 0;
       game.sfx("click");
     }
   }
@@ -1013,37 +1031,43 @@ export class Hud {
 
   // ------------------------------------------------------------- armory
   private armoryLayout(game: Game) {
-    const px = 90;
-    const pw = 720;
-    const colW = 350;
-    const rowH = 74;
-    const gap = 10;
-    const topY = 224;
+    const topY = 244;
+    const close = { x: CANVAS_W / 2 - 110, y: 648, w: 220, h: 52 } as Rect;
+    const vaultTab = { x: CANVAS_W / 2 - 210, y: 186, w: 200, h: 32 } as Rect;
+    const smithTab = { x: CANVAS_W / 2 + 10, y: 186, w: 200, h: 32 } as Rect;
 
-    // Vault list, sorted by tower → slot → tier (best first), paged 8/page.
-    const owned = game.meta.gear.owned
-      .filter((o) => GEAR_BY_ID.has(o.def))
-      .sort((a, b) => {
-        const da = GEAR_BY_ID.get(a.def)!;
-        const db = GEAR_BY_ID.get(b.def)!;
-        if (da.tower !== db.tower) return TOWER_ORDER.indexOf(da.tower) - TOWER_ORDER.indexOf(db.tower);
-        if (da.slot !== db.slot) return GEAR_SLOTS.indexOf(da.slot) - GEAR_SLOTS.indexOf(db.slot);
-        return b.tier - a.tier;
-      });
+    // The vault holds UNEQUIPPED pieces only — equipping moves a piece into
+    // its slot (it returns to the vault when unequipped).
+    const eqUids = new Set<string>();
+    for (const t of TOWER_ORDER) for (const s of GEAR_SLOTS) {
+      const u = game.meta.gear.equipped[t]?.[s];
+      if (u) eqUids.add(u);
+    }
+    const sortGear = (a: GearInstance, b: GearInstance) => {
+      const da = GEAR_BY_ID.get(a.def)!;
+      const db = GEAR_BY_ID.get(b.def)!;
+      if (da.tower !== db.tower) return TOWER_ORDER.indexOf(da.tower) - TOWER_ORDER.indexOf(db.tower);
+      if (da.slot !== db.slot) return GEAR_SLOTS.indexOf(da.slot) - GEAR_SLOTS.indexOf(db.slot);
+      return b.tier - a.tier;
+    };
+    const vaultList = game.meta.gear.owned
+      .filter((o) => GEAR_BY_ID.has(o.def) && !eqUids.has(o.uid))
+      .sort(sortGear);
+    const upgradeList = game.meta.gear.owned.filter((o) => GEAR_BY_ID.has(o.def)).sort(sortGear);
+
+    // ---- vault tab: 2x4 grid of banked pieces + tower slot columns ----
     const perPage = 8;
-    const pages = Math.max(1, Math.ceil(owned.length / perPage));
+    const pages = Math.max(1, Math.ceil(vaultList.length / perPage));
     const page = Math.min(Math.max(0, this.armoryPage), pages - 1);
-    const rows = owned.slice(page * perPage, (page + 1) * perPage).map((inst, i) => ({
+    const rows = vaultList.slice(page * perPage, (page + 1) * perPage).map((inst, i) => ({
       inst,
       rect: {
-        x: px + (i % 2) * (colW + gap),
-        y: topY + Math.floor(i / 2) * (rowH + gap),
-        w: colW,
-        h: rowH,
+        x: 90 + (i % 2) * 360,
+        y: topY + Math.floor(i / 2) * 84,
+        w: 350,
+        h: 74,
       } as Rect,
     }));
-
-    // Tower slot columns on the right.
     const towerX0 = 900;
     const tw = 240;
     const tgap = 16;
@@ -1054,11 +1078,44 @@ export class Hud {
         slots.push({ tower: t, slot: s, rect: { x, y: topY + j * 100, w: tw, h: 88 } });
       });
     });
+    const prev = { x: 90, y: 576, w: 96, h: 44 } as Rect;
+    const next = { x: 450, y: 576, w: 96, h: 44 } as Rect;
 
-    const prev = { x: px, y: 566, w: 96, h: 44 } as Rect;
-    const next = { x: px + colW + gap, y: 566, w: 96, h: 44 } as Rect;
-    const close = { x: CANVAS_W / 2 - 110, y: 648, w: 220, h: 52 } as Rect;
-    return { px, pw, topY, rows, slots, prev, next, close, page, pages, count: owned.length };
+    // ---- smith tab: recycle grid (left) + upgrade grid (right), 8/page ----
+    const rPages = Math.max(1, Math.ceil(vaultList.length / perPage));
+    const rPage = Math.min(Math.max(0, this.smithPageRecycle), rPages - 1);
+    const rRows = vaultList.slice(rPage * perPage, (rPage + 1) * perPage).map((inst, i) => ({
+      inst,
+      rect: {
+        x: 90 + (i % 2) * 360,
+        y: topY + Math.floor(i / 2) * 84,
+        w: 350,
+        h: 74,
+      } as Rect,
+    }));
+    const rPrev = { x: 90, y: 576, w: 96, h: 44 } as Rect;
+    const rNext = { x: 450, y: 576, w: 96, h: 44 } as Rect;
+
+    const uPages = Math.max(1, Math.ceil(upgradeList.length / perPage));
+    const uPage = Math.min(Math.max(0, this.smithPageUpgrade), uPages - 1);
+    const uRows = upgradeList.slice(uPage * perPage, (uPage + 1) * perPage).map((inst, i) => ({
+      inst,
+      rect: {
+        x: 900 + (i % 2) * 500,
+        y: topY + Math.floor(i / 2) * 84,
+        w: 490,
+        h: 74,
+      } as Rect,
+    }));
+    const uPrev = { x: 900, y: 576, w: 96, h: 44 } as Rect;
+    const uNext = { x: 1400, y: 576, w: 96, h: 44 } as Rect;
+
+    return {
+      topY, close, vaultTab, smithTab,
+      rows, slots, prev, next, page, pages, count: vaultList.length, equippedCount: eqUids.size,
+      rRows, rPrev, rNext, rPage, rPages,
+      uRows, uPrev, uNext, uPage, uPages,
+    };
   }
 
   private drawArmory(game: Game, ctx: CanvasRenderingContext2D): void {
@@ -1087,29 +1144,46 @@ export class Hud {
     ctx.fillText("THE ARMORY", CANVAS_W / 2, 112);
     ctx.fillStyle = "#8fd0ff";
     ctx.font = "700 20px 'Segoe UI', sans-serif";
-    ctx.fillText(`${L.count} piece${L.count === 1 ? "" : "s"} in the vault`, CANVAS_W / 2, 146);
+    ctx.fillText(
+      this.armoryTab === "vault"
+        ? `${L.count} piece${L.count === 1 ? "" : "s"} in the vault · ${L.equippedCount} equipped`
+        : `⚙ ${game.meta.scrap} scrap`,
+      CANVAS_W / 2,
+      146
+    );
     ctx.fillStyle = "#8fb8c8";
     ctx.font = "600 14px 'Segoe UI', sans-serif";
     ctx.fillText(
-      "Enemies drop gear as you clear waves — deeper waves drop higher tiers. Click a piece, then click its slot to equip. It carries into every siege.",
+      this.armoryTab === "vault"
+        ? "Enemies drop gear as you clear waves — deeper waves drop higher tiers. Click a piece, then click its slot to equip. It carries into every siege."
+        : "Recycle spare gear for scrap, then spend scrap to upgrade pieces to higher tiers. Equipped pieces can be upgraded in place.",
       CANVAS_W / 2,
       172
     );
     ctx.restore();
+
+    // tab buttons
+    this.drawArmoryTab(ctx, L.vaultTab, "THE VAULT", this.armoryTab === "vault");
+    this.drawArmoryTab(ctx, L.smithTab, "THE BLACKSMITH", this.armoryTab === "smith");
+
+    if (this.armoryTab === "smith") {
+      this.drawSmith(game, ctx, L);
+      this.button(ctx, L.close, "Close", { small: true });
+      return;
+    }
 
     // "VAULT" label
     ctx.save();
     ctx.textAlign = "left";
     ctx.fillStyle = "#bfe6ef";
     ctx.font = "700 16px 'Segoe UI', sans-serif";
-    ctx.fillText("VAULT", L.px, L.topY - 14);
+    ctx.fillText("VAULT", 90, L.topY - 14);
     ctx.restore();
 
     // vault rows
     const icons = game.assets.manifest.gear?.icons ?? {};
     for (const row of L.rows) {
       const def = GEAR_BY_ID.get(row.inst.def)!;
-      const equipped = game.equippedFor(def.tower, def.slot)?.uid === row.inst.uid;
       const selected = this.selectedGearUid === row.inst.uid;
 
       ctx.save();
@@ -1145,12 +1219,6 @@ export class Hud {
       ctx.fillStyle = "#8fb8c8";
       ctx.font = "600 12px 'Segoe UI', sans-serif";
       ctx.fillText(`${SLOT_LABEL[def.slot]} · ${TOWER_DEFS[def.tower].name}`, row.rect.x + 70 + this.txtW(gearBonusText(def, row.inst.tier), "700 13px 'Segoe UI', sans-serif") + 14, row.rect.y + 50);
-      if (equipped) {
-        ctx.fillStyle = "#ffd24a";
-        ctx.font = "800 12px 'Segoe UI', sans-serif";
-        ctx.textAlign = "right";
-        ctx.fillText("EQUIPPED", row.rect.x + row.rect.w - 12, row.rect.y + 28);
-      }
       ctx.restore();
     }
 
@@ -1222,6 +1290,121 @@ export class Hud {
     this.button(ctx, L.close, "Close", { small: true });
   }
 
+  private drawArmoryTab(ctx: CanvasRenderingContext2D, r: Rect, label: string, active: boolean): void {
+    ctx.save();
+    this.roundRect(ctx, r, 7);
+    ctx.fillStyle = active ? "rgba(255,210,74,0.14)" : "rgba(255,255,255,0.04)";
+    ctx.fill();
+    ctx.strokeStyle = active ? "rgba(255,210,74,0.9)" : "rgba(180,210,225,0.25)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillStyle = active ? "#ffd24a" : "#8fb8c8";
+    ctx.font = "800 15px 'Segoe UI', sans-serif";
+    ctx.fillText(label, r.x + r.w / 2, r.y + 23);
+    ctx.restore();
+  }
+
+  /** The Blacksmith tab: recycle banked pieces for scrap (left), upgrade any
+   *  piece a tier (right). */
+  private drawSmith(game: Game, ctx: CanvasRenderingContext2D, L: ReturnType<Hud["armoryLayout"]>): void {
+    const icons = game.assets.manifest.gear?.icons ?? {};
+    ctx.save();
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#bfe6ef";
+    ctx.font = "700 16px 'Segoe UI', sans-serif";
+    ctx.fillText("RECYCLE — click a piece, then click it again", 90, L.topY - 14);
+    ctx.fillText("UPGRADE — click a piece to raise its tier", 900, L.topY - 14);
+    ctx.restore();
+
+    for (const row of L.rRows) {
+      const def = GEAR_BY_ID.get(row.inst.def)!;
+      const selected = this.selectedGearUid === row.inst.uid;
+      ctx.save();
+      this.roundRect(ctx, row.rect, 8);
+      ctx.fillStyle = selected ? "rgba(255,210,74,0.12)" : "rgba(255,255,255,0.03)";
+      ctx.fill();
+      if (selected) {
+        ctx.strokeStyle = "#ffd24a";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      const img = this.assets.img(icons[def.icon]);
+      if (img) ctx.drawImage(img, row.rect.x + 12, row.rect.y + 15, 44, 44);
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 17px 'Segoe UI', sans-serif";
+      ctx.fillText(def.name, row.rect.x + 70, row.rect.y + 28);
+      ctx.fillStyle = TIER_COLORS[row.inst.tier];
+      ctx.font = "800 14px 'Segoe UI', sans-serif";
+      ctx.fillText(`T${row.inst.tier}`, row.rect.x + 70 + this.txtW(def.name, "700 17px 'Segoe UI', sans-serif") + 10, row.rect.y + 28);
+      ctx.fillStyle = "#9fd8a8";
+      ctx.font = "700 13px 'Segoe UI', sans-serif";
+      ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
+      ctx.fillStyle = selected ? "#ffd24a" : "#8fb8c8";
+      ctx.font = selected ? "800 13px 'Segoe UI', sans-serif" : "600 13px 'Segoe UI', sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText(
+        selected ? "click again to recycle" : `recycle for ⚙ ${scrapValue(row.inst)}`,
+        row.rect.x + row.rect.w - 12,
+        row.rect.y + (selected ? 28 : 50)
+      );
+      ctx.restore();
+    }
+
+    for (const row of L.uRows) {
+      const def = GEAR_BY_ID.get(row.inst.def)!;
+      const maxed = row.inst.tier >= TIER_MAX;
+      const cost = maxed ? 0 : gearUpgradeCost(row.inst);
+      const affordable = !maxed && game.meta.scrap >= cost;
+      ctx.save();
+      this.roundRect(ctx, row.rect, 8);
+      ctx.fillStyle = affordable ? "rgba(126,200,126,0.06)" : "rgba(255,255,255,0.03)";
+      ctx.fill();
+      if (!affordable) ctx.globalAlpha = 0.55;
+      ctx.restore();
+
+      const img = this.assets.img(icons[def.icon]);
+      if (img) ctx.drawImage(img, row.rect.x + 12, row.rect.y + 15, 44, 44);
+      ctx.save();
+      if (!affordable) ctx.globalAlpha = 0.6;
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 17px 'Segoe UI', sans-serif";
+      ctx.fillText(def.name, row.rect.x + 70, row.rect.y + 28);
+      ctx.fillStyle = TIER_COLORS[row.inst.tier];
+      ctx.font = "800 14px 'Segoe UI', sans-serif";
+      ctx.fillText(
+        maxed ? `T${row.inst.tier} MAX` : `T${row.inst.tier} → T${row.inst.tier + 1}`,
+        row.rect.x + 70 + this.txtW(def.name, "700 17px 'Segoe UI', sans-serif") + 10,
+        row.rect.y + 28
+      );
+      ctx.fillStyle = "#9fd8a8";
+      ctx.font = "700 13px 'Segoe UI', sans-serif";
+      ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
+      ctx.textAlign = "right";
+      ctx.fillStyle = affordable ? "#7ec87e" : "#8fb8c8";
+      ctx.font = "800 14px 'Segoe UI', sans-serif";
+      ctx.fillText(maxed ? "fully upgraded" : `⚙ ${cost}`, row.rect.x + row.rect.w - 12, row.rect.y + 50);
+      ctx.restore();
+    }
+
+    this.button(ctx, L.rPrev, "‹", { small: true, disabled: L.rPage === 0 });
+    this.button(ctx, L.rNext, "›", { small: true, disabled: L.rPage >= L.rPages - 1 });
+    this.button(ctx, L.uPrev, "‹", { small: true, disabled: L.uPage === 0 });
+    this.button(ctx, L.uNext, "›", { small: true, disabled: L.uPage >= L.uPages - 1 });
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 14px 'Segoe UI', sans-serif";
+    ctx.fillText(`${L.rPage + 1} / ${L.rPages}`, (L.rPrev.x + L.rNext.x + L.rNext.w) / 2, L.rPrev.y + 28);
+    ctx.fillText(`${L.uPage + 1} / ${L.uPages}`, (L.uPrev.x + L.uNext.x + L.uNext.w) / 2, L.uPrev.y + 28);
+    ctx.restore();
+  }
+
   /** Measure text width without disturbing the caller's font. */
   private txtW(text: string, font: string): number {
     // Cheap approximation: ~0.52em per char for the Segoe UI weights we use.
@@ -1231,12 +1414,73 @@ export class Hud {
 
   handleArmoryClick(game: Game, p: { x: number; y: number }): boolean {
     const L = this.armoryLayout(game);
+    if (inRect(p, L.vaultTab)) {
+      this.armoryTab = "vault";
+      this.selectedGearUid = null;
+      game.sfx("click");
+      return true;
+    }
+    if (inRect(p, L.smithTab)) {
+      this.armoryTab = "smith";
+      this.selectedGearUid = null;
+      game.sfx("click");
+      return true;
+    }
     if (inRect(p, L.close)) {
       game._showArmory = false;
       this.selectedGearUid = null;
       game.sfx("click");
       return true;
     }
+
+    if (this.armoryTab === "smith") {
+      if (inRect(p, L.rPrev)) {
+        this.smithPageRecycle = Math.max(0, this.smithPageRecycle - 1);
+        game.sfx("click");
+        return true;
+      }
+      if (inRect(p, L.rNext)) {
+        this.smithPageRecycle = Math.min(L.rPages - 1, this.smithPageRecycle + 1);
+        game.sfx("click");
+        return true;
+      }
+      if (inRect(p, L.uPrev)) {
+        this.smithPageUpgrade = Math.max(0, this.smithPageUpgrade - 1);
+        game.sfx("click");
+        return true;
+      }
+      if (inRect(p, L.uNext)) {
+        this.smithPageUpgrade = Math.min(L.uPages - 1, this.smithPageUpgrade + 1);
+        game.sfx("click");
+        return true;
+      }
+      // Recycle rows: select, then confirm on the second click.
+      for (const row of L.rRows) {
+        if (inRect(p, row.rect)) {
+          if (this.selectedGearUid === row.inst.uid) {
+            const gained = game.recycleGear(row.inst.uid);
+            this.selectedGearUid = null;
+            game.sfx(gained > 0 ? "coin" : "click");
+          } else {
+            this.selectedGearUid = row.inst.uid;
+            game.sfx("click");
+          }
+          return true;
+        }
+      }
+      // Upgrade rows: spend scrap, raise a tier.
+      for (const row of L.uRows) {
+        if (inRect(p, row.rect)) {
+          const ok = game.upgradeGear(row.inst.uid);
+          this.selectedGearUid = null;
+          game.sfx(ok ? "boon" : "click");
+          return true;
+        }
+      }
+      this.selectedGearUid = null;
+      return true;
+    }
+
     if (inRect(p, L.prev)) {
       this.armoryPage = Math.max(0, this.armoryPage - 1);
       game.sfx("click");

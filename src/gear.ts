@@ -133,6 +133,17 @@ export function makeGearDrop(tier: number, rng: RNG): GearInstance {
   return { uid: nextUid(), def: def.id, tier: Math.min(TIER_MAX, Math.max(1, tier)) };
 }
 
+// ---------------------------------------------------------------- blacksmith
+/** Scrap gained by recycling a piece. */
+export function scrapValue(inst: GearInstance): number {
+  return inst.tier * 3;
+}
+
+/** Scrap cost to raise a piece from its tier to tier+1. */
+export function gearUpgradeCost(inst: GearInstance): number {
+  return inst.tier * 5;
+}
+
 /** Aggregated fractional bonuses for a tower type, from its equipped pieces. */
 export interface GearBonus {
   damage: number;

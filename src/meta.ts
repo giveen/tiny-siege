@@ -11,6 +11,8 @@ export interface MetaState {
   runes: number;
   levels: Record<string, number>;
   gear: GearState;
+  /** Blacksmith currency from recycled gear; spends on tier upgrades. */
+  scrap: number;
 }
 
 export interface Relic {
@@ -76,13 +78,14 @@ export const RELICS: Relic[] = [
 ];
 
 export function loadMeta(): MetaState {
-  const state = { runes: 0, levels: {} as Record<string, number>, gear: emptyGearState() };
+  const state = { runes: 0, levels: {} as Record<string, number>, gear: emptyGearState(), scrap: 0 };
   try {
     const raw = localStorage.getItem(META_KEY);
     if (raw) {
       const p = JSON.parse(raw);
       state.runes = typeof p.runes === "number" ? p.runes : 0;
       state.levels = p.levels && typeof p.levels === "object" ? p.levels : {};
+      state.scrap = typeof p.scrap === "number" ? p.scrap : 0;
       // Migrate pre-gear saves: keep owned/equipped only if the shapes are sane.
       const g = p.gear;
       if (g && typeof g === "object" && Array.isArray(g.owned) && g.equipped && typeof g.equipped === "object") {

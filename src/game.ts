@@ -28,10 +28,14 @@ import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./ty
 import {
   EMPTY_GEAR_BONUS,
   GEAR_BY_ID,
+  GEAR_SLOTS,
   gearTierForWave,
+  gearUpgradeCost,
   makeGearDrop,
   rollGearDrop,
+  scrapValue,
   TIER_COLORS,
+  TIER_MAX,
   type GearBonus,
   type GearInstance,
   type GearSlot,
@@ -247,8 +251,10 @@ export class Game {
       this._showCodex = true;
     }
     // ?armory — open the gear Armory on the menu (verification / dev tool)
-    if (params.has("armory")) {
+    // ?smith — same, but on the Blacksmith tab
+    if (params.has("armory") || params.has("smith")) {
       this._showArmory = true;
+      if (params.has("smith")) this.hud.armoryTab = "smith";
     }
     // ?gearseed — bank a handful of random gear so the Armory has content
     if (params.has("gearseed")) {
@@ -592,12 +598,42 @@ export class Game {
     saveMeta(this.meta);
   }
 
-  /** Remove a slot's equipped piece (it stays in the vault). */
+  /** Remove a slot's equipped piece (it returns to the vault). */
   unequipGear(type: TowerType, slot: GearSlot): void {
     const cur = this.meta.gear.equipped[type];
     if (!cur || !cur[slot]) return;
     this.meta.gear.equipped[type] = { ...cur, [slot]: undefined };
     saveMeta(this.meta);
+  }
+
+  /** Is this piece equipped in any slot? */
+  isEquipped(inst: GearInstance): boolean {
+    const eq = this.meta.gear.equipped;
+    for (const t of TOWER_ORDER) for (const s of GEAR_SLOTS) if (eq[t]?.[s] === inst.uid) return true;
+    return false;
+  }
+
+  /** Recycle an unequipped vault piece into scrap. Returns scrap gained. */
+  recycleGear(uid: string): number {
+    const i = this.meta.gear.owned.findIndex((o) => o.uid === uid);
+    if (i < 0 || this.isEquipped(this.meta.gear.owned[i])) return 0;
+    const value = scrapValue(this.meta.gear.owned[i]);
+    this.meta.gear.owned.splice(i, 1);
+    this.meta.scrap += value;
+    saveMeta(this.meta);
+    return value;
+  }
+
+  /** Raise an owned piece one tier, paying scrap. Works equipped or banked. */
+  upgradeGear(uid: string): boolean {
+    const inst = this.meta.gear.owned.find((o) => o.uid === uid);
+    if (!inst || inst.tier >= TIER_MAX) return false;
+    const cost = gearUpgradeCost(inst);
+    if (this.meta.scrap < cost) return false;
+    this.meta.scrap -= cost;
+    inst.tier++;
+    saveMeta(this.meta);
+    return true;
   }
 
   /** Bank a drop into the vault (called on wave-clear loot + victory bonus). */
