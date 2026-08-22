@@ -121,7 +121,7 @@ export class Hud {
       ctx.save();
       ctx.fillStyle = "rgba(180,210,225,0.4)";
       ctx.font = "600 12px 'Segoe UI', sans-serif";
-      ctx.fillText(game.wavePhase === "active" ? "…incoming…" : "—", r.x, r.y + 26);
+      ctx.fillText(game.wavePhase === "active" ? "…incoming…" : "—", r.x, r.y + 34);
       ctx.restore();
       return;
     }
@@ -137,26 +137,27 @@ export class Hud {
       counts[seen.get(e.type)!].n++;
     }
 
+    // Chips sit below the title band; sprites anchor near the chip bottom so
+    // tall foes (fliers) never reach the "NEXT WAVE" label.
     const chipW = r.w / 3;
-    const chipH = 40;
-    const rowStep = 44;
+    const rowStep = 43;
     counts.forEach((c, i) => {
       const col = i % 3;
       const row = Math.floor(i / 3);
       const cx = r.x + col * chipW;
-      const cy = r.y + 14 + row * rowStep;
+      const cy = r.y + 18 + row * rowStep;
       const def = enemyPreviewDef(this.assets, c.type, c.color);
-      drawSprite(ctx, this.assets, def, 0, cx + 16, cy + chipH / 2, { scale: 0.5 });
+      drawSprite(ctx, this.assets, def, 0, cx + 13, cy + 33, { scale: 0.45 });
       ctx.save();
       ctx.textAlign = "left";
       ctx.fillStyle = "#eaf6ff";
-      ctx.font = "700 14px 'Segoe UI', sans-serif";
-      ctx.fillText(`×${c.n}`, cx + 32, cy + 18);
+      ctx.font = "700 13px 'Segoe UI', sans-serif";
+      ctx.fillText(`×${c.n}`, cx + 34, cy + 16);
       const trait = this.enemyTraits(c.type);
       if (trait) {
         ctx.fillStyle = trait.color;
-        ctx.font = "600 10px 'Segoe UI', sans-serif";
-        ctx.fillText(trait.label, cx + 32, cy + 32);
+        ctx.font = "600 9px 'Segoe UI', sans-serif";
+        ctx.fillText(trait.label, cx + 34, cy + 30);
       }
       ctx.restore();
     });
