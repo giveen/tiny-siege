@@ -473,6 +473,42 @@ def main():
         special[key] = {"frames": rels, "cell": [cw, ch],
                         "anchor": "bottom-center", "fps": fps, "loop": loop}
 
+    def special_grid(key, rel, cols, row_count, rows=None, fps=10, loop=True):
+        """Slice a fixed COLS x ROWS grid sheet into frames (row-major order),
+        normalize, and save under enemies/. For sheets that are NOT horizontal
+        strips. The insect packs ship as 4x4 directional grids (front / left /
+        right / back walk rows); `rows` selects which row(s) to use (int or
+        list of row indexes), defaulting to all rows."""
+        p = os.path.join(ENEMY, rel)
+        if not os.path.exists(p):
+            print(f"  ! missing enemy sheet {rel}")
+            return
+        im = load(p)
+        W, H = im.size
+        fw, fh = W / cols, H / row_count
+        if rows is None:
+            row_idx = list(range(row_count))
+        elif isinstance(rows, int):
+            row_idx = [rows]
+        else:
+            row_idx = list(rows)
+        frames = []
+        for r in row_idx:
+            for c in range(cols):
+                cell = im.crop((int(c * fw), int(r * fh), int((c + 1) * fw), int((r + 1) * fh)))
+                if content_bbox(cell):
+                    frames.append(cell)
+        if not frames:
+            frames = [im]
+        cw, ch, cells = normalize_frames(frames)
+        rels = []
+        for i, cell in enumerate(cells):
+            r = f"enemies/{key}_{i}.png"
+            save(cell, r)
+            rels.append(r)
+        special[key] = {"frames": rels, "cell": [cw, ch],
+                        "anchor": "bottom-center", "fps": fps, "loop": loop}
+
     def special_row_varwidth(key, sheet_rel, rows, rows_total=20, fps=10, max_frames=None):
         """Extract one animation row whose frames are variable-width strips
         (the Minotaur sheet is NOT a fixed grid). `rows` may be a single int or
@@ -512,9 +548,11 @@ def main():
     # strips with a full leg stride); row 0 is a near-static idle. Slice by
     # content, not grid.
     special_row_varwidth("minotaur", "Minotaur - Sprite Sheet.png", rows=1, fps=11)
-    # Insects — small ground bugs (variable-width strips)
-    special_anim("mantis", "Animated insect enemy assets/MantisMove.png", fps=13)
-    special_anim("beetle", "Animated insect enemy assets/BeetleMove.png", fps=9)
+    # Insects — small ground bugs. These sheets are 4x4 directional grids
+    # (front / left / right / back walk rows), NOT horizontal strips. Use the
+    # right-facing profile row (2) to match the other enemies' facing.
+    special_grid("mantis", "Animated insect enemy assets/MantisMove.png", cols=4, row_count=4, rows=2, fps=13)
+    special_grid("beetle", "Animated insect enemy assets/BeetleMove.png", cols=4, row_count=4, rows=2, fps=9)
     # Enemy3 — a second, smaller flying type
     special_anim("fly3", "FlyingForestEnemies_FREE/Enemy3/Enemy3-Movement-In-Animation/Enemy3-Fly.png", fps=11)
 

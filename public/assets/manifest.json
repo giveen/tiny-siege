@@ -2878,8 +2878,8 @@
     "enemies/mantis_3.png"
    ],
    "cell": [
-    28,
-    123
+    32,
+    27
    ],
    "anchor": "bottom-center",
    "fps": 13,
@@ -2893,8 +2893,8 @@
     "enemies/beetle_3.png"
    ],
    "cell": [
-    22,
-    111
+    32,
+    18
    ],
    "anchor": "bottom-center",
    "fps": 9,
