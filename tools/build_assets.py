@@ -473,19 +473,21 @@ def main():
         special[key] = {"frames": rels, "cell": [cw, ch],
                         "anchor": "bottom-center", "fps": fps, "loop": loop}
 
-    def special_grid_row(key, sheet_rel, row, max_frames=None, fps=10):
-        """Extract one animation row from a grid sheet (Minotaur)."""
+    def special_row_varwidth(key, sheet_rel, rows, rows_total=20, fps=10, max_frames=None):
+        """Extract one animation row whose frames are variable-width strips
+        (the Minotaur sheet is NOT a fixed grid). `rows` may be a single int or
+        a list of row indexes; frames from all listed rows are concatenated."""
         p = os.path.join(ENEMY, sheet_rel)
         im = load(p)
-        H, W = im.height, im.width
-        ROWS, COLS = 20, 9
-        rh, chw = H / ROWS, W / COLS
+        W, H = im.width, im.height
+        rh = H / rows_total
+        if isinstance(rows, int):
+            rows = [rows]
         frames = []
-        for c in range(COLS):
-            cell = im.crop((int(c * chw), int(row * rh),
-                            int((c + 1) * chw), int((row + 1) * rh)))
-            if content_bbox(cell):
-                frames.append(cell)
+        for r in rows:
+            strip = im.crop((0, int(r * rh), W, int((r + 1) * rh)))
+            for x0, x1 in column_segments(strip):
+                frames.append(strip.crop((x0, 0, x1 + 1, strip.height)))
         if max_frames:
             frames = frames[:max_frames]
         cw, ch, cells = normalize_frames(frames)
@@ -506,8 +508,9 @@ def main():
         "Skeletons_Free_Pack/Skeleton_Sword/Skeleton_White/Skeleton_Without_VFX/Skeleton_01_White_Walk.png", fps=12)
     special_anim("skeleton_yellow",
         "Skeletons_Free_Pack/Skeleton_Sword/Skeleton_Yellow/Skeleton_Without_VFX/Skeleton_01_Yellow_Walk.png", fps=12)
-    # Minotaur — the boss (walk row of the grid)
-    special_grid_row("minotaur", "Minotaur - Sprite Sheet.png", row=1, fps=10)
+    # Minotaur — the boss. Row 0 is the clean walk cycle (variable-width
+    # strips, ~5 frames); row 1 is a weapon thrust. Slice by content, not grid.
+    special_row_varwidth("minotaur", "Minotaur - Sprite Sheet.png", rows=0, fps=10)
     # Insects — small ground bugs (variable-width strips)
     special_anim("mantis", "Animated insect enemy assets/MantisMove.png", fps=13)
     special_anim("beetle", "Animated insect enemy assets/BeetleMove.png", fps=9)

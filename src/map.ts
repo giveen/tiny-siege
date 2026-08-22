@@ -133,9 +133,11 @@ export class World {
           nearPath.add(cellKey(c + dc, r + dr));
         }
     }
+    // Only keep a checkerboard subset of the ring so the pads read as distinct,
+    // well-spaced build spots rather than a solid band.
     for (let r = 0; r < ROWS; r++)
       for (let c = 0; c < COLS; c++) {
-        if (!this.isGrass(c, r)) continue;
+        if (!this.isGrass(c, r) || (c + r) % 2 !== 0) continue;
         const k = cellKey(c, r);
         if (!nearPath.has(k) || this.pathCells.has(k) || this.castleCells.has(k)) continue;
         const p = cellCenter(c, r);

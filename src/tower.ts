@@ -261,8 +261,8 @@ export class Tower {
     // building
     const b = assets.building(color, this.def.building);
     const bAsset = asAsset(b);
-    // towers occupy roughly a single tile; keep them compact on the larger map
-    const bs = 0.46;
+    // keep the tower compact so it fits neatly on its pad
+    const bs = 0.32;
     drawSprite(ctx, assets, bAsset, 0, this.x, this.y + 6, { scale: bs });
 
     // unit operator in front
@@ -273,7 +273,7 @@ export class Tower {
         : assets.unit(color, this.def.unit ?? "warrior", "idle");
       const idx = showAnim ? this.anim.frameIdx : this.idle.frameIdx;
       const flip = this.facing < 0;
-      drawSprite(ctx, assets, def, idx, this.x + (flip ? -7 : 7), this.y, { scale: 0.62, flipX: flip });
+      drawSprite(ctx, assets, def, idx, this.x + (flip ? -5 : 5), this.y, { scale: 0.46, flipX: flip });
     }
 
     // level pips

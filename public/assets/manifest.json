@@ -2857,13 +2857,11 @@
     "enemies/minotaur_1.png",
     "enemies/minotaur_2.png",
     "enemies/minotaur_3.png",
-    "enemies/minotaur_4.png",
-    "enemies/minotaur_5.png",
-    "enemies/minotaur_6.png"
+    "enemies/minotaur_4.png"
    ],
    "cell": [
-    114,
-    44
+    52,
+    42
    ],
    "anchor": "bottom-center",
    "fps": 10,

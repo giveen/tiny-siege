@@ -732,7 +732,7 @@ export class Game {
     ctx.stroke();
     // ghost building (matches the in-world tower scale)
     const b = asAsset(this.assets.building("blue", def.building));
-    drawSprite(ctx, this.assets, b, 0, x, y + 6, { scale: 0.46, alpha: 0.7 });
+    drawSprite(ctx, this.assets, b, 0, x, y + 6, { scale: 0.32, alpha: 0.7 });
     ctx.restore();
   }
 
