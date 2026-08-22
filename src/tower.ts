@@ -69,7 +69,7 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
     projSpeed: 320,
     buffDmg: 0,
     buffSpeed: 0,
-    desc: "Slow shells that blast a whole cluster.",
+    desc: "Slow splash shells. Can't hit flying foes.",
   },
   monastery: {
     type: "monastery",
@@ -197,13 +197,14 @@ export class Tower {
       }
     }
 
-    // synergy: +damage per adjacent allied tower
-    if (b.synergy > 0) {
-      let adj = 0;
-      for (const t of game.towers)
-        if (t !== this && Math.hypot(t.x - this.x, t.y - this.y) < 78) adj++;
-      damage *= 1 + b.synergy * adj;
-    }
+    // Adjacency synergy: clustering towers grants a small +damage (base), and the
+    // Battle Line boon amplifies the per-neighbor bonus further. Placement always
+    // carries meaning.
+    let adj = 0;
+    for (const t of game.towers)
+      if (t !== this && Math.hypot(t.x - this.x, t.y - this.y) < 78) adj++;
+    const perAdj = 0.04 + b.synergy; // base +4%/neighbor, boon adds more
+    damage *= 1 + Math.min(6, adj) * perAdj;
 
     return { damage, rate, range, splash, pierce, projSpeed: d.projSpeed, buffDmg: d.buffDmg, buffSpeed: d.buffSpeed };
   }
@@ -228,6 +229,8 @@ export class Tower {
     let best: Enemy | null = null;
     for (const e of game.enemies) {
       if (e.dead) continue;
+      // Ground artillery can't reach flying foes — a real anti-air counter.
+      if (this.type === "cannon" && e.flying) continue;
       const d = Math.hypot(e.x - this.x, e.visualY - this.y);
       if (d <= range && (!best || e.pathDist > best.pathDist)) best = e;
     }

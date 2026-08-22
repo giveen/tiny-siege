@@ -320,6 +320,13 @@ export const BOONS: Boon[] = [
 
 /** Roll up to `n` distinct, currently-available boons, weighted by rarity. */
 export function rollBoons(game: Game, rng: RNG, n = 3): Boon[] {
+  // Sage's Insight (meta) shifts the odds toward rarer boons.
+  const sage = game.sageLevel ?? 0;
+  const rw: Record<Rarity, number> = {
+    common: RARITY_WEIGHT.common,
+    rare: RARITY_WEIGHT.rare + sage * 18,
+    epic: RARITY_WEIGHT.epic + sage * 12,
+  };
   const pool = BOONS.filter((b) => {
     if (game.countBoon(b.id) >= b.maxStacks) return false;
     if (b.available && !b.available(game)) return false;
@@ -330,13 +337,13 @@ export function rollBoons(game: Game, rng: RNG, n = 3): Boon[] {
   let guard = 60;
   while (result.length < n && pool.length > 0 && guard-- > 0) {
     let total = 0;
-    for (const b of pool) if (!used.has(b.id)) total += RARITY_WEIGHT[b.rarity] * b.weight;
+    for (const b of pool) if (!used.has(b.id)) total += rw[b.rarity] * b.weight;
     if (total <= 0) break;
     let r = rng.next() * total;
     let chosen: Boon | null = null;
     for (const b of pool) {
       if (used.has(b.id)) continue;
-      r -= RARITY_WEIGHT[b.rarity] * b.weight;
+      r -= rw[b.rarity] * b.weight;
       if (r <= 0) {
         chosen = b;
         break;

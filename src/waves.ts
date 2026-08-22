@@ -2,6 +2,7 @@ import type { RNG } from "./rng";
 import type { EnemyType } from "./enemy";
 import type { UnitColor } from "./assets";
 import { ENEMY_COLORS } from "./assets";
+import { SIEGE_WAVE } from "./config";
 
 export interface SpawnEntry {
   type: EnemyType;
@@ -100,6 +101,16 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
     if (N % 15 === 0) entries.push({ type: "boss", color: rng.pick(ENEMY_COLORS), time: 9 });
     // escort healers for bosses
     if (N >= 10) entries.push({ type: "healer", color: rng.pick(ENEMY_COLORS), time: 3.5 });
+  }
+
+  // The Siege (final wave): a full Minotaur assault — the run's climax.
+  if (N === SIEGE_WAVE) {
+    const bc = () => rng.pick(ENEMY_COLORS);
+    entries.push({ type: "boss", color: bc(), time: 8 });
+    entries.push({ type: "boss", color: bc(), time: 15 });
+    entries.push({ type: "healer", color: bc(), time: 5 });
+    entries.push({ type: "healer", color: bc(), time: 12 });
+    entries.push({ type: "healer", color: bc(), time: 18 });
   }
 
   entries.sort((a, b) => a.time - b.time);

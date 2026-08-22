@@ -140,6 +140,8 @@ export class Projectile {
     game.spawnExplosionFx(this.x, this.y, 1);
     for (const e of game.enemies) {
       if (e.dead) continue;
+      // A ground blast can't reach flying foes.
+      if (this.kind === "cannonball" && e.flying) continue;
       if (Math.hypot(e.x - this.x, e.visualY - this.y) <= this.splash + 8 * e.scale) {
         game.damageEnemy(e, this.damage, "physical");
         game.spawnHitFx(e.x, e.visualY - 10);

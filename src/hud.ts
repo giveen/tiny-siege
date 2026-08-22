@@ -2,9 +2,12 @@ import type { Game } from "./game";
 import type { Assets } from "./assets";
 import { asAsset } from "./assets";
 import { drawSprite } from "./sprite";
+import { ENEMY_DEFS, enemyPreviewDef, type EnemyType } from "./enemy";
+import type { UnitColor } from "./assets";
 import { TOWER_DEFS, TOWER_ORDER, MAX_UPGRADE, upgradeCost, tracksFor, trackLabel, type UpgradeTrack } from "./tower";
 import { RARITY_COLOR } from "./boons";
 import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H } from "./config";
+import { VICTORY_RUNES, RELICS, relicLevel } from "./meta";
 import { fmt } from "./util";
 
 interface Rect {
@@ -28,15 +31,17 @@ export class Hud {
 
   // ------------------------------------------------------------- layout
   private computeLayout(game: Game) {
-    // Right-margin info panel (off the map): castle HP, gold, wave, start-wave, controls.
-    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 330 };
+    // Right-margin info panel (off the map): castle HP, gold, wave, start-wave,
+    // the telegraphed next-wave preview, and controls.
+    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 472 };
     const ix = rp.x + 12;
     const iw = rp.w - 24;
     const castleHp = { x: ix, y: rp.y + 12, w: iw, h: 18 };
     const goldRect = { x: ix, y: rp.y + 42, w: iw, h: 26 };
     const waveRect = { x: ix, y: rp.y + 74, w: iw, h: 34 };
     const startWave = { x: ix, y: rp.y + 116, w: iw, h: 40 };
-    const speed = { x: ix, y: rp.y + 168, w: iw, h: 40 };
+    const previewRect = { x: ix, y: rp.y + 164, w: iw, h: 150 };
+    const speed = { x: ix, y: rp.y + 164 + 150 + 8, w: iw, h: 40 };
     const pause = { x: ix, y: speed.y + 48, w: iw, h: 40 };
     const mute = { x: ix, y: pause.y + 48, w: iw, h: 40 };
 
@@ -85,12 +90,76 @@ export class Hud {
       cards = [0, 1, 2].map((i) => ({ x: x0 + i * (cw + gapC), y: y0, w: cw, h: ch }));
     }
 
-    return { rp, castleHp, goldRect, waveRect, startWave, speed, pause, mute, palette, sel, cards };
+    return { rp, castleHp, goldRect, waveRect, startWave, previewRect, speed, pause, mute, palette, sel, cards };
   }
 
   private layout(game: Game) {
     this.layoutCache = this.computeLayout(game);
     return this.layoutCache;
+  }
+
+  /** A short counter-trait tag for the wave preview (so threats are legible). */
+  private enemyTraits(type: EnemyType): { label: string; color: string } | null {
+    const base = ENEMY_DEFS[type];
+    if (base.flying) return { label: "flying", color: "#8fd0ff" };
+    if (base.armor) return { label: "armored", color: "#c9d6e2" };
+    if (base.healer) return { label: "heals", color: "#9ff0ff" };
+    if (base.speed >= 90) return { label: "fast", color: "#ffd24a" };
+    return null;
+  }
+
+  /** Telegraph the next wave's enemy mix so a leak is a legible build choice. */
+  private drawWavePreview(game: Game, ctx: CanvasRenderingContext2D, r: Rect): void {
+    ctx.save();
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#8fd0ff";
+    ctx.font = "700 11px 'Segoe UI', sans-serif";
+    ctx.fillText("NEXT WAVE", r.x, r.y + 2);
+    ctx.restore();
+
+    if (game.wavePhase !== "build" || game.nextWave.length === 0) {
+      ctx.save();
+      ctx.fillStyle = "rgba(180,210,225,0.4)";
+      ctx.font = "600 12px 'Segoe UI', sans-serif";
+      ctx.fillText(game.wavePhase === "active" ? "…incoming…" : "—", r.x, r.y + 26);
+      ctx.restore();
+      return;
+    }
+
+    // Count enemies by type (keep a representative color per type).
+    const counts: { type: EnemyType; color: UnitColor; n: number }[] = [];
+    const seen = new Map<string, number>();
+    for (const e of game.nextWave) {
+      if (!seen.has(e.type)) {
+        seen.set(e.type, counts.length);
+        counts.push({ type: e.type, color: e.color, n: 0 });
+      }
+      counts[seen.get(e.type)!].n++;
+    }
+
+    const chipW = r.w / 3;
+    const chipH = 40;
+    const rowStep = 44;
+    counts.forEach((c, i) => {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      const cx = r.x + col * chipW;
+      const cy = r.y + 14 + row * rowStep;
+      const def = enemyPreviewDef(this.assets, c.type, c.color);
+      drawSprite(ctx, this.assets, def, 0, cx + 16, cy + chipH / 2, { scale: 0.5 });
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 14px 'Segoe UI', sans-serif";
+      ctx.fillText(`×${c.n}`, cx + 32, cy + 18);
+      const trait = this.enemyTraits(c.type);
+      if (trait) {
+        ctx.fillStyle = trait.color;
+        ctx.font = "600 10px 'Segoe UI', sans-serif";
+        ctx.fillText(trait.label, cx + 32, cy + 32);
+      }
+      ctx.restore();
+    });
   }
 
   // ------------------------------------------------------------- helpers
@@ -163,6 +232,10 @@ export class Hud {
       this.drawOver(game, ctx);
       return;
     }
+    if (game.screen === "victory") {
+      this.drawVictory(game, ctx);
+      return;
+    }
 
     // right-side panel
     this.panel(ctx, L.rp, 10);
@@ -215,6 +288,9 @@ export class Hud {
     } else {
       this.button(ctx, L.startWave, game.wavePhase === "active" ? "Waving…" : "—", { bg: "#22404e", disabled: true, small: true });
     }
+
+    // telegraphed next-wave composition
+    this.drawWavePreview(game, ctx, L.previewRect);
 
     // controls
     this.button(ctx, L.speed, `${game.speed}×  (F)`, { active: game.speedIdx > 0, small: true });
@@ -463,11 +539,12 @@ export class Hud {
 
   // ------------------------------------------------------------- menu / over
   private menuRects() {
-    const w = 260;
-    const h = 60;
+    const w = 280;
+    const h = 58;
     return {
-      start: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 40, w, h } as Rect,
-      help: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 112, w, h } as Rect,
+      start: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 30, w, h } as Rect,
+      help: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 100, w, h } as Rect,
+      codex: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 170, w, h } as Rect,
     };
   }
 
@@ -509,6 +586,7 @@ export class Hud {
     const r = this.menuRects();
     this.button(ctx, r.start, "⚔  Start Siege", { bg: "#c98a2e", fg: "#1a1206", active: true });
     this.button(ctx, r.help, "How to Play", { small: true });
+    this.button(ctx, r.codex, `◆  The Codex   (${game.meta.runes})`, { small: true });
 
     // best
     ctx.save();
@@ -518,7 +596,8 @@ export class Hud {
     ctx.fillText(`Best run: ${game.best} waves`, CANVAS_W / 2, CANVAS_H - 40);
     ctx.restore();
 
-    if (game._showHelp) this.drawHelp(ctx);
+    if (game._showCodex) this.drawCodex(game, ctx);
+    else if (game._showHelp) this.drawHelp(ctx);
   }
 
   private time(game: Game) {
@@ -556,6 +635,10 @@ export class Hud {
   }
 
   handleMenuClick(game: Game, p: { x: number; y: number }): void {
+    if (game._showCodex) {
+      this.handleCodexClick(game, p);
+      return;
+    }
     if (game._showHelp) {
       game._showHelp = false;
       game.sfx("click");
@@ -568,6 +651,11 @@ export class Hud {
     }
     if (inRect(p, r.help)) {
       game._showHelp = true;
+      game.sfx("click");
+      return;
+    }
+    if (inRect(p, r.codex)) {
+      game._showCodex = true;
       game.sfx("click");
     }
   }
@@ -621,6 +709,179 @@ export class Hud {
       game._showHelp = false;
       game.sfx("click");
       return true;
+    }
+    return true;
+  }
+
+  // ------------------------------------------------------------- victory
+  private victoryRects() {
+    const w = 320;
+    const h = 58;
+    return {
+      again: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 60, w, h } as Rect,
+      menu: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 132, w, h } as Rect,
+    };
+  }
+
+  private drawVictory(game: Game, ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+    ctx.globalAlpha = 0.72;
+    ctx.fillStyle = "#0a1a10";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.restore();
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffd24a";
+    ctx.font = "900 52px 'Segoe UI', sans-serif";
+    ctx.fillText("THE SIEGE IS BROKEN!", CANVAS_W / 2, CANVAS_H / 2 - 90);
+    ctx.fillStyle = "#eaf6ff";
+    ctx.font = "700 22px 'Segoe UI', sans-serif";
+    ctx.fillText("The Minotaur assault is repelled.", CANVAS_W / 2, CANVAS_H / 2 - 42);
+    ctx.fillStyle = "#bfe6ef";
+    ctx.font = "600 18px 'Segoe UI', sans-serif";
+    ctx.fillText(`${game.kills} enemies slain  ·  +${VICTORY_RUNES} ◆ banked`, CANVAS_W / 2, CANVAS_H / 2);
+    ctx.fillStyle = "#c58bff";
+    ctx.font = "700 18px 'Segoe UI', sans-serif";
+    ctx.fillText(`Relic vault: ${game.meta.runes} ◆`, CANVAS_W / 2, CANVAS_H / 2 + 28);
+    ctx.restore();
+
+    const r = this.victoryRects();
+    this.button(ctx, r.again, "⚔  Keep Defending (Endless)", { bg: "#c98a2e", fg: "#1a1206", active: true });
+    this.button(ctx, r.menu, "Bank Runes & Menu", { small: true });
+  }
+
+  handleVictoryClick(game: Game, p: { x: number; y: number }): boolean {
+    const r = this.victoryRects();
+    if (inRect(p, r.again)) {
+      game.continueEndless();
+      game.sfx("click");
+      return true;
+    }
+    if (inRect(p, r.menu)) {
+      game.screen = "menu";
+      game._showHelp = false;
+      game.sfx("click");
+      return true;
+    }
+    return true;
+  }
+
+  // ------------------------------------------------------------- codex (meta)
+  private codexLayout() {
+    const panelW = 920;
+    const px = (CANVAS_W - panelW) / 2;
+    const topY = 190;
+    const rowH = 74;
+    const bw = 168;
+    const bh = 42;
+    const rows = RELICS.map((r, i) => {
+      const rowY = topY + i * rowH;
+      return { id: r.id, rowY, buy: { x: px + panelW - 34 - bw, y: rowY + (rowH - bh) / 2, w: bw, h: bh } as Rect };
+    });
+    const close = { x: CANVAS_W / 2 - 110, y: topY + RELICS.length * rowH + 24, w: 220, h: 52 } as Rect;
+    return { px, panelW, topY, rowH, rows, close };
+  }
+
+  private drawCodex(game: Game, ctx: CanvasRenderingContext2D): void {
+    const L = this.codexLayout();
+    ctx.save();
+    ctx.globalAlpha = 0.97;
+    ctx.fillStyle = "#08131a";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.restore();
+
+    // panel
+    ctx.save();
+    this.roundRect(
+      ctx,
+      { x: L.px - 22, y: 64, w: L.panelW + 44, h: L.topY + L.rowH * RELICS.length - 64 + 40 },
+      12
+    );
+    ctx.fillStyle = "#0c1c26";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(180,210,225,0.2)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    // header
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffd24a";
+    ctx.font = "900 34px 'Segoe UI', sans-serif";
+    ctx.fillText("THE CODEX", CANVAS_W / 2, 112);
+    ctx.fillStyle = "#c58bff";
+    ctx.font = "700 20px 'Segoe UI', sans-serif";
+    ctx.fillText(`◆ ${game.meta.runes}  runes`, CANVAS_W / 2, 146);
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 14px 'Segoe UI', sans-serif";
+    ctx.fillText("Spend runes on relics that carry over between sieges.", CANVAS_W / 2, 170);
+    ctx.restore();
+
+    for (const row of L.rows) {
+      const relic = RELICS.find((r) => r.id === row.id)!;
+      const lvl = relicLevel(game.meta, relic.id);
+      const maxed = lvl >= relic.maxLevel;
+      const cost = relic.cost(lvl);
+      const canBuy = !maxed && game.meta.runes >= cost;
+
+      ctx.save();
+      this.roundRect(ctx, { x: L.px, y: row.rowY, w: L.panelW, h: L.rowH - 10 }, 8);
+      ctx.fillStyle = "rgba(255,255,255,0.03)";
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 19px 'Segoe UI', sans-serif";
+      ctx.fillText(relic.name, L.px + 24, row.rowY + 28);
+      ctx.fillStyle = "#8fb8c8";
+      ctx.font = "600 14px 'Segoe UI', sans-serif";
+      ctx.fillText(relic.blurb, L.px + 24, row.rowY + 52);
+      // current effect
+      ctx.fillStyle = lvl > 0 ? "#ffd24a" : "rgba(180,210,225,0.4)";
+      ctx.font = "700 15px 'Segoe UI', sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText(lvl > 0 ? relic.effect(lvl) : "—", L.px + L.panelW - 230, row.rowY + 30);
+      ctx.restore();
+
+      // level pips
+      ctx.save();
+      for (let i = 0; i < relic.maxLevel; i++) {
+        const pipX = L.px + L.panelW - 200 + i * 15;
+        ctx.beginPath();
+        ctx.arc(pipX, row.rowY + 52, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = i < lvl ? "#ffd24a" : "rgba(255,255,255,0.14)";
+        ctx.fill();
+      }
+      ctx.restore();
+
+      this.button(ctx, row.buy, maxed ? "MAX" : `Buy  ${cost} ◆`, {
+        bg: canBuy ? "#c98a2e" : "#22404e",
+        fg: canBuy ? "#1a1206" : "#8fb8c8",
+        disabled: !canBuy,
+        small: true,
+      });
+    }
+
+    this.button(ctx, L.close, "Close", { small: true });
+  }
+
+  handleCodexClick(game: Game, p: { x: number; y: number }): boolean {
+    const L = this.codexLayout();
+    if (inRect(p, L.close)) {
+      game._showCodex = false;
+      game.sfx("click");
+      return true;
+    }
+    for (const row of L.rows) {
+      if (inRect(p, row.buy)) {
+        if (game.buyRelic(row.id)) game.sfx("coin");
+        else game.sfx("click");
+        return true;
+      }
     }
     return true;
   }

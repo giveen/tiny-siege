@@ -10,6 +10,20 @@ import { Projectile } from "./projectile";
 import { Fx } from "./fx";
 import { generateWave, type SpawnEntry } from "./waves";
 import { rollBoons, BOONS, type Boon } from "./boons";
+import {
+  loadMeta,
+  saveMeta,
+  relicLevel,
+  runesForWave,
+  VICTORY_RUNES,
+  metaStartGold,
+  metaCastleHp,
+  metaDamageMult,
+  metaGoldMult,
+  metaStartTowers,
+  RELICS,
+  type MetaState,
+} from "./meta";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
 import {
   WORLD_W,
@@ -20,12 +34,13 @@ import {
   START_CASTLE_HP,
   WAVE_CLEAR_GOLD,
   KILL_GOLD_BASE,
+  SIEGE_WAVE,
   SPEEDS,
   BEST_KEY,
 } from "./config";
 import { Hud } from "./hud";
 
-export type Screen = "loading" | "menu" | "game" | "over";
+export type Screen = "loading" | "menu" | "game" | "over" | "victory";
 export type WavePhase = "build" | "active" | "boon";
 
 export class Game {
@@ -65,6 +80,8 @@ export class Game {
   projectiles: Projectile[] = [];
   fx: Fx[] = [];
   spawnQueue: SpawnEntry[] = [];
+  /** Pre-generated composition of the next wave (telegraphed during build). */
+  nextWave: SpawnEntry[] = [];
   private waveTime = 0;
   private castleAuraTimer = 0;
 
@@ -72,6 +89,7 @@ export class Game {
   placing: TowerType | null = null;
   selectedTower: Tower | null = null;
   _showHelp = false;
+  _showCodex = false;
   mouse = { x: 0, y: 0, over: false };
 
   // intermission boons
@@ -86,6 +104,11 @@ export class Game {
   private demoBuildCount = 0;
 
   best = 0;
+  meta: MetaState = loadMeta();
+  /** Sage's Insight level — shifts boon rarity weights (0..3). */
+  sageLevel = 0;
+  /** True once the run's victory has been claimed (guards rune banking). */
+  runWon = false;
   private castleSprite: Sprite;
   private shake = 0;
 
@@ -191,6 +214,28 @@ export class Game {
     if (params.has("seltower") && this.towers.length > 0) {
       this.selectedTower = this.towers[0];
     }
+
+    // ?codex — open the meta Codex on the menu (verification / dev tool)
+    if (params.has("codex")) {
+      this._showCodex = true;
+    }
+    // ?victory — jump straight to the victory screen (verification / dev tool)
+    if (params.has("victory")) {
+      this.startRun();
+      this.wave = SIEGE_WAVE;
+      this.runWon = true;
+      this.screen = "victory";
+    }
+
+    // ?waven=N — telegraph a specific wave's composition (verifies the preview)
+    const waven = parseInt(params.get("waven") ?? "", 10);
+    if (!Number.isNaN(waven) && waven > 0) {
+      this.startRun();
+      this.wave = waven - 1;
+      this.nextWave = generateWave(waven, this.rng);
+      this.wavePhase = "build";
+      this.screen = "game";
+    }
   }
 
   /** Deterministically advance the simulation (used for ?demo screenshots/tests). */
@@ -232,15 +277,22 @@ export class Game {
     this.world = new World(this.assets, this.rng);
     this.castle.x = this.world.castlePos.x;
     this.castle.y = this.world.castlePos.y;
-    this.gold = START_GOLD;
+    // Meta-progression: apply purchased relics to this run's starting state.
+    this.gold = START_GOLD + metaStartGold(relicLevel(this.meta, "provisions"));
     this.wave = 0;
     this.kills = 0;
-    this.castle.hp = START_CASTLE_HP;
-    this.castle.maxHp = START_CASTLE_HP;
+    const castleMax = START_CASTLE_HP + metaCastleHp(relicLevel(this.meta, "bastion"));
+    this.castle.hp = castleMax;
+    this.castle.maxHp = castleMax;
     this.buffs = defaultBuffs();
+    this.buffs.damageMult = metaDamageMult(relicLevel(this.meta, "armory"));
+    this.buffs.goldKillMult = metaGoldMult(relicLevel(this.meta, "mint"));
+    this.buffs.goldWaveMult = metaGoldMult(relicLevel(this.meta, "mint"));
     this.archerDamageMult = 1;
     this.archerSpeedMult = 1;
-    this.unlocked = new Set(["archer"]);
+    this.unlocked = new Set(TOWER_ORDER.slice(0, metaStartTowers(relicLevel(this.meta, "recruit"))));
+    this.sageLevel = relicLevel(this.meta, "sage");
+    this.runWon = false;
     this.boonCounts = {};
     this.towers = [];
     this.enemies = [];
@@ -252,6 +304,8 @@ export class Game {
     this.wavePhase = "build";
     this.paused = false;
     this.speedIdx = 0;
+    // Pre-generate the first wave so its composition is telegraphed during build.
+    this.nextWave = generateWave(1, this.rng);
     this.screen = "game";
     this.audio.unlock();
     this.sfx("wave");
@@ -354,7 +408,9 @@ export class Game {
   startWave(): void {
     if (this.wavePhase !== "build") return;
     this.wave++;
-    this.spawnQueue = generateWave(this.wave, this.rng);
+    // Use the pre-generated (telegraphed) composition for this wave.
+    this.spawnQueue = this.nextWave;
+    this.nextWave = [];
     this.waveTime = 0;
     this.wavePhase = "active";
     this.placing = null;
@@ -366,9 +422,44 @@ export class Game {
     const reward = Math.round(WAVE_CLEAR_GOLD(this.wave) * this.buffs.goldWaveMult);
     this.gold += reward;
     this.addText(this.castle.x, this.castle.y - 60, `+${reward} gold`, "#ffd24a");
+    // Bank meta runes for clearing this wave (a loss or a win, it counts).
+    const runes = runesForWave(this.wave);
+    this.meta.runes += runes;
+    saveMeta(this.meta);
+    this.addText(this.castle.x, this.castle.y - 84, `+${runes} ◆`, "#c58bff");
     this.sfx("coin");
+
+    // Climax: clearing the Siege wave wins the run.
+    if (this.wave === SIEGE_WAVE) {
+      this.onVictory();
+      return;
+    }
     this.boonChoices = rollBoons(this, this.rng, 3);
     this.wavePhase = "boon";
+  }
+
+  private onVictory(): void {
+    this.runWon = true;
+    this.meta.runes += VICTORY_RUNES;
+    saveMeta(this.meta);
+    this.screen = "victory";
+    this.sfx("over");
+    if (this.wave > this.best) {
+      this.best = this.wave;
+      try {
+        localStorage.setItem(BEST_KEY, String(this.best));
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  /** From the victory screen: keep defending past the Siege (endless). */
+  continueEndless(): void {
+    this.wavePhase = "build";
+    this.nextWave = generateWave(this.wave + 1, this.rng);
+    this.screen = "game";
+    this.sfx("wave");
   }
 
   applyBoon(boon: Boon): void {
@@ -376,11 +467,28 @@ export class Game {
     this.boonCounts[boon.id] = (this.boonCounts[boon.id] ?? 0) + 1;
     this.boonChoices = [];
     this.wavePhase = "build";
+    // Telegraph the following wave while the player plans.
+    this.nextWave = generateWave(this.wave + 1, this.rng);
     this.sfx("boon");
   }
 
   countBoon(id: string): number {
     return this.boonCounts[id] ?? 0;
+  }
+
+  // ------------------------------------------------------------- meta
+  /** Spend runes to level up a relic. Returns true if it succeeded. */
+  buyRelic(id: string): boolean {
+    const relic = RELICS.find((r) => r.id === id);
+    if (!relic) return false;
+    const lvl = relicLevel(this.meta, id);
+    if (lvl >= relic.maxLevel) return false;
+    const cost = relic.cost(lvl);
+    if (this.meta.runes < cost) return false;
+    this.meta.runes -= cost;
+    this.meta.levels[id] = lvl + 1;
+    saveMeta(this.meta);
+    return true;
   }
 
   private spawnEnemy(entry: SpawnEntry): void {
@@ -590,6 +698,10 @@ export class Game {
     }
     if (this.screen === "over") {
       this.hud.handleOverClick(this, this.mouse);
+      return;
+    }
+    if (this.screen === "victory") {
+      this.hud.handleVictoryClick(this, this.mouse);
       return;
     }
 
