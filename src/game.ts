@@ -163,6 +163,25 @@ export class Game {
         d += 120;
       }
     }
+
+    // ?buildall — place one of every tower type (verification / dev tool)
+    if (params.has("buildall")) {
+      this.startRun();
+      this.unlocked = new Set(["archer", "lancer", "cannon", "monastery"]);
+      this.gold = 9999;
+      const spots = [...this.world.buildSpots];
+      this.rng.shuffle(spots);
+      const types: TowerType[] = ["archer", "lancer", "cannon", "monastery"];
+      for (let i = 0; i < 4 && i < spots.length; i++) this.buildTower(types[i], spots[i]);
+      for (let i = 0; i < 3; i++) {
+        const e = new Enemy(this, "pawn", "red", 3);
+        e.pathDist = 320 + i * 130;
+        const p = this.world.pointAt(e.pathDist);
+        e.x = p.x;
+        e.y = p.y;
+        this.enemies.push(e);
+      }
+    }
   }
 
   /** Deterministically advance the simulation (used for ?demo screenshots/tests). */
