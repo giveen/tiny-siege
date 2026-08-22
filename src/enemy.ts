@@ -92,6 +92,10 @@ export class Enemy {
   slowFactor = 1;
   burnDps = 0;
   burnUntil = 0;
+  /** Burn damage dealt but not yet shown (DoT ticks are too small per frame). */
+  dotAccum = 0;
+  /** Next time a burn total may be shown as a floating number. */
+  dotShowAt = 0;
   dead = false;
   reached = false;
   private bob = 0;
@@ -142,9 +146,17 @@ export class Enemy {
   update(game: Game, dt: number): void {
     const now = game.time;
 
-    // burn damage over time
+    // burn damage over time. The DoT deals tiny per-frame amounts, so show
+    // the accumulated total once per 0.5s instead of a stream of "0" numbers.
     if (now < this.burnUntil && this.burnDps > 0) {
       game.damageEnemy(this, this.burnDps * dt, "burn");
+      if (now >= this.dotShowAt) {
+        if (this.dotAccum >= 1) {
+          game.addText(this.x + (game.rng.next() - 0.5) * 16, this.y - 24, String(Math.round(this.dotAccum)), "#ff9a3c");
+          this.dotAccum = 0;
+        }
+        this.dotShowAt = now + 0.5;
+      }
     }
 
     // healer aura

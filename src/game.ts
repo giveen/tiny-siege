@@ -112,6 +112,8 @@ export class Game {
   autoStart = false;
   /** ?stage=N — start the island already grown to stage N (verification). */
   debugStage = 0;
+  /** ?burn[=N] — archer arrows ignite (verification). */
+  debugBurn = 0;
   rngSeed: number | null = null;
   private demoBuildTimer = 0;
   private demoBoonTimer = 0;
@@ -178,7 +180,10 @@ export class Game {
     // ?stage=N — start the island already grown to stage N (verification)
     const stageParam = parseInt(params.get("stage") ?? "", 10);
     if (!Number.isNaN(stageParam)) this.debugStage = Math.max(0, Math.min(3, stageParam));
-    if (this.debugStage > 0 && !this.autoStart && !this.demo) this.startRun();
+    // ?burn[=N] — archer arrows ignite for N dps (verification)
+    const burnParam = params.get("burn");
+    if (burnParam !== null) this.debugBurn = burnParam === "" ? 8 : Math.max(0, parseFloat(burnParam) || 0);
+    if ((this.debugStage > 0 || this.debugBurn > 0) && !this.autoStart && !this.demo) this.startRun();
     if (this.autoStart || this.demo) {
       this.startRun();
       const ff = parseFloat(params.get("ff") ?? "0");
@@ -328,6 +333,7 @@ export class Game {
     this.castle.hp = castleMax;
     this.castle.maxHp = castleMax;
     this.buffs = defaultBuffs();
+    if (this.debugBurn > 0) this.buffs.arrowBurnDps = this.debugBurn;
     this.buffs.damageMult = metaDamageMult(relicLevel(this.meta, "armory"));
     this.buffs.goldKillMult = metaGoldMult(relicLevel(this.meta, "mint"));
     this.buffs.goldWaveMult = metaGoldMult(relicLevel(this.meta, "mint"));
@@ -636,7 +642,12 @@ export class Game {
   damageEnemy(e: Enemy, amount: number, kind: "physical" | "burn" | "magic"): void {
     if (e.dead) return;
     e.takeDamage(this, amount, kind);
-    const col = kind === "burn" ? "#ff9a3c" : kind === "magic" ? "#c58bff" : "#ffffff";
+    if (kind === "burn") {
+      // DoT ticks accumulate; Enemy.update shows the burn total every 0.5s.
+      e.dotAccum += amount;
+      return;
+    }
+    const col = kind === "magic" ? "#c58bff" : "#ffffff";
     this.addText(e.x + (this.rng.next() - 0.5) * 16, e.y - 24, String(Math.round(amount)), col);
   }
 
