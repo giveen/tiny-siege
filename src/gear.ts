@@ -7,7 +7,7 @@ import type { TowerType } from "./types";
 import type { RNG } from "./rng";
 
 export type GearSlot = "helm" | "armor" | "ring";
-export type GearStat = "damage" | "rate" | "range" | "splash" | "bless";
+export type GearStat = "damage" | "rate" | "range" | "splash" | "bless" | "health";
 
 export interface GearDef {
   id: string;
@@ -34,7 +34,6 @@ export interface GearState {
 }
 
 export function emptyGearState(): GearState {
-  // Barracks has no gear line yet (empty record keeps the union total).
   return { owned: [], equipped: { archer: {}, lancer: {}, cannon: {}, monastery: {}, barracks: {} } };
 }
 
@@ -73,6 +72,13 @@ export const GEARS: GearDef[] = [
   { id: "monastery_aura", name: "Aura Vest", icon: "monastery_aura", slot: "armor", tower: "monastery", stat: "range", base: 12 },
   { id: "monastery_sanctum", name: "Sanctum Ring", icon: "monastery_sanctum", slot: "ring", tower: "monastery", stat: "bless", base: 14 },
   { id: "monastery_glow", name: "Glowing Gem", icon: "monastery_glow", slot: "ring", tower: "monastery", stat: "bless", base: 10 },
+  // ---------------- barracks (stats describe the soldiers it musters)
+  { id: "barracks_drill", name: "Drillmaster's Cap", icon: "barracks_drill", slot: "helm", tower: "barracks", stat: "rate", base: 10 },
+  { id: "barracks_hawk", name: "Hawk Helm", icon: "barracks_hawk", slot: "helm", tower: "barracks", stat: "damage", base: 12 },
+  { id: "barracks_cuirass", name: "Guard Cuirass", icon: "barracks_cuirass", slot: "armor", tower: "barracks", stat: "health", base: 14 },
+  { id: "barracks_tunic", name: "Muster Tunic", icon: "barracks_tunic", slot: "armor", tower: "barracks", stat: "rate", base: 10 },
+  { id: "barracks_signet", name: "Vanguard Signet", icon: "barracks_signet", slot: "ring", tower: "barracks", stat: "damage", base: 12 },
+  { id: "barracks_loyal", name: "Loyalist Ring", icon: "barracks_loyal", slot: "ring", tower: "barracks", stat: "health", base: 10 },
 ];
 
 export const GEAR_BY_ID = new Map(GEARS.map((g) => [g.id, g]));
@@ -88,6 +94,7 @@ export function gearPercent(def: GearDef, tier: number): number {
 
 export function statLabel(tower: TowerType, stat: GearStat): string {
   if (tower === "monastery") return stat === "bless" ? "blessing" : "aura";
+  if (tower === "barracks") return stat === "rate" ? "muster" : stat === "health" ? "health" : "damage";
   switch (stat) {
     case "damage":
       return "damage";
@@ -99,6 +106,8 @@ export function statLabel(tower: TowerType, stat: GearStat): string {
       return "splash";
     case "bless":
       return "power";
+    case "health":
+      return "health";
   }
 }
 
@@ -152,6 +161,8 @@ export interface GearBonus {
   range: number;
   splash: number;
   bless: number;
+  /** Soldier health (barracks only). */
+  health: number;
 }
 
-export const EMPTY_GEAR_BONUS: GearBonus = { damage: 0, rate: 0, range: 0, splash: 0, bless: 0 };
+export const EMPTY_GEAR_BONUS: GearBonus = { damage: 0, rate: 0, range: 0, splash: 0, bless: 0, health: 0 };

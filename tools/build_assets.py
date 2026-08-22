@@ -607,7 +607,7 @@ def main():
     manifest["sound"] = {"sfx": sfx, "music": music}
 
     # ---- gear icons (FREE RPG Icon Pack - Accessories and Armor) ---------
-    # Curated 24 icons for the equipment system (helm / armor / ring).
+    # Curated 30 icons for the equipment system (helm / armor / ring).
     GEARP = os.path.join(
         ROOT, "FREE RPG Icon Pack - 100+ Accessories and Armor - Clockwork Raven Studios", "64x64"
     )
@@ -640,6 +640,13 @@ def main():
         "monastery_aura": "tile090.png",  # white vest
         "monastery_sanctum": "tile022.png",  # purple ring
         "monastery_glow": "tile023.png",  # ring w/ yellow gem
+        # barracks
+        "barracks_drill": "tile005.png",    # blue-plume helm
+        "barracks_hawk": "tile006.png",     # silver knight helm
+        "barracks_cuirass": "tile053.png",  # buckled cuirass
+        "barracks_tunic": "tile049.png",    # white tunic
+        "barracks_signet": "tile043.png",   # ring w/ red gem
+        "barracks_loyal": "tile018.png",    # ring w/ pink gem
     }
     gear_icons = {}
     for gid, tile in GEAR_TILES.items():

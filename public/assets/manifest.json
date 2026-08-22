@@ -3047,7 +3047,13 @@
    "monastery_benevolent": "gear/monastery_benevolent.png",
    "monastery_aura": "gear/monastery_aura.png",
    "monastery_sanctum": "gear/monastery_sanctum.png",
-   "monastery_glow": "gear/monastery_glow.png"
+   "monastery_glow": "gear/monastery_glow.png",
+   "barracks_drill": "gear/barracks_drill.png",
+   "barracks_hawk": "gear/barracks_hawk.png",
+   "barracks_cuirass": "gear/barracks_cuirass.png",
+   "barracks_tunic": "gear/barracks_tunic.png",
+   "barracks_signet": "gear/barracks_signet.png",
+   "barracks_loyal": "gear/barracks_loyal.png"
   }
  },
  "relic_icons": {

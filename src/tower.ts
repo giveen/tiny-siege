@@ -238,11 +238,21 @@ export class Tower {
     return SPECS[this.type].find((s) => s.id === this.spec) ?? null;
   }
 
-  /** Barracks: soldier stats from base def + upgrade tracks + specialization. */
-  soldierStats(_game: Game) {
-    const hp = 60 * (1 + 0.3 * this.upg.damage) * (1 + (this.spec === "harden" ? 0.4 * this.specLvl : 0));
-    const dmg = this.def.damage * (1 + 0.2 * this.upg.damage) * (1 + (this.spec === "vanguard" ? 0.35 * this.specLvl : 0));
-    const deploy = 13 * (1 - 0.08 * this.upg.rate) * (1 - (this.spec === "drill" ? 0.15 * this.specLvl : 0));
+  /** Barracks: soldier stats from base def + upgrade tracks + specialization + gear. */
+  soldierStats(game: Game) {
+    const eq = game.equipFor(this.type);
+    const hp =
+      60 *
+      (1 + 0.3 * this.upg.damage) *
+      (1 + (this.spec === "harden" ? 0.4 * this.specLvl : 0)) *
+      (1 + eq.health);
+    const dmg =
+      this.def.damage *
+      (1 + 0.2 * this.upg.damage) *
+      (1 + (this.spec === "vanguard" ? 0.35 * this.specLvl : 0)) *
+      (1 + eq.damage);
+    const deploy =
+      (13 * (1 - 0.08 * this.upg.rate) * (1 - (this.spec === "drill" ? 0.15 * this.specLvl : 0))) / (1 + eq.rate);
     const maxOut = 1 + Math.floor(this.upg.range / 2);
     return { hp, dmg, deploy, maxOut };
   }
