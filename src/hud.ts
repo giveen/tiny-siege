@@ -1124,10 +1124,12 @@ export class Hud {
 
   // ------------------------------------------------------------- armory
   private armoryLayout(game: Game) {
-    const topY = 244;
+    // topY starts low enough that the section labels (topY-14) clear the tab
+    // row (164-196) and the hint line above them (baseline 216).
+    const topY = 260;
     const close = { x: CANVAS_W / 2 - 110, y: 648, w: 220, h: 52 } as Rect;
-    const vaultTab = { x: CANVAS_W / 2 - 210, y: 186, w: 200, h: 32 } as Rect;
-    const smithTab = { x: CANVAS_W / 2 + 10, y: 186, w: 200, h: 32 } as Rect;
+    const vaultTab = { x: CANVAS_W / 2 - 210, y: 164, w: 200, h: 32 } as Rect;
+    const smithTab = { x: CANVAS_W / 2 + 10, y: 164, w: 200, h: 32 } as Rect;
 
     // The vault holds UNEQUIPPED pieces only — equipping moves a piece into
     // its slot (it returns to the vault when unequipped).
@@ -1156,7 +1158,7 @@ export class Hud {
       inst,
       rect: {
         x: 90 + (i % 2) * 360,
-        y: topY + Math.floor(i / 2) * 84,
+        y: topY + Math.floor(i / 2) * 80,
         w: 350,
         h: 74,
       } as Rect,
@@ -1182,7 +1184,7 @@ export class Hud {
       inst,
       rect: {
         x: 90 + (i % 2) * 360,
-        y: topY + Math.floor(i / 2) * 84,
+        y: topY + Math.floor(i / 2) * 80,
         w: 350,
         h: 74,
       } as Rect,
@@ -1196,7 +1198,7 @@ export class Hud {
       inst,
       rect: {
         x: 900 + (i % 2) * 500,
-        y: topY + Math.floor(i / 2) * 84,
+        y: topY + Math.floor(i / 2) * 80,
         w: 490,
         h: 74,
       } as Rect,
@@ -1256,7 +1258,7 @@ export class Hud {
         ? "Enemies drop gear as you clear waves — deeper waves drop higher tiers. Click a piece, then click its slot to equip. It carries into every siege."
         : "Recycle spare gear for scrap, then spend scrap to upgrade pieces to higher tiers. Equipped pieces can be upgraded in place.",
       CANVAS_W / 2,
-      172
+      216
     );
     ctx.restore();
 
