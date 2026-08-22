@@ -556,6 +556,56 @@ def main():
     # Enemy3 — a second, smaller flying type
     special_anim("fly3", "FlyingForestEnemies_FREE/Enemy3/Enemy3-Movement-In-Animation/Enemy3-Fly.png", fps=11)
 
+    # ---- audio (Free Fantasy SFX Pack, OGG) -------------------------------
+    # Copy selected SFX and BGM loops into sound/ under short names.
+    SFXPACK = os.path.join(ROOT, "Free Fantasy SFX Pack By TomMusic", "OGG Files")
+
+    def copy_sound(dest_rel, src_rel):
+        p = os.path.join(SFXPACK, src_rel)
+        if not os.path.exists(p):
+            print(f"  ! missing sound {src_rel}")
+            return None
+        d = os.path.join(OUT, dest_rel)
+        os.makedirs(os.path.dirname(d), exist_ok=True)
+        shutil.copyfile(p, d)
+        return dest_rel
+
+    # game sfx name -> source file in the pack
+    sfx = {}
+    SFX_MAP = {
+        "shoot":     "SFX/Attacks/Bow Attacks Hits and Blocks/Bow Attack 1.ogg",
+        "spear":     "SFX/Attacks/Sword Attacks Hits and Blocks/Sword Attack 1.ogg",
+        "cannon":    "SFX/Spells/Rock Meteor Throw 1.ogg",
+        "explosion": "SFX/Spells/Spell Impact 1.ogg",
+        "hit":       "SFX/Attacks/Bow Attacks Hits and Blocks/Bow Impact Hit 1.ogg",
+        "die":       "SFX/Attacks/Sword Attacks Hits and Blocks/Sword Impact Hit 2.ogg",
+        "coin":      "SFX/Doors Gates and Chests/Chest Open 1.ogg",
+        "build":     "SFX/Chopping and Mining/chop 1.ogg",
+        "upgrade":   "SFX/Spells/Firebuff 1.ogg",
+        "sell":      "SFX/Attacks/Sword Attacks Hits and Blocks/Sword Sheath 1.ogg",
+        "boon":      "SFX/Spells/Firebuff 2.ogg",
+        "castle":    "SFX/Doors Gates and Chests/Gate Close.ogg",
+        "wave":      "SFX/Attacks/Sword Attacks Hits and Blocks/Sword Unsheath 1.ogg",
+        "over":      "SFX/Attacks/Sword Attacks Hits and Blocks/Sword Sheath 2.ogg",
+    }
+    for name, src in SFX_MAP.items():
+        r = copy_sound(f"sound/sfx/{name}.ogg", src)
+        if r:
+            sfx[name] = r
+
+    # background music loops: calm forest (default) + ominous cave (boss waves)
+    music = {}
+    MUSIC_MAP = {
+        "forest": "BGS Loops/Forest Day/Forest Day.ogg",
+        "cave":   "BGS Loops/Cave/Cave.ogg",
+    }
+    for key, src in MUSIC_MAP.items():
+        r = copy_sound(f"sound/music/{key}.ogg", src)
+        if r:
+            music[key] = r
+
+    manifest["sound"] = {"sfx": sfx, "music": music}
+
     # ---- write manifest --------------------------------------------------
     mpath = os.path.join(OUT, "manifest.json")
     with open(mpath, "w") as f:
@@ -567,6 +617,8 @@ def main():
     print(f"  unit actions per color: { {u: len(a) for u, a in list(manifest['units']['blue'].items())} }")
     print(f"  fx: {list(manifest['fx'].keys())}")
     print(f"  ui icons: {len(manifest['ui'].get('icons', []))}, avatars: {len(manifest['ui'].get('avatars', []))}")
+    snd = manifest.get("sound", {})
+    print(f"  sound: {len(snd.get('sfx', {}))} sfx, {list(snd.get('music', {}).keys())} music")
 
 
 if __name__ == "__main__":

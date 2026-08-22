@@ -129,6 +129,9 @@ export class Game {
     this.world = undefined as unknown as World;
     this.hud = undefined as unknown as Hud;
     this.castleSprite = undefined as unknown as Sprite;
+    // BGM intent from load: calm forest. It actually starts on the first user
+    // gesture (audio unlock) so browsers don't block it.
+    this.audio.music("forest");
 
     try {
       this.best = parseInt(localStorage.getItem(BEST_KEY) ?? "0", 10) || 0;
@@ -144,6 +147,7 @@ export class Game {
   async init(): Promise<void> {
     const assets = await loadAssets("assets/");
     this.assets = assets;
+    this.audio.setBase("assets/");
     this.rng = new RNG();
     this.world = new World(assets, this.rng);
     this.castle.x = this.world.castlePos.x;
@@ -308,6 +312,7 @@ export class Game {
     this.nextWave = generateWave(1, this.rng);
     this.screen = "game";
     this.audio.unlock();
+    this.audio.music("forest");
     this.sfx("wave");
   }
 
@@ -415,6 +420,8 @@ export class Game {
     this.wavePhase = "active";
     this.placing = null;
     this.selectedTower = null;
+    // Boss waves (every 5th) shift the score to the ominous cave theme.
+    this.audio.music(this.wave % 5 === 0 ? "cave" : "forest");
     this.sfx("wave");
   }
 
@@ -443,6 +450,7 @@ export class Game {
     this.meta.runes += VICTORY_RUNES;
     saveMeta(this.meta);
     this.screen = "victory";
+    this.audio.music("forest"); // the calm after the siege
     this.sfx("over");
     if (this.wave > this.best) {
       this.best = this.wave;
@@ -691,6 +699,8 @@ export class Game {
 
     const clicked = this.input.consumeClick();
     if (!clicked) return;
+    // Any click is a user gesture: safe to unlock (resume) the AudioContext.
+    this.audio.unlock();
 
     if (this.screen === "menu") {
       this.hud.handleMenuClick(this, this.mouse);

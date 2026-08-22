@@ -1,48 +1,206 @@
-// Tiny WebAudio SFX synth. No audio files — everything is generated.
-// The context is created lazily on the first user gesture (browser autoplay policy).
+// Tiny WebAudio engine:
+//  - SFX are real samples from the Free Fantasy SFX Pack (sound/sfx/*.ogg),
+//    with the old WebAudio synth kept as a fallback for any missing sample.
+//  - BGM loops (sound/music/*.ogg) with short crossfades between tracks.
+// The AudioContext is created lazily on the first user gesture (autoplay policy).
 
-type SfxName =
-  | "shoot"
-  | "spear"
-  | "cannon"
-  | "explosion"
-  | "hit"
-  | "die"
-  | "coin"
-  | "build"
-  | "upgrade"
-  | "sell"
-  | "boon"
-  | "castle"
-  | "wave"
-  | "over"
-  | "click";
+const SFX_NAMES = [
+  "shoot", "spear", "cannon", "explosion", "hit", "die", "coin",
+  "build", "upgrade", "sell", "boon", "castle", "wave", "over",
+] as const;
+
+export type SfxName = (typeof SFX_NAMES)[number] | "click";
+
+const MASTER_VOL = 0.55;
+const MUSIC_VOL = 0.4;
+const MUSIC_FADE = 0.18; // time constant for crossfades
 
 export class Audio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  private musicBus: GainNode | null = null;
+  private buffers = new Map<string, AudioBuffer>();
+  private musicSrc: AudioBufferSourceNode | null = null;
+  private musicKey: string | null = null;
+  private pendingMusic: string | null = null;
+  private base = "assets/";
   enabled = true;
 
-  /** Call from a user gesture to unlock audio. */
+  setBase(base: string): void {
+    this.base = base;
+  }
+
+  /** Call from a user gesture to unlock audio (creates context, loads samples). */
   unlock(): void {
     if (!this.ctx) {
       try {
-        const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const Ctx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         this.ctx = new Ctx();
         this.master = this.ctx.createGain();
-        this.master.gain.value = 0.5;
+        this.master.gain.value = this.enabled ? MASTER_VOL : 0;
         this.master.connect(this.ctx.destination);
+        this.musicBus = this.ctx.createGain();
+        this.musicBus.gain.value = MUSIC_VOL;
+        this.musicBus.connect(this.master);
       } catch {
         this.ctx = null;
       }
     }
-    if (this.ctx && this.ctx.state === "suspended") void this.ctx.resume();
+    if (!this.ctx) return;
+    if (this.ctx.state === "suspended") {
+      void this.ctx
+        .resume()
+        .then(() => this.maybeResumeMusic())
+        .catch(() => {
+          /* not allowed yet; next gesture retries */
+        });
+    }
+    void this.loadSamples();
+  }
+
+  /** Start the requested music track now that the context is running. */
+  private maybeResumeMusic(): void {
+    if (!this.ctx || this.ctx.state !== "running") return;
+    if (this.pendingMusic) {
+      const k = this.pendingMusic;
+      this.pendingMusic = null;
+      this.startMusic(k);
+    }
   }
 
   setEnabled(on: boolean): void {
     this.enabled = on;
+    if (this.master && this.ctx) {
+      // One master fade mutes SFX + music together.
+      this.master.gain.setTargetAtTime(on ? MASTER_VOL : 0, this.ctx.currentTime, 0.02);
+    }
   }
 
+  // ------------------------------------------------------------- samples
+  private loading = false;
+  private loaded = false;
+
+  private async loadSamples(): Promise<void> {
+    if (!this.ctx || this.loaded || this.loading) return;
+    this.loading = true;
+    const ctx = this.ctx;
+    const paths: [string, string][] = [
+      ...SFX_NAMES.map((n) => [n, this.base + "sound/sfx/" + n + ".ogg"] as [string, string]),
+      ["music_forest", this.base + "sound/music/forest.ogg"],
+      ["music_cave", this.base + "sound/music/cave.ogg"],
+    ];
+    let allOk = true;
+    await Promise.all(
+      paths.map(async ([key, url]) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) {
+            allOk = false;
+            return;
+          }
+          const buf = await ctx.decodeAudioData(await res.arrayBuffer());
+          this.buffers.set(key, buf);
+        } catch {
+          allOk = false; // sample missing -> synth fallback
+        }
+      })
+    );
+    this.loading = false;
+    if (allOk) this.loaded = true; // retry on next unlock if anything failed
+    // If a track was requested before the context ran, start it now (if running).
+    this.maybeResumeMusic();
+  }
+
+  // ------------------------------------------------------------- sfx
+  /** Play an SFX sample (slight pitch variation), synth fallback if missing. */
+  play(name: SfxName): void {
+    // No gesture yet: stay silent (and warning-free) until the context resumes.
+    if (!this.enabled || !this.ctx || !this.master || this.ctx.state !== "running") return;
+    const buf = this.buffers.get(name);
+    if (buf) {
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      src.playbackRate.value = 0.97 + Math.random() * 0.06;
+      src.connect(this.master);
+      src.start();
+      return;
+    }
+    this.synth(name);
+  }
+
+  // ------------------------------------------------------------- music
+  /** Start (or switch to) a looping BGM track. Key: "forest" | "cave". */
+  music(key: string): void {
+    if (!this.ctx) {
+      this.pendingMusic = key;
+      this.musicKey = key;
+      return;
+    }
+    this.startMusic(key);
+  }
+
+  stopMusic(): void {
+    this.musicKey = null;
+    this.pendingMusic = null;
+    this.fadeOutCurrent();
+  }
+
+  private startMusic(key: string): void {
+    if (key === this.musicKey && this.musicSrc) return;
+    if (!this.ctx || this.ctx.state !== "running") {
+      // Not allowed to start yet; unlock()/loadSamples() will retry.
+      this.pendingMusic = key;
+      this.musicKey = null;
+      return;
+    }
+    const buf = this.buffers.get("music_" + key);
+    if (!buf) {
+      this.pendingMusic = key;
+      this.musicKey = null;
+      return;
+    }
+    this.musicKey = key;
+    this.pendingMusic = null;
+    const ctx = this.ctx!;
+    this.fadeOutCurrent();
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const fade = ctx.createGain();
+    fade.gain.value = 0.0001;
+    fade.gain.setTargetAtTime(1, ctx.currentTime, MUSIC_FADE);
+    src.connect(fade);
+    fade.connect(this.musicBus!);
+    src.start();
+    this.musicSrc = src;
+  }
+
+  private fadeOutCurrent(): void {
+    const old = this.musicSrc;
+    if (!old || !this.ctx || !this.musicBus) return;
+    this.musicSrc = null;
+    const fade = this.ctx.createGain();
+    fade.gain.value = 1;
+    fade.gain.setTargetAtTime(0.0001, this.ctx.currentTime, MUSIC_FADE);
+    try {
+      old.disconnect();
+    } catch {
+      /* already disconnected */
+    }
+    old.connect(fade);
+    fade.connect(this.musicBus);
+    window.setTimeout(() => {
+      try {
+        old.stop();
+      } catch {
+        /* already stopped */
+      }
+    }, 1200);
+  }
+
+  // ------------------------------------------------------------- synth fallback
   private now(): number {
     return this.ctx ? this.ctx.currentTime : 0;
   }
@@ -93,8 +251,7 @@ export class Audio {
     src.stop(t + dur);
   }
 
-  play(name: SfxName): void {
-    if (!this.enabled || !this.ctx) return;
+  private synth(name: SfxName): void {
     switch (name) {
       case "shoot":
         this.tone(660, 0.08, "square", 0.12, 0, 320);

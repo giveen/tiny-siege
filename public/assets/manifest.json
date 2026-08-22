@@ -2919,5 +2919,27 @@
    "fps": 11,
    "loop": true
   }
+ },
+ "sound": {
+  "sfx": {
+   "shoot": "sound/sfx/shoot.ogg",
+   "spear": "sound/sfx/spear.ogg",
+   "cannon": "sound/sfx/cannon.ogg",
+   "explosion": "sound/sfx/explosion.ogg",
+   "hit": "sound/sfx/hit.ogg",
+   "die": "sound/sfx/die.ogg",
+   "coin": "sound/sfx/coin.ogg",
+   "build": "sound/sfx/build.ogg",
+   "upgrade": "sound/sfx/upgrade.ogg",
+   "sell": "sound/sfx/sell.ogg",
+   "boon": "sound/sfx/boon.ogg",
+   "castle": "sound/sfx/castle.ogg",
+   "wave": "sound/sfx/wave.ogg",
+   "over": "sound/sfx/over.ogg"
+  },
+  "music": {
+   "forest": "sound/music/forest.ogg",
+   "cave": "sound/music/cave.ogg"
+  }
  }
 }

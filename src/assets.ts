@@ -44,6 +44,11 @@ export interface Manifest {
   };
   fx: Record<string, AssetDef>;
   special: Record<string, AssetDef>;
+  /** Audio (from the Free Fantasy SFX Pack): sfx name -> file, music key -> file. */
+  sound?: {
+    sfx: Record<string, string>;
+    music: Record<string, string>;
+  };
   ui: {
     bars: Record<string, StaticDef>;
     buttons: Record<string, StaticDef>;
