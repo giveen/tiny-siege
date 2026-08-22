@@ -125,6 +125,7 @@ export class Hud {
 
     if (game.wavePhase !== "build" || game.nextWave.length === 0) {
       ctx.save();
+      ctx.textAlign = "left";
       ctx.fillStyle = "rgba(180,210,225,0.4)";
       ctx.font = "600 12px 'Segoe UI', sans-serif";
       ctx.fillText(game.wavePhase === "active" ? "…incoming…" : "—", r.x, r.y + 34);
