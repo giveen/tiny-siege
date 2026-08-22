@@ -19,6 +19,8 @@ export class Soldier {
   hp: number;
   maxHp: number;
   dmg: number;
+  /** Reduction on every hit taken (Stature upgrades). */
+  armor: number;
   dead = false;
   target: Enemy | null = null;
   facing = 1;
@@ -33,14 +35,22 @@ export class Soldier {
 
   /** Where the soldier stops and holds the road (a short standoff past the barracks). */
   private holdDist: number;
+  /** Patrol bounds along the road (Patrol upgrades); the soldier roams between them. */
+  private patrolMin = 0;
+  private patrolMax = 0;
+  /** Patrol direction: +1 down the road, -1 back toward the barracks. */
+  private pDir = 1;
 
-  constructor(game: Game, home: Tower, stats: { hp: number; dmg: number }) {
+  constructor(game: Game, home: Tower, stats: { hp: number; dmg: number; armor: number; patrol: number }) {
     this.home = home;
     // Join the path at the point nearest the barracks, then hold a standoff
     // ahead of it — the marching column arrives into the guard.
     const p = game.world.nearestPathPoint(home.x, home.y);
     this.pathDist = p.dist;
     this.holdDist = Math.min(p.dist + 90, game.world.pathLen - 40);
+    this.armor = stats.armor;
+    this.patrolMin = Math.max(40, this.holdDist - stats.patrol);
+    this.patrolMax = Math.min(game.world.pathLen - 40, this.holdDist + stats.patrol);
     this.x = p.x;
     this.y = p.y;
     this.hp = stats.hp;
@@ -98,6 +108,22 @@ export class Soldier {
       this.x = p.x;
       this.y = p.y;
       this.facing = Math.cos(p.angle) >= 0 ? 1 : -1;
+    } else if (this.patrolMax > this.holdDist) {
+      // Patrolling (Patrol upgrades): march back and forth along the road,
+      // so the guard covers a stretch of path instead of one spot.
+      this.holding = false;
+      this.pathDist += this.speed * 0.6 * this.pDir * dt;
+      if (this.pathDist >= this.patrolMax) {
+        this.pathDist = this.patrolMax;
+        this.pDir = -1;
+      } else if (this.pathDist <= this.patrolMin) {
+        this.pathDist = this.patrolMin;
+        this.pDir = 1;
+      }
+      const p = game.world.pointAt(this.pathDist);
+      this.x = p.x;
+      this.y = p.y;
+      this.facing = Math.cos(p.angle) * this.pDir >= 0 ? 1 : -1;
     } else {
       // Holding the road: face the direction the column comes from.
       this.holding = true;
@@ -121,8 +147,9 @@ export class Soldier {
 
   takeDamage(game: Game, amount: number): void {
     if (this.dead) return;
-    this.hp -= amount;
-    game.addText(this.x + (game.rng.next() - 0.5) * 10, this.y - 26, String(Math.round(amount)), "#ff8a3c");
+    const dmg = Math.max(1, amount - this.armor);
+    this.hp -= dmg;
+    game.addText(this.x + (game.rng.next() - 0.5) * 10, this.y - 26, String(Math.round(dmg)), "#ff8a3c");
     if (this.hp <= 0) {
       this.dead = true;
       game.spawnExplosionFx(this.x, this.y - 6, 0.5);

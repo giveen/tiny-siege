@@ -95,7 +95,8 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
     building: "house1",
     unit: "warrior",
     cost: 110,
-    // damage = soldier strike, rate = deploy cadence, range = 30px "muster" pad
+    // Stature (damage) = soldier HP/dmg/armor, Muster (rate) = cadence + cap,
+    // Patrol (range) = how far soldiers roam the road
     damage: 7,
     rate: 1 / 13,
     range: 30,
@@ -104,7 +105,7 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
     projSpeed: 0,
     buffDmg: 0,
     buffSpeed: 0,
-    desc: "Musters a soldier who marches the path and intercepts foes.",
+    desc: "Musters soldiers who wall the road. Toughen, mass, and patrol them.",
   },
   wizard: {
     type: "wizard",
@@ -198,6 +199,7 @@ export function tracksFor(type: TowerType): UpgradeTrack[] {
 
 export function trackLabel(type: TowerType, track: UpgradeTrack): string {
   if (type === "monastery") return track === "damage" ? "Blessing" : "Aura";
+  if (type === "barracks") return track === "damage" ? "Stature" : track === "rate" ? "Muster" : "Patrol";
   if (track === "damage") return "Damage";
   if (track === "rate") return "Fire Rate";
   return "Range";
@@ -276,7 +278,9 @@ export class Tower {
     return SPECS[this.type].find((s) => s.id === this.spec) ?? null;
   }
 
-  /** Barracks: soldier stats from base def + upgrade tracks + specialization + gear. */
+  /** Barracks: soldier stats from base def + upgrade tracks + specialization + gear.
+   *  Stature (damage) toughens each soldier, Muster (rate) fields more of them
+   *  faster, Patrol (range) lets them roam the road instead of holding one spot. */
   soldierStats(game: Game) {
     const eq = game.equipFor(this.type);
     const hp =
@@ -289,11 +293,13 @@ export class Tower {
       (1 + 0.2 * this.upg.damage) *
       (1 + (this.spec === "vanguard" ? 0.35 * this.specLvl : 0)) *
       (1 + eq.damage);
+    const armor = this.upg.damage; // +1 armor per Stature level
     const deploy =
       (13 * (1 - 0.08 * this.upg.rate) * (1 - (this.spec === "drill" ? 0.15 * this.specLvl : 0))) /
       ((1 + eq.rate) * game.metaRateMult);
-    const maxOut = 1 + Math.floor(this.upg.range / 2);
-    return { hp, dmg, deploy, maxOut };
+    const maxOut = 1 + this.upg.rate; // +1 soldier cap per Muster level
+    const patrol = 60 * this.upg.range; // ±px of road roamed per Patrol level
+    return { hp, dmg, armor, deploy, maxOut, patrol };
   }
 
   /** Monastery: effective aura buff multiplier from Blessing upgrades + gear + chant. */
@@ -346,7 +352,7 @@ export class Tower {
     // barracks: stats describe the soldiers it musters, not a projectile
     if (this.type === "barracks") {
       const ss = this.soldierStats(game);
-      return { damage: ss.dmg, rate: 1 / ss.deploy, range: 30, splash: 0, pierce: 0, projSpeed: 0, buffDmg: 0, buffSpeed: 0 };
+      return { damage: ss.dmg, rate: 1 / ss.deploy, range: 30 + ss.patrol, splash: 0, pierce: 0, projSpeed: 0, buffDmg: 0, buffSpeed: 0 };
     }
 
     // monastery auras affecting this tower

@@ -895,7 +895,7 @@ export class Game {
   /** Barracks musters a soldier (stats come from the barracks' upgrades/specs). */
   spawnSoldier(t: Tower): void {
     const ss = t.soldierStats(this);
-    new Soldier(this, t, { hp: ss.hp, dmg: ss.dmg });
+    new Soldier(this, t, { hp: ss.hp, dmg: ss.dmg, armor: ss.armor, patrol: ss.patrol });
     this.spawnRingFx(t.x, t.y - 12, "#9fd8ff", 0.7);
   }
 

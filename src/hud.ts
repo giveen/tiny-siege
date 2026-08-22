@@ -467,10 +467,18 @@ export class Hud {
         ctx.fillText("Dmg & fire-rate buff to towers in aura", panel.x + 12, panel.y + 58);
       } else if (t.type === "barracks") {
         const ss = t.soldierStats(game);
-        ctx.fillText(`Strike ${Math.round(ss.dmg)}   Muster ${ss.deploy.toFixed(1)}s   Up to ${ss.maxOut}`, panel.x + 12, panel.y + 44);
+        ctx.fillText(
+          `Strike ${Math.round(ss.dmg)}   Armor ${ss.armor}   Muster ${ss.deploy.toFixed(1)}s   Up to ${ss.maxOut}`,
+          panel.x + 12,
+          panel.y + 44
+        );
         ctx.fillStyle = "rgba(180,210,225,0.7)";
         ctx.font = "500 10px 'Segoe UI', sans-serif";
-        ctx.fillText(`Soldier HP ${Math.round(ss.hp)} — holds the road against ground foes`, panel.x + 12, panel.y + 58);
+        ctx.fillText(
+          `Soldier HP ${Math.round(ss.hp)} — ${ss.patrol > 0 ? `patrols ±${ss.patrol}px of the road` : "holds the road against ground foes"}`,
+          panel.x + 12,
+          panel.y + 58
+        );
       } else {
         ctx.fillText(`Dmg ${Math.round(s.damage)}   Rate ${s.rate.toFixed(1)}/s   Range ${Math.round(s.range)}`, panel.x + 12, panel.y + 44);
         if (t.type === "cannon") {
@@ -764,7 +772,7 @@ export class Hud {
       if (game.unlocked.has(t)) {
         lines.push({ t: `${game.towerCost(t)} gold to build`, c: "#e8c96a" });
         lines.push({ t: d.desc, c: "#8fa8bd" });
-        lines.push({ t: this.baseStatLine(d), c: "#cfe3f5" });
+        lines.push({ t: this.baseStatLine(t, d), c: "#cfe3f5" });
       } else {
         lines.push({ t: "Locked.", c: "#7d93a8" });
         lines.push({ t: "Recruit it permanently with the Old Guard relic in the Codex." });
@@ -786,11 +794,17 @@ export class Hud {
               : u.track === "rate"
                 ? "+20% blessing power per level (tower speed)."
                 : "+12% aura radius per level."
-            : u.track === "damage"
-              ? "+30% damage per level."
-              : u.track === "rate"
-                ? "+20% attack speed per level."
-                : "+12% range per level.";
+            : tw.type === "barracks"
+              ? u.track === "damage"
+                ? "+30% soldier HP, +20% strike, +1 armor per level."
+                : u.track === "rate"
+                  ? "-8% muster time per level, and +1 soldier to the cap."
+                  : "Soldiers patrol ±60px more of the road per level."
+              : u.track === "damage"
+                ? "+30% damage per level."
+                : u.track === "rate"
+                  ? "+20% attack speed per level."
+                  : "+12% range per level.";
         return {
           title: `${trackLabel(tw.type, u.track)}  L${lvl} → L${lvl + 1}`,
           lines: [
@@ -852,7 +866,8 @@ export class Hud {
   }
 
   /** Plain-text stat summary for a tower type's base definition. */
-  private baseStatLine(d: (typeof TOWER_DEFS)[TowerType]): string {
+  private baseStatLine(t: TowerType, d: (typeof TOWER_DEFS)[TowerType]): string {
+    if (t === "barracks") return `soldier: ${d.damage} strike · 60 HP · musters every ${Math.round(1 / d.rate)}s`;
     const bits: string[] = [];
     if (d.damage > 0) bits.push(`damage ${d.damage}`);
     if (d.rate > 0) bits.push(`${d.rate.toFixed(2)}/s`);
@@ -871,7 +886,11 @@ export class Hud {
     lines.push({ t: `${upgTotal} upgrade${upgTotal === 1 ? "" : "s"}${t.spec ? ` · spec L${t.specLvl}` : ""}`, c: "#8fa8bd" });
     if (t.type === "monastery")
       lines.push({ t: `Blesses nearby towers: +${Math.round(s.buffDmg * 100)}% damage, +${Math.round(s.buffSpeed * 100)}% speed`, c: "#cfe3f5" });
-    else {
+    else if (t.type === "barracks") {
+      const ss = t.soldierStats(game);
+      lines.push({ t: `Soldier: ${ss.dmg.toFixed(0)} strike · ${ss.hp.toFixed(0)} HP · armor ${ss.armor}`, c: "#cfe3f5" });
+      lines.push({ t: `Up to ${ss.maxOut} out, one every ${ss.deploy.toFixed(1)}s${ss.patrol ? ` · patrols ±${ss.patrol}px` : ""}`, c: "#cfe3f5" });
+    } else {
       const bits: string[] = [`${s.damage.toFixed(0)} damage`];
       if (s.rate > 0) bits.push(`${s.rate.toFixed(2)}/s`);
       bits.push(`${s.range.toFixed(0)} range`);
