@@ -74,6 +74,13 @@ def slice_sheet(im):
     return frames
 
 
+def slice_uniform(im, fw):
+    """Slice a horizontal sheet into FIXED-width frames (uniform cell size,
+    e.g. GameFX export sheets where every frame is exactly fw px wide)."""
+    assert im.width % fw == 0, f"sheet width {im.width} is not a multiple of {fw}"
+    return [im.crop((i * fw, 0, (i + 1) * fw, im.height)) for i in range(im.width // fw)]
+
+
 def normalize_frames(frames):
     """
     Normalize a list of same-height frames into a common cell:
@@ -139,6 +146,7 @@ def main():
         "tileSize": 64,
         "units": {},
         "buildings": {},
+        "animatedBuildings": {},
         "tiles": {},
         "deco": {},
         "fx": {},
@@ -385,6 +393,27 @@ def main():
         rels = [save(c, f"fx/{name}_{i}.png") for i, c in enumerate(cells)]
         fx[name] = {"frames": rels, "cell": [cw, ch], "anchor": "center", "fps": 20, "loop": False}
 
+    # Wizard tower bolts + impact FX — GameFX export sheets (vendor/gamefx).
+    # Uniform frame widths; (sheet, frame_width, fps, loop).
+    GFX = os.path.join(ROOT, "vendor", "gamefx")
+    wizard_fx = {
+        "wizard_fire": ("FireBall_64x64.png", 64, 30, True),
+        "wizard_ice": ("IcePick_64x64.png", 64, 24, True),
+        "wizard_star": ("MediumStar_64x64.png", 64, 20, True),
+        "wizard_fire_impact": ("FireCast_96x96.png", 96, 48, False),
+        "wizard_ice_impact": ("IceShatter_96x96.png", 96, 70, False),
+        "wizard_star_impact": ("HolyExplosion_96x96.png", 96, 48, False),
+    }
+    for name, (rel, fw, fps, loop) in wizard_fx.items():
+        p = os.path.join(GFX, rel)
+        if not os.path.exists(p):
+            print(f"  ! missing GameFX sheet {rel}")
+            continue
+        frames = slice_uniform(load(p), fw)
+        cw, ch, cells = normalize_frames(frames)
+        rels = [save(c, f"fx/{name}_{i}.png") for i, c in enumerate(cells)]
+        fx[name] = {"frames": rels, "cell": [cw, ch], "anchor": "center", "fps": fps, "loop": loop}
+
     # ---- UI --------------------------------------------------------------
     ui = manifest["ui"]
     uie = os.path.join(SRC, "UI Elements", "UI Elements")
@@ -555,6 +584,22 @@ def main():
     special_grid("beetle", "Animated insect enemy assets/BeetleMove.png", cols=4, row_count=4, rows=2, fps=9)
     # Enemy3 — a second, smaller flying type
     special_anim("fly3", "FlyingForestEnemies_FREE/Enemy3/Enemy3-Movement-In-Animation/Enemy3-Fly.png", fps=11)
+
+    # ---- Wizard tower (animated building, 3 evolution tiers) --------------
+    # "Stone Castle Evolution" pack (vendor/stone-castle): each tier is one
+    # horizontal row of 48px-wide frames (idle loop, flag flutter).
+    SC = os.path.join(ROOT, "vendor", "stone-castle")
+    ab = manifest["animatedBuildings"]
+    for lvl in (1, 2, 3):
+        p = os.path.join(SC, f"WizardTowerLvl{lvl}.png")
+        if not os.path.exists(p):
+            print(f"  ! missing wizard tower sheet WizardTowerLvl{lvl}.png")
+            continue
+        frames = slice_uniform(load(p), 48)
+        cw, ch, cells = normalize_frames(frames)
+        key = f"wizard_lvl{lvl}"
+        rels = [save(c, f"towers/{key}_{i}.png") for i, c in enumerate(cells)]
+        ab[key] = {"frames": rels, "cell": [cw, ch], "anchor": "bottom-center", "fps": 5, "loop": True}
 
     # ---- audio (Free Fantasy SFX Pack, OGG) -------------------------------
     # Copy selected SFX and BGM loops into sound/ under short names.

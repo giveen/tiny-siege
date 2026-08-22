@@ -215,6 +215,19 @@ export const BOONS: Boon[] = [
       g.unlocked.add("barracks");
     },
   },
+  {
+    id: "unlock_wizard",
+    name: "The Arcane Academy",
+    desc: "Unlocks the Wizard Tower (evolving arcane bolts).",
+    icon: 17,
+    rarity: "rare",
+    maxStacks: 1,
+    weight: 1.0,
+    available: (g) => unlock("wizard")(g) && g.wave >= 8,
+    apply: (g) => {
+      g.unlocked.add("wizard");
+    },
+  },
   // ---- Castle ----
   {
     id: "reinforce",

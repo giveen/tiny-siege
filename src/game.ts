@@ -215,12 +215,12 @@ export class Game {
     // ?buildall — place one of every tower type (verification / dev tool)
     if (params.has("buildall")) {
       this.startRun();
-      this.unlocked = new Set(["archer", "lancer", "cannon", "monastery", "barracks"]);
+      this.unlocked = new Set(["archer", "lancer", "cannon", "monastery", "barracks", "wizard"]);
       this.gold = 9999;
       const spots = [...this.world.buildSpots];
       this.rng.shuffle(spots);
-      const types: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks"];
-      for (let i = 0; i < 5 && i < spots.length; i++) this.buildTower(types[i], spots[i]);
+      const types: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks", "wizard"];
+      for (let i = 0; i < 6 && i < spots.length; i++) this.buildTower(types[i], spots[i]);
       for (let i = 0; i < 3; i++) {
         const e = new Enemy(this, "pawn", "red", 3);
         e.pathDist = 320 + i * 130;
@@ -910,6 +910,20 @@ export class Game {
     const a = Math.atan2(ty - y, tx - x);
     this.projectiles.push(new Projectile("cannonball", x, y, a, speed, damage, { tx, ty, splash, mods }));
   }
+  /**
+   * Wizard Tower bolt: an animated projectile whose sprite sheet follows the
+   * tower's evolution level — 1 fireball, 2 ice shard, 3 star.
+   */
+  spawnWizardBolt(x: number, y: number, target: Enemy, damage: number, speed: number, level: number, mods: SpecMods = {}): void {
+    const a = Math.atan2(target.y - y, target.x - x);
+    const [fxKey, impactKey, scale]: [string, string, number] =
+      level === 2
+        ? ["wizard_ice", "wizard_ice_impact", 1.1]
+        : level >= 3
+          ? ["wizard_star", "wizard_star_impact", 0.85]
+          : ["wizard_fire", "wizard_fire_impact", 0.9];
+    this.projectiles.push(new Projectile("bolt", x, y, a, speed, damage, { target, mods, fxKey, impactKey, scale }));
+  }
 
   // ---------------------------------------------------------------- fx
   private mkFx(kind: Fx["kind"], x: number, y: number, dur: number, scale = 1, extra: Partial<Fx> = {}): Fx {
@@ -920,6 +934,13 @@ export class Game {
   spawnExplosionFx(x: number, y: number, scale = 1): void {
     const f = this.mkFx("explosion", x, y, 0.45, scale);
     f.attach(this.assets.manifest.fx.explosion2, 40);
+  }
+  /** One-shot animated impact burst (wizard bolt impact sheets). */
+  spawnWizardImpactFx(key: string, x: number, y: number): void {
+    const def = this.assets.manifest.fx[key];
+    if (!def) return;
+    const f = this.mkFx("fire", x, y, 0.5, 0.55);
+    f.attach(def, def.fps ?? 48);
   }
   spawnHitFx(x: number, y: number): void {
     const f = this.mkFx("fire", x, y, 0.22, 0.5);
@@ -971,6 +992,7 @@ export class Game {
       Digit3: "cannon",
       Digit4: "monastery",
       Digit5: "barracks",
+      Digit6: "wizard",
     };
     for (const code in numMap) {
       const t = numMap[code];
@@ -1233,8 +1255,13 @@ export class Game {
     ctx.lineWidth = 2;
     ctx.stroke();
     // ghost building (matches the in-world tower scale)
-    const b = asAsset(this.assets.building("blue", def.building));
-    drawSprite(ctx, this.assets, b, 0, x, y + 6, { scale: 0.32, alpha: 0.7 });
+    if (def.animated) {
+      const a = this.assets.animatedBuilding(def.animated);
+      drawSprite(ctx, this.assets, a, 0, x, y + 6, { scale: 0.9, alpha: 0.7 });
+    } else {
+      const b = asAsset(this.assets.building("blue", def.building));
+      drawSprite(ctx, this.assets, b, 0, x, y + 6, { scale: 0.32, alpha: 0.7 });
+    }
     ctx.restore();
   }
 

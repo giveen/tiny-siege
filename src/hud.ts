@@ -387,9 +387,14 @@ export class Hud {
         ctx.stroke();
         ctx.restore();
       }
-      // building icon
-      const b = asAsset(this.assets.building("blue", def.building));
-      drawSprite(ctx, this.assets, b, 0, r.x + 30, r.y + r.h - 16, { scale: 0.32, alpha: unlocked ? 1 : 0.35 });
+      // building icon (animated for the wizard tower)
+      if (def.animated) {
+        const a = this.assets.animatedBuilding(def.animated);
+        drawSprite(ctx, this.assets, a, 0, r.x + 30, r.y + r.h - 14, { scale: 0.7, alpha: unlocked ? 1 : 0.35 });
+      } else {
+        const b = asAsset(this.assets.building("blue", def.building));
+        drawSprite(ctx, this.assets, b, 0, r.x + 30, r.y + r.h - 16, { scale: 0.32, alpha: unlocked ? 1 : 0.35 });
+      }
       // name + cost
       ctx.save();
       ctx.textAlign = "left";
@@ -760,7 +765,7 @@ export class Hud {
       "• Every cleared wave banks ◆ runes (a lost run keeps them; winning the siege pays +40).",
       "• Spend runes in The Codex on relics that carry over between sieges.",
       "",
-      "Keys: 1-5 build · Space start wave · P pause · F speed · M mute · Esc cancel",
+      "Keys: 1-6 build · Space start wave · P pause · F speed · M mute · Esc cancel",
       "",
       "Click anywhere to close.",
     ];
@@ -1163,10 +1168,10 @@ export class Hud {
         h: 74,
       } as Rect,
     }));
-    // five tower columns, one per tower type
+    // one column per tower type, sized to fit all six inside the panel
     const towerX0 = 830;
-    const tw = 210;
-    const tgap = 12;
+    const tw = 180;
+    const tgap = 8;
     const slots: { tower: TowerType; slot: GearSlot; rect: Rect }[] = [];
     TOWER_ORDER.forEach((t, i) => {
       const x = towerX0 + i * (tw + tgap);

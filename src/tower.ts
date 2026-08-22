@@ -9,6 +9,8 @@ export interface TowerDef {
   type: TowerType;
   name: string;
   building: string;
+  /** Animated-building manifest key (wizard tower); drawn instead of `building`. */
+  animated?: string;
   unit: "archer" | "lancer" | "monk" | "warrior" | null;
   cost: number;
   damage: number;
@@ -104,9 +106,26 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
     buffSpeed: 0,
     desc: "Musters a soldier who marches the path and intercepts foes.",
   },
+  wizard: {
+    type: "wizard",
+    name: "Wizard Tower",
+    building: "tower",
+    animated: "wizard_lvl1",
+    unit: null,
+    cost: 130,
+    damage: 26,
+    rate: 1.0,
+    range: 150,
+    splash: 0,
+    pierce: 0,
+    projSpeed: 400,
+    buffDmg: 0,
+    buffSpeed: 0,
+    desc: "Arcane bolts; evolves as you upgrade it.",
+  },
 };
 
-export const TOWER_ORDER: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks"];
+export const TOWER_ORDER: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks", "wizard"];
 export const MAX_UPGRADE = 5;
 
 // ---------------------------------------------------------------- specializations
@@ -145,6 +164,11 @@ export const SPECS: Record<TowerType, SpecDef[]> = {
     { id: "drill", name: "Drill", color: "#7ec87e", blurb: "Soldiers muster faster: -15% / -30% / -45% deploy time." },
     { id: "harden", name: "Harden", color: "#c58bff", blurb: "Soldiers have +40% / +80% / +120% health." },
     { id: "vanguard", name: "Vanguard", color: "#ffd24a", blurb: "Soldiers strike +35% / +70% / +105% harder." },
+  ],
+  wizard: [
+    { id: "frost", name: "Frost Nova", color: "#7ec8ff", blurb: "Bolts chill foes: 35% / 50% / 65% slower for 1.5s." },
+    { id: "blast", name: "Arcane Blast", color: "#c58bff", blurb: "Each hit bursts for 50% / 70% / 90% damage to nearby foes (r 44 / 54 / 64)." },
+    { id: "lance", name: "Lance of Light", color: "#ffd24a", blurb: "Bolts fly straight and pierce 1 / 2 / 3 extra foes." },
   ],
 };
 
@@ -215,17 +239,31 @@ export class Tower {
       const atkDef = game.assets.unit(color, this.def.unit, atkAction);
       this.anim = new Sprite(atkDef);
       this.animDef = { action: atkAction, loop: type === "monastery" };
-    } else {
+    } else if (this.type === "cannon") {
       // cannon: use a warrior as the loader for flavor
       this.idle = new Sprite(game.assets.unit(color, "warrior", "idle"));
       this.anim = new Sprite(game.assets.unit(color, "warrior", "attack1"));
       this.animDef = { action: "attack1", loop: false };
+    } else {
+      // wizard: the animated tower is its own operator (drawn in draw());
+      // keep a harmless sprite def so update() can tick without an operator.
+      this.idle = new Sprite(game.assets.unit(color, "warrior", "idle"));
+      this.anim = new Sprite(game.assets.unit(color, "warrior", "attack1"));
+      this.animDef = null;
     }
   }
 
   /** Total upgrade points invested (for pips / display). */
   get totalUpgrades(): number {
     return this.upg.damage + this.upg.rate + this.upg.range;
+  }
+
+  /**
+   * Wizard tower evolution tier: 1 (apprentice) → 2 (adept) → 3 (archmage).
+   * Each tier advances the tower's sprite sheet and its bolt type.
+   */
+  get level(): number {
+    return Math.min(3, 1 + Math.floor(this.totalUpgrades / 3));
   }
 
   /** A tower may pick a specialization once it has SPEC_UNLOCK_AT upgrade points. */
@@ -413,7 +451,11 @@ export class Tower {
 
   /** Specialization modifiers for projectiles fired by this tower. */
   private projSpecMods() {
-    const mods: { pierce?: number; burnDps?: number; straight?: boolean; ripple?: number; armorIgnore?: number; ricochet?: number; cluster?: number; napalm?: number; bounce?: number } = {};
+    const mods: {
+      pierce?: number; burnDps?: number; straight?: boolean; ripple?: number; armorIgnore?: number;
+      ricochet?: number; cluster?: number; napalm?: number; bounce?: number;
+      slow?: number; slowDur?: number; blast?: { r: number; pct: number };
+    } = {};
     if (this.spec === "pierce") {
       mods.pierce = this.specLvl;
       mods.straight = true;
@@ -431,6 +473,14 @@ export class Tower {
       mods.napalm = [0, 6, 10, 16][this.specLvl];
     } else if (this.spec === "bounce") {
       mods.bounce = this.specLvl;
+    } else if (this.spec === "frost") {
+      mods.slow = [0, 0.35, 0.5, 0.65][this.specLvl];
+      mods.slowDur = 1.5;
+    } else if (this.spec === "blast") {
+      mods.blast = { r: [0, 44, 54, 64][this.specLvl], pct: [0, 0.5, 0.7, 0.9][this.specLvl] };
+    } else if (this.spec === "lance") {
+      mods.pierce = this.specLvl;
+      mods.straight = true;
     }
     return mods;
   }
@@ -458,6 +508,14 @@ export class Tower {
     } else if (this.type === "cannon") {
       game.spawnCannonball(ox, oy, target.x, target.visualY, s.damage, s.splash, s.projSpeed, mods);
       game.sfx("cannon");
+    } else if (this.type === "wizard") {
+      // Adept (level 2) bolts chill on hit unless the Frost line overrides it.
+      if (this.level === 2 && (mods.slow ?? 0) < 0.25) {
+        mods.slow = 0.25;
+        mods.slowDur = 1.2;
+      }
+      game.spawnWizardBolt(ox, oy, target, s.damage, s.projSpeed, this.level, mods);
+      game.sfx("shoot");
     }
   }
 
@@ -465,12 +523,20 @@ export class Tower {
     const assets = game.assets;
     const color = "blue";
     // range ring (faint) — only when selected/placing handled in HUD; draw a subtle base
-    // building
-    const b = assets.building(color, this.def.building);
-    const bAsset = asAsset(b);
-    // keep the tower compact so it fits neatly on its pad
-    const bs = 0.32;
-    drawSprite(ctx, assets, bAsset, 0, this.x, this.y + 6, { scale: bs });
+    if (this.type === "wizard") {
+      // Animated evolution tower: the sprite sheet advances with the level
+      // (apprentice → adept → archmage), idle loop driven by game time.
+      const def = assets.animatedBuilding(`wizard_lvl${this.level}`);
+      const fps = def.fps ?? 5;
+      const f = Math.floor(game.time * fps) % def.frames.length;
+      drawSprite(ctx, assets, def, f, this.x, this.y + 6, { scale: 0.9 });
+    } else {
+      const b = assets.building(color, this.def.building);
+      const bAsset = asAsset(b);
+      // keep the tower compact so it fits neatly on its pad
+      const bs = 0.32;
+      drawSprite(ctx, assets, bAsset, 0, this.x, this.y + 6, { scale: bs });
+    }
 
     // unit operator in front
     if (this.def.unit || this.type === "cannon") {

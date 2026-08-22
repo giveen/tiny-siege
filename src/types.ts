@@ -2,7 +2,7 @@
 
 import type { UnitColor } from "./assets";
 
-export type TowerType = "archer" | "lancer" | "cannon" | "monastery" | "barracks";
+export type TowerType = "archer" | "lancer" | "cannon" | "monastery" | "barracks" | "wizard";
 
 export interface TowerStats {
   damage: number;

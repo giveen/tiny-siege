@@ -34,7 +34,7 @@ export interface GearState {
 }
 
 export function emptyGearState(): GearState {
-  return { owned: [], equipped: { archer: {}, lancer: {}, cannon: {}, monastery: {}, barracks: {} } };
+  return { owned: [], equipped: { archer: {}, lancer: {}, cannon: {}, monastery: {}, barracks: {}, wizard: {} } };
 }
 
 export const GEAR_SLOTS: GearSlot[] = ["helm", "armor", "ring"];

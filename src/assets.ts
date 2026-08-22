@@ -24,6 +24,8 @@ export interface Manifest {
   tileSize: number;
   units: Record<string, Record<string, UnitActions>>;
   buildings: Record<string, Record<string, StaticDef>>;
+  /** Animated buildings (wizard tower evolution tiers): key -> looping frames. */
+  animatedBuildings: Record<string, AssetDef>;
   tiles: {
     grass: string[][]; // grass[r][c]
     grass_var: string[];
@@ -108,6 +110,7 @@ export class Assets {
         for (const def of Object.values(unit)) def.frames.forEach(add);
     for (const color of Object.values(m.buildings))
       for (const b of Object.values(color)) add(b.image);
+    for (const def of Object.values(m.animatedBuildings)) def.frames.forEach(add);
     m.tiles.grass.flat().forEach(add);
     m.tiles.grass_var.forEach(add);
     Object.values(m.tiles.corners).forEach(add);
@@ -176,6 +179,10 @@ export class Assets {
 
   building(color: string, name: string): StaticDef {
     return this.manifest.buildings[color][name];
+  }
+
+  animatedBuilding(name: string): AssetDef {
+    return this.manifest.animatedBuildings[name];
   }
 
   grassTile(r: number, c: number): HTMLImageElement {

@@ -2,8 +2,9 @@ import type { Game } from "./game";
 import type { Enemy } from "./enemy";
 import type { TowerStats } from "./types";
 import { WORLD_W, WORLD_H } from "./config";
+import { drawSprite } from "./sprite";
 
-type ProjKind = "arrow" | "spear" | "cannonball";
+type ProjKind = "arrow" | "spear" | "cannonball" | "bolt";
 
 /** Specialization modifiers a tower attaches to its projectiles. */
 export interface SpecMods {
@@ -23,6 +24,12 @@ export interface SpecMods {
   napalm?: number;
   /** Cannon: bounce to the nearest foe this many times at 70% damage. */
   bounce?: number;
+  /** Wizard: slow the struck foe by this fraction (0..1) on hit. */
+  slow?: number;
+  /** Wizard: duration of the slow, seconds. */
+  slowDur?: number;
+  /** Wizard: burst for pct damage within r of the struck foe. */
+  blast?: { r: number; pct: number };
 }
 
 let pid = 1;
@@ -42,6 +49,10 @@ export class Projectile {
   mods: SpecMods;
   /** True once the arrow is a straight-flying piercer (no homing). */
   straight = false;
+  /** Wizard bolt: animated fx sheet key (manifest.fx) + per-level draw scale. */
+  fxKey?: string;
+  impactKey?: string;
+  scale = 1;
   private target: Enemy | null;
   private tx: number;
   private ty: number;
@@ -51,6 +62,8 @@ export class Projectile {
   private angle: number;
   private ricochets = 0;
   private bounces = 0;
+  /** Elapsed flight time (drives the bolt's sprite animation). */
+  private t = 0;
 
   constructor(
     kind: ProjKind,
@@ -59,7 +72,17 @@ export class Projectile {
     angle: number,
     speed: number,
     damage: number,
-    opts: { target?: Enemy; tx?: number; ty?: number; splash?: number; pierce?: number; mods?: SpecMods } = {}
+    opts: {
+      target?: Enemy;
+      tx?: number;
+      ty?: number;
+      splash?: number;
+      pierce?: number;
+      mods?: SpecMods;
+      fxKey?: string;
+      impactKey?: string;
+      scale?: number;
+    } = {}
   ) {
     this.kind = kind;
     this.x = x;
@@ -73,7 +96,10 @@ export class Projectile {
     this.ty = opts.ty ?? y;
     this.splash = opts.splash ?? 0;
     this.pierce = opts.pierce ?? 0;
-    if (this.kind === "arrow" && (this.mods.pierce ?? 0) > 0) {
+    this.fxKey = opts.fxKey;
+    this.impactKey = opts.impactKey;
+    this.scale = opts.scale ?? 1;
+    if ((this.kind === "arrow" || this.kind === "bolt") && (this.mods.pierce ?? 0) > 0) {
       this.pierce = this.mods.pierce!;
       this.straight = true;
       this.target = null;
@@ -86,7 +112,8 @@ export class Projectile {
   }
 
   update(game: Game, dt: number): void {
-    if (this.kind === "arrow") {
+    this.t += dt;
+    if (this.kind === "arrow" || this.kind === "bolt") {
       // home to target; retarget or fizzle if dead
       if (!this.target || this.target.dead) {
         const t = this.nearest(game, 70);
@@ -113,14 +140,14 @@ export class Projectile {
       return;
     }
 
-    if (this.kind === "arrow" && this.target) {
+    if ((this.kind === "arrow" || this.kind === "bolt") && this.target) {
       const t = this.target;
       const d = Math.hypot(t.x - this.x, t.visualY - this.y);
       if (d < 13) {
         this.hitEnemy(game, t);
         this.dead = true;
       }
-    } else if (this.kind === "arrow" && this.straight) {
+    } else if ((this.kind === "arrow" || this.kind === "bolt") && this.straight) {
       // Piercing bolt: flies straight, hits each enemy in its path once.
       for (const e of game.enemies) {
         if (e.dead || this.hitSet.has(e)) continue;
@@ -181,6 +208,17 @@ export class Projectile {
 
   private hitEnemy(game: Game, e: Enemy): void {
     game.damageEnemy(e, this.damage, "physical", this.mods.armorIgnore ?? 0);
+    if (this.kind === "bolt") {
+      // The animated impact sheet IS the hit effect; add slow + burst mods.
+      if (this.impactKey) game.spawnWizardImpactFx(this.impactKey, e.x, e.visualY - 10);
+      const slow = this.mods.slow ?? 0;
+      if (slow > 0) {
+        e.slowUntil = game.time + (this.mods.slowDur ?? 1.2);
+        e.slowFactor = 1 - slow;
+      }
+      if (this.mods.blast) this.blast(game, e);
+      return;
+    }
     game.spawnHitFx(e.x, e.visualY - 10);
     if (this.kind === "arrow") {
       if (game.buffs.arrowSlow > 0) {
@@ -191,6 +229,17 @@ export class Projectile {
       if (burn > 0) {
         e.burnDps = Math.max(e.burnDps, burn);
         e.burnUntil = game.time + 1.5;
+      }
+    }
+  }
+
+  /** Arcane Blast: burst for pct of the hit's damage to foes near the struck enemy. */
+  private blast(game: Game, center: Enemy): void {
+    const b = this.mods.blast!;
+    for (const e of game.enemies) {
+      if (e.dead || e === center) continue;
+      if (Math.hypot(e.x - center.x, e.visualY - center.visualY) <= b.r) {
+        game.damageEnemy(e, this.damage * b.pct, "physical", this.mods.armorIgnore ?? 0);
       }
     }
   }
@@ -273,10 +322,19 @@ export class Projectile {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, _game: Game): void {
+  draw(ctx: CanvasRenderingContext2D, game: Game): void {
     ctx.save();
     ctx.translate(this.x, this.y);
-    if (this.kind === "arrow") {
+    if (this.kind === "bolt") {
+      // Animated projectile: rotate to the travel angle and step the fx sheet.
+      ctx.rotate(this.angle);
+      const def = this.fxKey ? game.assets.manifest.fx[this.fxKey] : null;
+      if (def) {
+        const fps = def.fps ?? 24;
+        const f = Math.floor(this.t * fps) % def.frames.length;
+        drawSprite(ctx, game.assets, def, f, 0, 0, { scale: this.scale });
+      }
+    } else if (this.kind === "arrow") {
       ctx.rotate(this.angle);
       const fiery = (this.mods.burnDps ?? 0) > 0;
       const len = this.straight ? 12 : 8;
