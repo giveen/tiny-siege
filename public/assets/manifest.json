@@ -2772,6 +2772,22 @@
     279
    ],
    "anchor": "center"
+  },
+  "paper_center": {
+   "image": "ui/paper_center.png",
+   "size": [
+    64,
+    64
+   ],
+   "anchor": "center"
+  },
+  "paper_special_center": {
+   "image": "ui/paper_special_center.png",
+   "size": [
+    64,
+    64
+   ],
+   "anchor": "center"
   }
  },
  "special": {
@@ -2969,5 +2985,13 @@
    "monastery_sanctum": "gear/monastery_sanctum.png",
    "monastery_glow": "gear/monastery_glow.png"
   }
+ },
+ "relic_icons": {
+  "provisions": "ui/relic_provisions.png",
+  "bastion": "ui/relic_bastion.png",
+  "armory": "ui/relic_armory.png",
+  "mint": "ui/relic_mint.png",
+  "sage": "ui/relic_sage.png",
+  "recruit": "ui/relic_recruit.png"
  }
 }

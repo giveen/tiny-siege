@@ -653,6 +653,47 @@ def main():
         gear_icons[gid] = f"gear/{gid}.png"
     manifest["gear"] = {"icons": gear_icons}
 
+    # Center-only parchment tiles: the 3×3 sheets carry per-cell padding,
+    # so for small stretchable rows we emit the cropped center square.
+    for key in ("paper", "paper_special"):
+        p = os.path.join(OUT, f"ui/{key}.png")
+        if not os.path.exists(p):
+            continue
+        sheet = load(p)
+        cw = sheet.width // 3
+        ch = sheet.height // 3
+        center = sheet.crop((cw, ch, 2 * cw, 2 * ch))
+        center = crop_to_bbox(center)
+        out = f"ui/{key}_center.png"
+        save(center, out)
+        manifest["ui"][key + "_center"] = {
+            "image": out,
+            "size": [center.width, center.height],
+            "anchor": "center",
+        }
+
+    # ---- relic icons (same pack, repurposed for the Codex) ---------------
+    # One icon per meta relic so the rune menu has life.
+    RELIC_TILES = {
+        "provisions": "tile026.png",  # red-trimmed boots — the long march
+        "bastion": "tile050.png",     # dark plate — the fortress
+        "armory": "tile004.png",      # helm w/ red plume — war
+        "mint": "tile020.png",        # gold ring — wealth
+        "sage": "tile010.png",        # red mage hood — insight
+        "recruit": "tile002.png",     # viking horn helm — the old guard
+    }
+    relic_icons = {}
+    for rid, tile in RELIC_TILES.items():
+        p = os.path.join(GEARP, tile)
+        if not os.path.exists(p):
+            print(f"  ! missing relic icon {tile}")
+            continue
+        d = os.path.join(OUT, "ui", f"relic_{rid}.png")
+        os.makedirs(os.path.dirname(d), exist_ok=True)
+        shutil.copyfile(p, d)
+        relic_icons[rid] = f"ui/relic_{rid}.png"
+    manifest["relic_icons"] = relic_icons
+
     # ---- write manifest --------------------------------------------------
     mpath = os.path.join(OUT, "manifest.json")
     with open(mpath, "w") as f:
@@ -667,6 +708,7 @@ def main():
     snd = manifest.get("sound", {})
     print(f"  sound: {len(snd.get('sfx', {}))} sfx, {list(snd.get('music', {}).keys())} music")
     print(f"  gear: {len(manifest.get('gear', {}).get('icons', {}))} icons")
+    print(f"  relic icons: {len(manifest.get('relic_icons', {}))}")
 
 
 if __name__ == "__main__":

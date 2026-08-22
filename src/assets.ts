@@ -10,7 +10,7 @@ export interface AssetDef {
   loop?: boolean;
 }
 
-interface StaticDef {
+export interface StaticDef {
   image: string;
   size: [number, number];
   anchor: Anchor;
@@ -53,6 +53,8 @@ export interface Manifest {
   gear?: {
     icons: Record<string, string>;
   };
+  /** Relic icons (same pack, repurposed): relic id -> file. */
+  relic_icons?: Record<string, string>;
   ui: {
     bars: Record<string, StaticDef>;
     buttons: Record<string, StaticDef>;
@@ -63,6 +65,9 @@ export interface Manifest {
     swords: StaticDef;
     paper: StaticDef;
     paper_special: StaticDef;
+    /** Cropped center square of the 3×3 sheets — clean parchment fill. */
+    paper_center?: StaticDef;
+    paper_special_center?: StaticDef;
   };
 }
 
@@ -109,6 +114,7 @@ export class Assets {
     for (const f of Object.values(m.fx)) f.frames.forEach(add);
     for (const f of Object.values(m.special)) f.frames.forEach(add);
     Object.values(m.gear?.icons ?? {}).forEach(add);
+    Object.values(m.relic_icons ?? {}).forEach(add);
     const u = m.ui;
     for (const b of Object.values(u.bars)) add(b.image);
     for (const b of Object.values(u.buttons)) add(b.image);
@@ -119,6 +125,8 @@ export class Assets {
     add(u.swords.image);
     add(u.paper.image);
     add(u.paper_special.image);
+    add(u.paper_center?.image);
+    add(u.paper_special_center?.image);
     return paths;
   }
 

@@ -1,5 +1,5 @@
 import type { Game } from "./game";
-import type { Assets } from "./assets";
+import type { Assets, StaticDef } from "./assets";
 import { asAsset } from "./assets";
 import { drawSprite } from "./sprite";
 import { ENEMY_DEFS, enemyPreviewDef, type EnemyType } from "./enemy";
@@ -810,54 +810,99 @@ export class Hud {
 
   // ------------------------------------------------------------- codex (meta)
   private codexLayout() {
-    const panelW = 920;
-    const px = (CANVAS_W - panelW) / 2;
-    const topY = 190;
-    const rowH = 74;
-    const bw = 168;
-    const bh = 42;
+    const panel = { x: 536, y: 96, w: 960, h: 872 } as Rect;
+    const header = { x: 576, y: 126, w: 880, h: 176 } as Rect;
     const rows = RELICS.map((r, i) => {
-      const rowY = topY + i * rowH;
-      return { id: r.id, rowY, buy: { x: px + panelW - 34 - bw, y: rowY + (rowH - bh) / 2, w: bw, h: bh } as Rect };
+      const rect = { x: 576, y: 326 + i * 96, w: 880, h: 84 } as Rect;
+      return {
+        id: r.id,
+        rect,
+        buy: { x: rect.x + rect.w - 30 - 172, y: rect.y + 21, w: 172, h: 42 } as Rect,
+      };
     });
-    const close = { x: CANVAS_W / 2 - 110, y: topY + RELICS.length * rowH + 24, w: 220, h: 52 } as Rect;
-    return { px, panelW, topY, rowH, rows, close };
+    const close = { x: CANVAS_W / 2 - 110, y: 908, w: 220, h: 52 } as Rect;
+    return { panel, header, rows, close };
+  }
+
+  /**
+   * Stretch just the center tile of a 3×3 UI sheet (clean parchment fill —
+   * good for small rows where the burnt edge bands would dominate).
+   */
+  private uiCenter(ctx: CanvasRenderingContext2D, def: StaticDef, x: number, y: number, w: number, h: number): void {
+    const img = this.assets.img(def.image);
+    if (!img) {
+      ctx.fillStyle = "#0c1c26";
+      ctx.fillRect(x, y, w, h);
+      return;
+    }
+    ctx.drawImage(img, x, y, w, h);
+  }
+
+  /**
+   * Nine-slice one of the 3×3 UI sheets (banner / paper / buttons).
+   * Corner tiles get a fixed target size; edges and center stretch.
+   */
+  private uiNine(
+    ctx: CanvasRenderingContext2D,
+    def: StaticDef,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    cw: number,
+    ch: number
+  ): void {
+    const img = this.assets.img(def.image);
+    if (!img) {
+      ctx.fillStyle = "#0c1c26";
+      ctx.fillRect(x, y, w, h);
+      return;
+    }
+    const sx = [0, Math.round(img.width / 3), Math.round((2 * img.width) / 3), img.width];
+    const sy = [0, Math.round(img.height / 3), Math.round((2 * img.height) / 3), img.height];
+    const dx = [x, x + cw, x + w - cw, x + w];
+    const dy = [y, y + ch, y + h - ch, y + h];
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        ctx.drawImage(
+          img,
+          sx[c], sy[r], sx[c + 1] - sx[c], sy[r + 1] - sy[r],
+          dx[c], dy[r], dx[c + 1] - dx[c], dy[r + 1] - dy[r]
+        );
+      }
+    }
   }
 
   private drawCodex(game: Game, ctx: CanvasRenderingContext2D): void {
     const L = this.codexLayout();
+    const u = this.assets.manifest.ui;
+    const relicIcons = this.assets.manifest.relic_icons ?? {};
+
+    // backdrop
     ctx.save();
-    ctx.globalAlpha = 0.97;
-    ctx.fillStyle = "#08131a";
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = "#06121a";
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.restore();
 
-    // panel
-    ctx.save();
-    this.roundRect(
-      ctx,
-      { x: L.px - 22, y: 64, w: L.panelW + 44, h: L.topY + L.rowH * RELICS.length - 64 + 40 },
-      12
-    );
-    ctx.fillStyle = "#0c1c26";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(180,210,225,0.2)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
+    // panel — dark stone sheet with gold corners
+    this.uiNine(ctx, u.paper_special, L.panel.x, L.panel.y, L.panel.w, L.panel.h, 56, 48);
 
-    // header
+    // header — parchment
+    this.uiNine(ctx, u.banner_slots, L.header.x, L.header.y, L.header.w, L.header.h, 64, 56);
+
+    // header text (dark ink on parchment)
     ctx.save();
     ctx.textAlign = "center";
-    ctx.fillStyle = "#ffd24a";
-    ctx.font = "900 34px 'Segoe UI', sans-serif";
-    ctx.fillText("THE CODEX", CANVAS_W / 2, 112);
-    ctx.fillStyle = "#c58bff";
-    ctx.font = "700 20px 'Segoe UI', sans-serif";
-    ctx.fillText(`◆ ${game.meta.runes}  runes`, CANVAS_W / 2, 146);
-    ctx.fillStyle = "#8fb8c8";
+    ctx.fillStyle = "#4a2f14";
+    ctx.font = "900 38px 'Segoe UI', sans-serif";
+    ctx.fillText("THE CODEX", CANVAS_W / 2, L.header.y + 66);
+    ctx.fillStyle = "#6a3fa0";
+    ctx.font = "800 22px 'Segoe UI', sans-serif";
+    ctx.fillText(`◆ ${game.meta.runes}  runes`, CANVAS_W / 2, L.header.y + 106);
+    ctx.fillStyle = "#5a4632";
     ctx.font = "600 14px 'Segoe UI', sans-serif";
-    ctx.fillText("Spend runes on relics that carry over between sieges.", CANVAS_W / 2, 170);
+    ctx.fillText("Spend runes on relics that carry over between sieges.", CANVAS_W / 2, L.header.y + 140);
     ctx.restore();
 
     for (const row of L.rows) {
@@ -866,48 +911,68 @@ export class Hud {
       const maxed = lvl >= relic.maxLevel;
       const cost = relic.cost(lvl);
       const canBuy = !maxed && game.meta.runes >= cost;
+      const r = row.rect;
 
+      // row — clean parchment fill (cropped center tile) + ink border
+      this.uiCenter(ctx, u.paper_center ?? u.paper, r.x, r.y, r.w, r.h);
       ctx.save();
-      this.roundRect(ctx, { x: L.px, y: row.rowY, w: L.panelW, h: L.rowH - 10 }, 8);
-      ctx.fillStyle = "rgba(255,255,255,0.03)";
-      ctx.fill();
+      ctx.strokeStyle = "rgba(58,42,24,0.4)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(r.x + 1, r.y + 1, r.w - 2, r.h - 2);
       ctx.restore();
+
+      // relic icon (repurposed RPG icon pack art)
+      const iconPath = relicIcons[relic.id];
+      if (iconPath) {
+        const im = this.assets.img(iconPath);
+        if (im) ctx.drawImage(im, r.x + 16, r.y + 16, 52, 52);
+      }
 
       ctx.save();
       ctx.textAlign = "left";
-      ctx.fillStyle = "#eaf6ff";
+      ctx.fillStyle = "#3a2a18";
       ctx.font = "700 19px 'Segoe UI', sans-serif";
-      ctx.fillText(relic.name, L.px + 24, row.rowY + 28);
-      ctx.fillStyle = "#8fb8c8";
+      ctx.fillText(relic.name, r.x + 84, r.y + 36);
+      ctx.fillStyle = "#5a4632";
       ctx.font = "600 14px 'Segoe UI', sans-serif";
-      ctx.fillText(relic.blurb, L.px + 24, row.rowY + 52);
+      ctx.fillText(relic.blurb, r.x + 84, r.y + 60);
       // current effect
-      ctx.fillStyle = lvl > 0 ? "#ffd24a" : "rgba(180,210,225,0.4)";
+      ctx.fillStyle = lvl > 0 ? "#8a5a10" : "rgba(58,42,24,0.45)";
       ctx.font = "700 15px 'Segoe UI', sans-serif";
       ctx.textAlign = "right";
-      ctx.fillText(lvl > 0 ? relic.effect(lvl) : "—", L.px + L.panelW - 230, row.rowY + 30);
+      ctx.fillText(lvl > 0 ? relic.effect(lvl) : "—", r.x + r.w - 216, r.y + 36);
       ctx.restore();
 
       // level pips
       ctx.save();
       for (let i = 0; i < relic.maxLevel; i++) {
-        const pipX = L.px + L.panelW - 200 + i * 15;
         ctx.beginPath();
-        ctx.arc(pipX, row.rowY + 52, 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = i < lvl ? "#ffd24a" : "rgba(255,255,255,0.14)";
+        ctx.arc(r.x + r.w - 320 + i * 18, r.y + 56, 5, 0, Math.PI * 2);
+        ctx.fillStyle = i < lvl ? "#c98a2e" : "rgba(58,42,24,0.18)";
         ctx.fill();
       }
       ctx.restore();
 
-      this.button(ctx, row.buy, maxed ? "MAX" : `Buy  ${cost} ◆`, {
-        bg: canBuy ? "#c98a2e" : "#22404e",
-        fg: canBuy ? "#1a1206" : "#8fb8c8",
-        disabled: !canBuy,
-        small: true,
-      });
+      // buy button — teal 9-slice
+      ctx.save();
+      if (!canBuy) ctx.globalAlpha = 0.55;
+      this.uiNine(ctx, u.buttons.sq_blue, row.buy.x, row.buy.y, row.buy.w, row.buy.h, 20, 12);
+      ctx.globalAlpha = 1;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#0f2a33";
+      ctx.font = "800 16px 'Segoe UI', sans-serif";
+      ctx.fillText(maxed ? "MAX" : `Buy  ${cost} ◆`, row.buy.x + row.buy.w / 2, row.buy.y + row.buy.h / 2 + 6);
+      ctx.restore();
     }
 
-    this.button(ctx, L.close, "Close", { small: true });
+    // close
+    this.uiNine(ctx, u.buttons.sq_blue, L.close.x, L.close.y, L.close.w, L.close.h, 24, 14);
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#0f2a33";
+    ctx.font = "800 18px 'Segoe UI', sans-serif";
+    ctx.fillText("Close", L.close.x + L.close.w / 2, L.close.y + L.close.h / 2 + 6);
+    ctx.restore();
   }
 
   handleCodexClick(game: Game, p: { x: number; y: number }): boolean {
