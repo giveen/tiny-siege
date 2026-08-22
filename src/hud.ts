@@ -1144,13 +1144,17 @@ export class Hud {
     ctx.fillText("THE ARMORY", CANVAS_W / 2, 112);
     ctx.fillStyle = "#8fd0ff";
     ctx.font = "700 20px 'Segoe UI', sans-serif";
-    ctx.fillText(
-      this.armoryTab === "vault"
-        ? `${L.count} piece${L.count === 1 ? "" : "s"} in the vault · ${L.equippedCount} equipped`
-        : `⚙ ${game.meta.scrap} scrap`,
-      CANVAS_W / 2,
-      146
-    );
+    if (this.armoryTab === "vault") {
+      ctx.fillText(`${L.count} piece${L.count === 1 ? "" : "s"} in the vault · ${L.equippedCount} equipped`, CANVAS_W / 2, 146);
+    } else {
+      const label = `${game.meta.scrap} scrap`;
+      const tw = this.txtW(label, "700 20px 'Segoe UI', sans-serif");
+      const startX = CANVAS_W / 2 - (tw + 24) / 2;
+      this.scrapIcon(ctx, startX, 129, 19);
+      ctx.textAlign = "left";
+      ctx.fillText(label, startX + 24, 146);
+      ctx.textAlign = "center";
+    }
     ctx.fillStyle = "#8fb8c8";
     ctx.font = "600 14px 'Segoe UI', sans-serif";
     ctx.fillText(
@@ -1305,6 +1309,16 @@ export class Hud {
     ctx.restore();
   }
 
+  /** ui/icon_10 — the gear/cog from the UI pack, used as the scrap icon. */
+  private scrapIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size = 16): boolean {
+    const key = this.assets.manifest.ui.icons[9];
+    if (!key) return false;
+    const img = this.assets.img(key);
+    if (!img) return false;
+    ctx.drawImage(img, x, y, size, size);
+    return true;
+  }
+
   /** The Blacksmith tab: recycle banked pieces for scrap (left), upgrade any
    *  piece a tier (right). */
   private drawSmith(game: Game, ctx: CanvasRenderingContext2D, L: ReturnType<Hud["armoryLayout"]>): void {
@@ -1339,19 +1353,20 @@ export class Hud {
       ctx.font = "700 17px 'Segoe UI', sans-serif";
       ctx.fillText(def.name, row.rect.x + 70, row.rect.y + 28);
       ctx.fillStyle = TIER_COLORS[row.inst.tier];
-      ctx.font = "800 14px 'Segoe UI', sans-serif";
-      ctx.fillText(`T${row.inst.tier}`, row.rect.x + 70 + this.txtW(def.name, "700 17px 'Segoe UI', sans-serif") + 10, row.rect.y + 28);
+      ctx.font = "800 13px 'Segoe UI', sans-serif";
+      ctx.fillText(`T${row.inst.tier}`, row.rect.x + 70, row.rect.y + 50);
       ctx.fillStyle = "#9fd8a8";
       ctx.font = "700 13px 'Segoe UI', sans-serif";
-      ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
+      ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 86, row.rect.y + 50);
       ctx.fillStyle = selected ? "#ffd24a" : "#8fb8c8";
       ctx.font = selected ? "800 13px 'Segoe UI', sans-serif" : "600 13px 'Segoe UI', sans-serif";
       ctx.textAlign = "right";
-      ctx.fillText(
-        selected ? "click again to recycle" : `recycle for ⚙ ${scrapValue(row.inst)}`,
-        row.rect.x + row.rect.w - 12,
-        row.rect.y + (selected ? 28 : 50)
-      );
+      if (selected) {
+        ctx.fillText("click again to recycle", row.rect.x + row.rect.w - 12, row.rect.y + 28);
+      } else {
+        this.scrapIcon(ctx, row.rect.x + row.rect.w - 28, row.rect.y + 39);
+        ctx.fillText(`recycle for ${scrapValue(row.inst)}`, row.rect.x + row.rect.w - 32, row.rect.y + 50);
+      }
       ctx.restore();
     }
 
@@ -1379,16 +1394,23 @@ export class Hud {
       ctx.font = "800 14px 'Segoe UI', sans-serif";
       ctx.fillText(
         maxed ? `T${row.inst.tier} MAX` : `T${row.inst.tier} → T${row.inst.tier + 1}`,
-        row.rect.x + 70 + this.txtW(def.name, "700 17px 'Segoe UI', sans-serif") + 10,
+        row.rect.x + 70 + this.txtW(def.name, "700 17px 'Segoe UI', sans-serif") + 16,
         row.rect.y + 28
       );
       ctx.fillStyle = "#9fd8a8";
       ctx.font = "700 13px 'Segoe UI', sans-serif";
       ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
       ctx.textAlign = "right";
-      ctx.fillStyle = affordable ? "#7ec87e" : "#8fb8c8";
-      ctx.font = "800 14px 'Segoe UI', sans-serif";
-      ctx.fillText(maxed ? "fully upgraded" : `⚙ ${cost}`, row.rect.x + row.rect.w - 12, row.rect.y + 50);
+      if (maxed) {
+        ctx.fillStyle = "#8fb8c8";
+        ctx.font = "800 14px 'Segoe UI', sans-serif";
+        ctx.fillText("fully upgraded", row.rect.x + row.rect.w - 12, row.rect.y + 50);
+      } else {
+        this.scrapIcon(ctx, row.rect.x + row.rect.w - 28, row.rect.y + 38);
+        ctx.fillStyle = affordable ? "#7ec87e" : "#8fb8c8";
+        ctx.font = "800 14px 'Segoe UI', sans-serif";
+        ctx.fillText(`${cost}`, row.rect.x + row.rect.w - 32, row.rect.y + 50);
+      }
       ctx.restore();
     }
 
@@ -1408,7 +1430,10 @@ export class Hud {
   /** Measure text width without disturbing the caller's font. */
   private txtW(text: string, font: string): number {
     // Cheap approximation: ~0.52em per char for the Segoe UI weights we use.
-    const size = parseInt(font, 10) || 14;
+    // The font string looks like "700 17px 'Segoe UI', sans-serif" — parse the
+    // size off the "NNpx" part, not the leading weight.
+    const m = /(\d+(?:\.\d+)?)px/.exec(font);
+    const size = m ? parseFloat(m[1]) : 14;
     return text.length * size * 0.52;
   }
 
