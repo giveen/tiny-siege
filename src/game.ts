@@ -5,8 +5,20 @@ import { Audio } from "./audio";
 import { RNG } from "./rng";
 import { Sprite, drawSprite } from "./sprite";
 import { Enemy, type EnemyType } from "./enemy";
-import { Tower, TOWER_DEFS, TOWER_ORDER, MAX_UPGRADE, upgradeCost, type UpgradeTrack } from "./tower";
-import { Projectile } from "./projectile";
+import {
+  Tower,
+  TOWER_DEFS,
+  TOWER_ORDER,
+  MAX_UPGRADE,
+  upgradeCost,
+  SPECS,
+  SPEC_UNLOCK_COST,
+  MAX_SPEC,
+  specUpgradeCost,
+  type UpgradeTrack,
+} from "./tower";
+import { Projectile, type SpecMods } from "./projectile";
+import { Soldier } from "./soldier";
 import { Fx } from "./fx";
 import { generateWave, type SpawnEntry } from "./waves";
 import { rollBoons, BOONS, type Boon } from "./boons";
@@ -92,6 +104,9 @@ export class Game {
   // entities
   towers: Tower[] = [];
   enemies: Enemy[] = [];
+  soldiers: Soldier[] = [];
+  /** Napalm patches: burning ground that damages grounded enemies standing in it. */
+  firePatches: { x: number; y: number; r: number; until: number; dps: number }[] = [];
   projectiles: Projectile[] = [];
   fx: Fx[] = [];
   spawnQueue: SpawnEntry[] = [];
@@ -188,16 +203,50 @@ export class Game {
     const burnParam = params.get("burn");
     if (burnParam !== null) this.debugBurn = burnParam === "" ? 8 : Math.max(0, parseFloat(burnParam) || 0);
     if ((this.debugStage > 0 || this.debugBurn > 0) && !this.autoStart && !this.demo) this.startRun();
-    if (this.autoStart || this.demo) {
+    const ffSeconds = parseFloat(params.get("ff") ?? "0") || 0;
+    if (this.autoStart || this.demo) this.startRun();
+
+    // ?buildall — place one of every tower type (verification / dev tool)
+    if (params.has("buildall")) {
       this.startRun();
-      const ff = parseFloat(params.get("ff") ?? "0");
-      if (ff > 0) this.fastForward(ff);
+      this.unlocked = new Set(["archer", "lancer", "cannon", "monastery", "barracks"]);
+      this.gold = 9999;
+      const spots = [...this.world.buildSpots];
+      this.rng.shuffle(spots);
+      const types: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks"];
+      for (let i = 0; i < 5 && i < spots.length; i++) this.buildTower(types[i], spots[i]);
+      for (let i = 0; i < 3; i++) {
+        const e = new Enemy(this, "pawn", "red", 3);
+        e.pathDist = 320 + i * 130;
+        const p = this.world.pointAt(e.pathDist);
+        e.x = p.x;
+        e.y = p.y;
+        this.enemies.push(e);
+      }
+    }
+
+    // ?specs[=N] — dev tool: give every built tower 3 free upgrade points and
+    // specialize each into a different line (cycles per type, offset N) for screenshots.
+    const specsParam = params.get("specs");
+    if (specsParam !== null && this.towers.length > 0) {
+      const off = Math.max(0, parseInt(specsParam ?? "", 10) || 0);
+      let k = 0;
+      for (const t of this.towers) {
+        for (let i = 0; i < 3; i++) {
+          const tracks: UpgradeTrack[] = ["damage", "rate", "range"];
+          this.upgradeTower(t, tracks[i % 3]);
+        }
+        const lines = SPECS[t.type];
+        this.specializeTower(t, lines[(k + off) % lines.length].id);
+        k++;
+      }
     }
 
     // ?show=type1,type2,...  — spawn a lineup of specific enemy types for inspection
+    // (runs after ?buildall; reuses an already-started run instead of resetting it)
     const show = params.get("show");
     if (show) {
-      this.startRun();
+      if ((this.screen as Screen) !== "game") this.startRun();
       // place a handful of archers so we can see them engage
       const spots = [...this.world.buildSpots];
       this.rng.shuffle(spots);
@@ -210,6 +259,7 @@ export class Game {
         }
       }
       const types = show.split(",").map((s) => s.trim()).filter(Boolean) as EnemyType[];
+      this.wavePhase = "active"; // soldiers must deploy for the lineup to be met
       let d = 240;
       for (const t of types) {
         const e = new Enemy(this, t, "red", 6);
@@ -222,28 +272,11 @@ export class Game {
       }
     }
 
-    // ?buildall — place one of every tower type (verification / dev tool)
-    if (params.has("buildall")) {
-      this.startRun();
-      this.unlocked = new Set(["archer", "lancer", "cannon", "monastery"]);
-      this.gold = 9999;
-      const spots = [...this.world.buildSpots];
-      this.rng.shuffle(spots);
-      const types: TowerType[] = ["archer", "lancer", "cannon", "monastery"];
-      for (let i = 0; i < 4 && i < spots.length; i++) this.buildTower(types[i], spots[i]);
-      for (let i = 0; i < 3; i++) {
-        const e = new Enemy(this, "pawn", "red", 3);
-        e.pathDist = 320 + i * 130;
-        const p = this.world.pointAt(e.pathDist);
-        e.x = p.x;
-        e.y = p.y;
-        this.enemies.push(e);
-      }
-    }
-
-    // ?seltower — select the first tower (verifies the upgrade panel)
-    if (params.has("seltower") && this.towers.length > 0) {
-      this.selectedTower = this.towers[0];
+    // ?seltower[=N] — select the Nth tower (verifies the upgrade/specialize panel)
+    const selParam = params.get("seltower");
+    if (selParam !== null && this.towers.length > 0) {
+      const n = Math.max(0, parseInt(selParam ?? "", 10) || 0);
+      this.selectedTower = this.towers[n % this.towers.length] ?? this.towers[0];
     }
 
     // ?codex — open the meta Codex on the menu (verification / dev tool)
@@ -289,6 +322,10 @@ export class Game {
       this.wavePhase = "build";
       this.screen = "game";
     }
+
+    // ?ff=N — applied last so debug startRun blocks above don't reset the jump.
+    // Works with ?demo (drives the attract loop) or any started run.
+    if (ffSeconds > 0 && this.screen === "game") this.fastForward(ffSeconds);
   }
 
   /** Deterministically advance the simulation (used for ?demo screenshots/tests). */
@@ -351,6 +388,8 @@ export class Game {
     this.boonCounts = {};
     this.towers = [];
     this.enemies = [];
+    this.soldiers = [];
+    this.firePatches = [];
     this.projectiles = [];
     this.fx = [];
     this.spawnQueue = [];
@@ -385,6 +424,23 @@ export class Game {
     // enemies
     for (const e of this.enemies) e.update(this, dt);
     this.enemies = this.enemies.filter((e) => !e.dead);
+
+    // soldiers (barracks musters)
+    for (const s of this.soldiers) s.update(this, dt);
+    this.soldiers = this.soldiers.filter((s) => !s.dead);
+
+    // napalm patches: burn grounded enemies standing in them
+    if (this.firePatches.length > 0) {
+      for (const f of this.firePatches) {
+        for (const e of this.enemies) {
+          if (e.dead || e.flying) continue;
+          if (Math.hypot(e.x - f.x, e.y - f.y) <= f.r + 6 * e.scale) {
+            this.damageEnemy(e, f.dps * dt, "burn");
+          }
+        }
+      }
+      this.firePatches = this.firePatches.filter((f) => f.until > this.time);
+    }
 
     // towers
     for (const t of this.towers) t.update(this, dt);
@@ -675,9 +731,9 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- combat
-  damageEnemy(e: Enemy, amount: number, kind: "physical" | "burn" | "magic"): void {
+  damageEnemy(e: Enemy, amount: number, kind: "physical" | "burn" | "magic", armorIgnore = 0): void {
     if (e.dead) return;
-    e.takeDamage(this, amount, kind);
+    e.takeDamage(this, amount, kind, armorIgnore);
     if (kind === "burn") {
       // DoT ticks accumulate; Enemy.update shows the burn total every 0.5s.
       e.dotAccum += amount;
@@ -715,6 +771,20 @@ export class Game {
     this.sfx("castle");
   }
 
+  /** Blessed Ward: heal the castle; returns the HP actually restored. */
+  healCastle(amount: number): number {
+    if (amount <= 0 || this.castle.hp >= this.castle.maxHp) return 0;
+    const healed = Math.min(amount, this.castle.maxHp - this.castle.hp);
+    this.castle.hp += healed;
+    this.sfx("coin");
+    return healed;
+  }
+
+  /** Napalm: a burning ground patch (grounded enemies only). */
+  addFirePatch(x: number, y: number, r: number, dur: number, dps: number): void {
+    this.firePatches.push({ x, y, r, until: this.time + dur, dps });
+  }
+
   // ---------------------------------------------------------------- building
   buildTower(type: TowerType, spot: { c: number; r: number; x: number; y: number }): boolean {
     const cost = TOWER_DEFS[type].cost;
@@ -745,6 +815,47 @@ export class Game {
     this.sfx("upgrade");
   }
 
+  /** Pick a tower's specialization line (once, after SPEC_UNLOCK_AT upgrade points). */
+  specializeTower(t: Tower, specId: string): void {
+    if (!t.specReady) return;
+    if (!SPECS[t.type].some((s) => s.id === specId)) return;
+    if (this.gold < SPEC_UNLOCK_COST) {
+      this.addText(t.x, t.y - 30, "Need gold", "#ff9a3c");
+      return;
+    }
+    this.gold -= SPEC_UNLOCK_COST;
+    t.totalInvested += SPEC_UNLOCK_COST;
+    t.spec = specId;
+    t.specLvl = 1;
+    const sd = t.specDef();
+    this.spawnRingFx(t.x, t.y - 16, sd?.color ?? "#ffd24a", 1.2);
+    this.addText(t.x, t.y - 40, sd?.name ?? "Specialized", sd?.color ?? "#ffd24a");
+    this.sfx("upgrade");
+  }
+
+  /** Upgrade an already-chosen specialization line. */
+  upgradeSpec(t: Tower): void {
+    if (!t.spec || t.specLvl >= MAX_SPEC) return;
+    const cost = specUpgradeCost(t.type, t.specLvl);
+    if (this.gold < cost) {
+      this.addText(t.x, t.y - 30, "Need gold", "#ff9a3c");
+      return;
+    }
+    this.gold -= cost;
+    t.totalInvested += cost;
+    t.specLvl++;
+    const sd = t.specDef();
+    this.spawnRingFx(t.x, t.y - 16, sd?.color ?? "#ffd24a", 0.9);
+    this.sfx("upgrade");
+  }
+
+  /** Barracks musters a soldier (stats come from the barracks' upgrades/specs). */
+  spawnSoldier(t: Tower): void {
+    const ss = t.soldierStats(this);
+    new Soldier(this, t, { hp: ss.hp, dmg: ss.dmg });
+    this.spawnRingFx(t.x, t.y - 12, "#9fd8ff", 0.7);
+  }
+
   sellTower(t: Tower): void {
     const refund = Math.round(t.totalInvested * 0.6);
     this.gold += refund;
@@ -771,16 +882,25 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- projectiles
-  spawnArrow(x: number, y: number, target: Enemy, damage: number, speed: number): void {
+  spawnArrow(x: number, y: number, target: Enemy, damage: number, speed: number, mods: SpecMods = {}): void {
     const a = Math.atan2(target.y - y, target.x - x);
-    this.projectiles.push(new Projectile("arrow", x, y, a, speed, damage, { target }));
+    this.projectiles.push(new Projectile("arrow", x, y, a, speed, damage, { target, mods }));
   }
-  spawnSpear(x: number, y: number, angle: number, damage: number, speed: number, pierce: number): void {
-    this.projectiles.push(new Projectile("spear", x, y, angle, speed, damage, { pierce }));
+  spawnSpear(x: number, y: number, angle: number, damage: number, speed: number, pierce: number, mods: SpecMods = {}): void {
+    this.projectiles.push(new Projectile("spear", x, y, angle, speed, damage, { pierce, mods }));
   }
-  spawnCannonball(x: number, y: number, tx: number, ty: number, damage: number, splash: number, speed: number): void {
+  spawnCannonball(
+    x: number,
+    y: number,
+    tx: number,
+    ty: number,
+    damage: number,
+    splash: number,
+    speed: number,
+    mods: SpecMods = {}
+  ): void {
     const a = Math.atan2(ty - y, tx - x);
-    this.projectiles.push(new Projectile("cannonball", x, y, a, speed, damage, { tx, ty, splash }));
+    this.projectiles.push(new Projectile("cannonball", x, y, a, speed, damage, { tx, ty, splash, mods }));
   }
 
   // ---------------------------------------------------------------- fx
@@ -842,6 +962,7 @@ export class Game {
       Digit2: "lancer",
       Digit3: "cannon",
       Digit4: "monastery",
+      Digit5: "barracks",
     };
     for (const code in numMap) {
       const t = numMap[code];
@@ -979,10 +1100,28 @@ export class Game {
     this.drawBuildSpots(ctx);
     this.drawCastle(ctx);
 
+    // napalm patches (on the ground, under the entities)
+    if (this.firePatches.length > 0) {
+      for (const f of this.firePatches) {
+        const a = Math.min(1, (f.until - this.time) / 0.5) * 0.55;
+        ctx.save();
+        const g = ctx.createRadialGradient(f.x, f.y, 2, f.x, f.y, f.r);
+        g.addColorStop(0, `rgba(255,170,60,${a})`);
+        g.addColorStop(0.7, `rgba(230,90,30,${a * 0.5})`);
+        g.addColorStop(1, "rgba(160,50,20,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
     // depth-sorted entities
     const items: { y: number; d: () => void }[] = [];
     for (const t of this.towers) items.push({ y: t.y, d: () => t.draw(ctx, this) });
     for (const e of this.enemies) items.push({ y: e.y, d: () => e.draw(ctx, this) });
+    for (const s of this.soldiers) items.push({ y: s.y, d: () => s.draw(ctx, this) });
     items.sort((a, b) => a.y - b.y);
     for (const it of items) it.d();
 

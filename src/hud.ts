@@ -4,7 +4,20 @@ import { asAsset } from "./assets";
 import { drawSprite } from "./sprite";
 import { ENEMY_DEFS, enemyPreviewDef, type EnemyType } from "./enemy";
 import type { UnitColor } from "./assets";
-import { TOWER_DEFS, TOWER_ORDER, MAX_UPGRADE, upgradeCost, tracksFor, trackLabel, type UpgradeTrack } from "./tower";
+import {
+  TOWER_DEFS,
+  TOWER_ORDER,
+  MAX_UPGRADE,
+  upgradeCost,
+  tracksFor,
+  trackLabel,
+  SPECS,
+  SPEC_UNLOCK_COST,
+  SPEC_UNLOCK_AT,
+  MAX_SPEC,
+  specUpgradeCost,
+  type UpgradeTrack,
+} from "./tower";
 import { RARITY_COLOR } from "./boons";
 import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H } from "./config";
 import { VICTORY_RUNES, RELICS, relicLevel } from "./meta";
@@ -79,14 +92,30 @@ export class Hud {
       palette[t] = { x: pad + i * (bw + gap), y: palY, w: bw, h: palH };
     });
 
-    // selected tower panel — per-stat upgrade tracks (clamped to the world)
-    let sel: { panel: Rect; upgrades: { track: UpgradeTrack; rect: Rect }[]; sell: Rect } | null = null;
+    // selected tower panel — per-stat upgrade tracks + specialization (clamped to the world)
+    let sel:
+      | {
+          panel: Rect;
+          upgrades: { track: UpgradeTrack; rect: Rect }[];
+          specChoose: { specId: string; rect: Rect }[];
+          specUp: Rect | null;
+          specHint: Rect | null;
+          sell: Rect;
+        }
+      | null = null;
     if (game.selectedTower && game.screen === "game" && game.wavePhase !== "boon") {
       const t = game.selectedTower;
       const tracks = tracksFor(t.type);
       const pw = 240, ppad = 10, btnH = 24, btnGap = 5;
       const headH = 66;
-      const ph = headH + tracks.length * (btnH + btnGap) + btnH + 16;
+      // specialization section: 3 choice rows, 1 upgrade row, or a hint line
+      const specSection = t.spec
+        ? 1
+        : t.specReady
+          ? SPECS[t.type].length
+          : 0;
+      const hintH = !t.spec && !t.specReady ? 16 : 0;
+      const ph = headH + tracks.length * (btnH + btnGap) + specSection * (btnH + btnGap) + hintH + btnH + 16;
       let px = t.x + 44;
       let py = t.y - ph / 2;
       px = Math.min(Math.max(8, px), WORLD_W - pw - 8);
@@ -95,8 +124,24 @@ export class Hud {
         track,
         rect: { x: px + ppad, y: py + headH + i * (btnH + btnGap), w: pw - ppad * 2, h: btnH },
       }));
+      let y = py + headH + tracks.length * (btnH + btnGap);
+      const specChoose: { specId: string; rect: Rect }[] = [];
+      let specUp: Rect | null = null;
+      let specHint: Rect | null = null;
+      if (t.spec) {
+        specUp = { x: px + ppad, y, w: pw - ppad * 2, h: btnH };
+        y += btnH + btnGap;
+      } else if (t.specReady) {
+        for (const s of SPECS[t.type]) {
+          specChoose.push({ specId: s.id, rect: { x: px + ppad, y, w: pw - ppad * 2, h: btnH } });
+          y += btnH + btnGap;
+        }
+      } else {
+        specHint = { x: px + ppad, y, w: pw - ppad * 2, h: hintH };
+        y += hintH;
+      }
       const sell = { x: px + ppad, y: py + ph - btnH - 8, w: pw - ppad * 2, h: btnH };
-      sel = { panel: { x: px, y: py, w: pw, h: ph }, upgrades, sell };
+      sel = { panel: { x: px, y: py, w: pw, h: ph }, upgrades, specChoose, specUp, specHint, sell };
     }
 
     // boon modal cards
@@ -378,14 +423,19 @@ export class Hud {
     if (L.sel && game.selectedTower) {
       const t = game.selectedTower;
       const s = this.statsFor(game, t);
-      const { panel, upgrades, sell } = L.sel;
+      const { panel, upgrades, specChoose, specUp, specHint, sell } = L.sel;
       this.panel(ctx, panel, 8);
       ctx.save();
       ctx.textAlign = "left";
       ctx.fillStyle = "#ffd24a";
       ctx.font = "800 15px 'Segoe UI', sans-serif";
       const total = t.totalUpgrades;
-      ctx.fillText(`${TOWER_DEFS[t.type].name}${total > 0 ? `  ·  +${total}` : ""}`, panel.x + 12, panel.y + 22);
+      const sd = t.specDef();
+      ctx.fillText(
+        `${TOWER_DEFS[t.type].name}${total > 0 ? `  ·  +${total}` : ""}${sd ? `  ·  ${sd.name}` : ""}`,
+        panel.x + 12,
+        panel.y + 22
+      );
       ctx.fillStyle = "#cfe6f0";
       ctx.font = "600 12px 'Segoe UI', sans-serif";
       if (t.type === "monastery") {
@@ -393,6 +443,12 @@ export class Hud {
         ctx.fillStyle = "rgba(180,210,225,0.7)";
         ctx.font = "500 10px 'Segoe UI', sans-serif";
         ctx.fillText("Dmg & fire-rate buff to towers in aura", panel.x + 12, panel.y + 58);
+      } else if (t.type === "barracks") {
+        const ss = t.soldierStats(game);
+        ctx.fillText(`Strike ${Math.round(ss.dmg)}   Muster ${ss.deploy.toFixed(1)}s   Up to ${ss.maxOut}`, panel.x + 12, panel.y + 44);
+        ctx.fillStyle = "rgba(180,210,225,0.7)";
+        ctx.font = "500 10px 'Segoe UI', sans-serif";
+        ctx.fillText(`Soldier HP ${Math.round(ss.hp)} — holds the road against ground foes`, panel.x + 12, panel.y + 58);
       } else {
         ctx.fillText(`Dmg ${Math.round(s.damage)}   Rate ${s.rate.toFixed(1)}/s   Range ${Math.round(s.range)}`, panel.x + 12, panel.y + 44);
         if (t.type === "cannon") {
@@ -417,6 +473,30 @@ export class Hud {
           this.button(ctx, u.rect, `⬆ ${label}  ${cost}g`, { active: true, disabled: game.gold < cost, small: true });
         }
       }
+
+      // specialization section
+      if (specUp && t.spec) {
+        if (t.specLvl >= MAX_SPEC) {
+          this.button(ctx, specUp, `⚑ ${sd?.name}  ·  L3 MAX`, { bg: "#3a4a52", disabled: true, small: true });
+        } else {
+          const cost = specUpgradeCost(t.type, t.specLvl);
+          this.button(ctx, specUp, `⚑ ${sd?.name} → L${t.specLvl + 1}  ${cost}g`, { active: true, disabled: game.gold < cost, small: true });
+        }
+      } else {
+        for (const sc of specChoose) {
+          const sdef = SPECS[t.type].find((x) => x.id === sc.specId);
+          this.button(ctx, sc.rect, `⚑ ${sdef?.name}  ${SPEC_UNLOCK_COST}g`, { active: true, disabled: game.gold < SPEC_UNLOCK_COST, small: true });
+        }
+        if (specHint) {
+          ctx.save();
+          ctx.fillStyle = "rgba(180,210,225,0.65)";
+          ctx.font = "500 10px 'Segoe UI', sans-serif";
+          ctx.textAlign = "left";
+          ctx.fillText(`Unlocks at +${SPEC_UNLOCK_AT} upgrades — then pick a line`, specHint.x + 2, specHint.y + 11);
+          ctx.restore();
+        }
+      }
+
       const refund = Math.round(t.totalInvested * 0.6);
       this.button(ctx, sell, `Sell  +${refund}g`, { bg: "#6e3038", small: true });
     }
@@ -546,13 +626,23 @@ export class Hud {
       return true; // swallow clicks on the panel
     }
 
-    // selected tower panel (per-stat upgrades)
+    // selected tower panel (per-stat upgrades + specialization)
     if (L.sel && game.selectedTower) {
       for (const u of L.sel.upgrades) {
         if (inRect(p, u.rect)) {
           game.upgradeTower(game.selectedTower, u.track);
           return true;
         }
+      }
+      for (const sc of L.sel.specChoose) {
+        if (inRect(p, sc.rect)) {
+          game.specializeTower(game.selectedTower, sc.specId);
+          return true;
+        }
+      }
+      if (L.sel.specUp && inRect(p, L.sel.specUp)) {
+        game.upgradeSpec(game.selectedTower);
+        return true;
       }
       if (inRect(p, L.sel.sell)) {
         game.sellTower(game.selectedTower);
@@ -663,11 +753,13 @@ export class Hud {
       "• Click a built tower to Upgrade or Sell it.",
       "• Survive the wave, then pick 1 of 3 random Boons (upgrades).",
       "• The island grows every 5 waves — new land, a longer route, more spots.",
+      "• At +3 upgrades a tower can Specialize: pick one of three lines, then level it.",
+      "• Barracks muster soldiers who march the road and hold it against ground foes.",
       "• Unlock new towers and stack powers to go deeper.",
       "• Every cleared wave banks ◆ runes (a lost run keeps them; winning the siege pays +40).",
       "• Spend runes in The Codex on relics that carry over between sieges.",
       "",
-      "Keys: 1-4 build · Space start wave · P pause · F speed · M mute · Esc cancel",
+      "Keys: 1-5 build · Space start wave · P pause · F speed · M mute · Esc cancel",
       "",
       "Click anywhere to close.",
     ];
@@ -1068,9 +1160,10 @@ export class Hud {
         h: 74,
       } as Rect,
     }));
-    const towerX0 = 900;
-    const tw = 240;
-    const tgap = 16;
+    // five tower columns (the Barracks column is empty until it has gear)
+    const towerX0 = 830;
+    const tw = 210;
+    const tgap = 12;
     const slots: { tower: TowerType; slot: GearSlot; rect: Rect }[] = [];
     TOWER_ORDER.forEach((t, i) => {
       const x = towerX0 + i * (tw + tgap);

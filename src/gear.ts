@@ -34,7 +34,8 @@ export interface GearState {
 }
 
 export function emptyGearState(): GearState {
-  return { owned: [], equipped: { archer: {}, lancer: {}, cannon: {}, monastery: {} } };
+  // Barracks has no gear line yet (empty record keeps the union total).
+  return { owned: [], equipped: { archer: {}, lancer: {}, cannon: {}, monastery: {}, barracks: {} } };
 }
 
 export const GEAR_SLOTS: GearSlot[] = ["helm", "armor", "ring"];

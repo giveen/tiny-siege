@@ -338,6 +338,32 @@ export class World {
     ctx.restore();
   }
 
+  /** The path point nearest a world position (soldiers join the march here). */
+  nearestPathPoint(x: number, y: number): { x: number; y: number; angle: number; dist: number } {
+    let best = 0;
+    let bd = Infinity;
+    const step = 8;
+    for (let d = 0; d <= this.pathLen; d += step) {
+      const p = this.pointAt(d);
+      const dist = Math.hypot(p.x - x, p.y - y);
+      if (dist < bd) {
+        bd = dist;
+        best = d;
+      }
+    }
+    // refine around the best hit
+    for (let d = Math.max(0, best - step); d <= Math.min(this.pathLen, best + step); d += 2) {
+      const p = this.pointAt(d);
+      const dist = Math.hypot(p.x - x, p.y - y);
+      if (dist < bd) {
+        bd = dist;
+        best = d;
+      }
+    }
+    const p = this.pointAt(best);
+    return { ...p, dist: best };
+  }
+
   /** Position + heading at a distance along the path. */
   pointAt(d: number): { x: number; y: number; angle: number } {
     const dd = clamp(d, 0, this.pathLen);

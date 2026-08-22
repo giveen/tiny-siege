@@ -95,6 +95,8 @@ export class Enemy {
   slowFactor = 1;
   burnDps = 0;
   burnUntil = 0;
+  /** Cooldown for striking a blocking soldier. */
+  private soldierAtk = 0;
   /** Burn damage dealt but not yet shown (DoT ticks are too small per frame). */
   dotAccum = 0;
   /** Next time a burn total may be shown as a floating number. */
@@ -182,6 +184,21 @@ export class Enemy {
 
     if (this.dead) return;
 
+    // A barracks soldier in front of us blocks the path: we stop and fight it.
+    const blocker = this.flying ? null : this.blockingSoldier(game);
+    if (blocker) {
+      this.flipX = blocker.x >= this.x;
+      this.soldierAtk -= dt;
+      if (this.soldierAtk <= 0) {
+        this.soldierAtk = 1.0;
+        blocker.takeDamage(game, this.castleDamage);
+        game.sfx("hit");
+      }
+      this.hitFlash = Math.max(0, this.hitFlash - dt);
+      this.sprite.update(dt);
+      return;
+    }
+
     const slow = now < this.slowUntil ? this.slowFactor : 1;
     this.pathDist += this.speed * slow * dt;
 
@@ -202,11 +219,31 @@ export class Enemy {
     }
   }
 
-  takeDamage(game: Game, amount: number, kind: "physical" | "burn" | "magic"): void {
+  /** The nearest live barracks soldier on the path — a wall that stops the
+   *  march, even while it's already striking another foe. */
+  blockingSoldier(game: Game) {
+    let best: import("./soldier").Soldier | null = null;
+    let bd = 26;
+    for (const s of game.soldiers) {
+      if (s.dead) continue;
+      const d = Math.abs(s.pathDist - this.pathDist);
+      if (d < bd && Math.hypot(s.x - this.x, s.y - this.y) < 34) {
+        bd = d;
+        best = s;
+      }
+    }
+    return best;
+  }
+
+  takeDamage(game: Game, amount: number, kind: "physical" | "burn" | "magic", armorIgnore = 0): void {
     if (this.dead) return;
     // Armor soaks flat physical damage per hit; burn and magic ignore it.
+    // Sunder-style armorIgnore soaks part of the armor first.
     let dmg = amount;
-    if (kind === "physical" && this.armor > 0) dmg = Math.max(1, dmg - this.armor);
+    if (kind === "physical" && this.armor > 0) {
+      const soak = Math.max(0, this.armor - (armorIgnore ?? 0));
+      dmg = Math.max(1, dmg - soak);
+    }
     this.hp -= dmg;
     this.hitFlash = 0.12;
     if (kind !== "burn") game.sfx("hit");

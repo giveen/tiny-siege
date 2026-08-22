@@ -202,6 +202,19 @@ export const BOONS: Boon[] = [
       g.unlocked.add("monastery");
     },
   },
+  {
+    id: "unlock_barracks",
+    name: "Conscript the Militia",
+    desc: "Unlocks the Barracks (musters soldiers to hold the road).",
+    icon: 16,
+    rarity: "rare",
+    maxStacks: 1,
+    weight: 1.1,
+    available: (g) => unlock("barracks")(g) && g.wave >= 5,
+    apply: (g) => {
+      g.unlocked.add("barracks");
+    },
+  },
   // ---- Castle ----
   {
     id: "reinforce",
