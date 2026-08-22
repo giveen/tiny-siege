@@ -26,23 +26,27 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
   const entries: SpawnEntry[] = [];
   const isBoss = N % 5 === 0;
 
+  // Pacing: waves 1-4 are frail speedsters only (the starting island is
+  // small and early towers are weak). The armored heavies (warrior/beetle/
+  // lancer/skeleton) only join after an island growth, and the Minotaur
+  // itself appears solely on boss waves — the 5th, right before each growth.
   const available: EnemyType[] = ["pawn"];
   if (N >= 2) available.push("archer");
   if (N >= 3) {
-    available.push("warrior");
     available.push("mushroom");
     available.push("mantis");
   }
-  if (N >= 4) available.push("beetle");
-  if (N >= 5) {
-    available.push("lancer");
-    available.push("skeleton");
+  if (N >= 6) {
+    available.push("warrior");
+    available.push("fly3");
   }
-  if (N >= 6) available.push("fly3");
   if (N >= 7) {
     available.push("healer");
     available.push("flydemon");
   }
+  if (N >= 8) available.push("beetle");
+  if (N >= 10) available.push("lancer");
+  if (N >= 11) available.push("skeleton");
 
   const weights: Record<EnemyType, number> = {
     pawn: 10,
@@ -59,26 +63,28 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
     boss: 0,
   };
   // introduce + shift weight toward new/tougher types over time
+  // (weights only matter once the type is in `available`)
   if (N >= 3) {
     weights.mushroom = 5;
     weights.mantis = 4;
   }
-  if (N >= 4) weights.beetle = 4;
-  if (N >= 5) weights.skeleton = 4;
-  if (N >= 6) weights.fly3 = 3;
+  if (N >= 6) {
+    weights.warrior = 6;
+    weights.fly3 = 3;
+  }
   if (N >= 7) weights.flydemon = 4;
   if (N >= 8) {
-    weights.warrior += 2;
-    weights.lancer += 2;
+    weights.beetle = 4;
     weights.healer += 1;
-    weights.skeleton += 1;
   }
   if (N >= 9) weights.fly3 += 2;
   if (N >= 10) {
+    weights.lancer = 5;
     weights.flydemon += 1;
     weights.mantis += 1;
     weights.beetle += 1;
   }
+  if (N >= 11) weights.skeleton = 5;
 
   let count = 5 + Math.floor(N * 1.35);
   if (isBoss) count = Math.max(4, Math.floor(count * 0.6));

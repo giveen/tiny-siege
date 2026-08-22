@@ -53,8 +53,11 @@ export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
     hp: 145, speed: 44, castleDamage: 10, reward: 5, scale: 1.25, armor: 3,
   },
   lancer: { type: "lancer", unit: "lancer", hp: 205, speed: 34, castleDamage: 17, reward: 7, scale: 1.12, armor: 4 },
-  // The boss is the Minotaur.
-  boss: { type: "boss", unit: null, special: "minotaur", hp: 1200, speed: 44, castleDamage: 60, reward: 90, scale: 2.3, armor: 5 },
+  // The boss is the Minotaur — slow and sturdy, boss waves only (every 5th,
+  // right before the island grows). Early bosses must be beatable by a small
+  // fleet of archers on the tiny starting island, so base stats stay low;
+  // the wave scaling carries the later ones.
+  boss: { type: "boss", unit: null, special: "minotaur", hp: 800, speed: 30, castleDamage: 60, reward: 90, scale: 2.3, armor: 3 },
 };
 
 /** Sprite AssetDef for an enemy type (for wave-preview icons). */
