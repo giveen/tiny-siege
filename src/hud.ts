@@ -647,6 +647,7 @@ export class Hud {
       "• Click a tower in the bottom bar, then click a green spot to build.",
       "• Click a built tower to Upgrade or Sell it.",
       "• Survive the wave, then pick 1 of 3 random Boons (upgrades).",
+      "• The island grows every 5 waves — new land, a longer route, more spots.",
       "• Unlock new towers and stack powers to go deeper.",
       "• Every cleared wave banks ◆ runes (a lost run keeps them; winning the siege pays +40).",
       "• Spend runes in The Codex on relics that carry over between sieges.",

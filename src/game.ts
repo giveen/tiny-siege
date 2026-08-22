@@ -1,5 +1,5 @@
 import { loadAssets, type Assets, ENEMY_COLORS, asAsset } from "./assets";
-import { World } from "./map";
+import { World, stageForWave } from "./map";
 import { Input } from "./input";
 import { Audio } from "./audio";
 import { RNG } from "./rng";
@@ -110,6 +110,8 @@ export class Game {
   // demo / attract mode (enabled via ?demo or ?start in the URL)
   demo = false;
   autoStart = false;
+  /** ?stage=N — start the island already grown to stage N (verification). */
+  debugStage = 0;
   rngSeed: number | null = null;
   private demoBuildTimer = 0;
   private demoBoonTimer = 0;
@@ -173,6 +175,10 @@ export class Game {
     if (seedParam && !Number.isNaN(parseInt(seedParam, 10))) this.rngSeed = parseInt(seedParam, 10);
     this.autoStart = params.has("start");
     this.demo = params.has("demo");
+    // ?stage=N — start the island already grown to stage N (verification)
+    const stageParam = parseInt(params.get("stage") ?? "", 10);
+    if (!Number.isNaN(stageParam)) this.debugStage = Math.max(0, Math.min(3, stageParam));
+    if (this.debugStage > 0 && !this.autoStart && !this.demo) this.startRun();
     if (this.autoStart || this.demo) {
       this.startRun();
       const ff = parseFloat(params.get("ff") ?? "0");
@@ -311,6 +317,7 @@ export class Game {
   startRun(): void {
     this.rng = this.rngSeed != null ? new RNG(this.rngSeed) : new RNG();
     this.world = new World(this.assets, this.rng);
+    if (this.debugStage > 0) this.world.growToStage(this.debugStage);
     this.castle.x = this.world.castlePos.x;
     this.castle.y = this.world.castlePos.y;
     // Meta-progression: apply purchased relics to this run's starting state.
@@ -472,6 +479,15 @@ export class Game {
     // with the wave). Banked permanently — equip it in the Armory.
     const drop = rollGearDrop(this.wave, this.rng);
     if (drop) this.bankGearDrop(drop, -132);
+
+    // The island grows every 5 waves: new land, a longer enemy route, and a
+    // few more build pads — the map itself is the meta-progression.
+    const nextStage = stageForWave(this.wave + 1);
+    if (nextStage > this.world.stage) {
+      this.world.growToStage(nextStage);
+      this.addText(this.castle.x, this.castle.y - 156, "The island grows!", "#9ff0ff");
+      this.sfx("castle");
+    }
 
     // Climax: clearing the Siege wave wins the run.
     if (this.wave === SIEGE_WAVE) {

@@ -3,41 +3,37 @@ import type { RNG } from "./rng";
 import { COLS, ROWS, TILE, WORLD_W, WORLD_H, CASTLE_CELL } from "./config";
 import { type Vec, v, dist, clamp } from "./util";
 
-// Island mask: 1 = grass, 0 = water. 28 wide x 16 tall.
-const ISLAND = [
-  "00111111111111111111111100",
-  "01111111111111111111111110",
-  "01111111111111111111111110",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "11111111111111111111111111",
-  "01111111111111111111111110",
-  "00111111111111111111111100",
+const cellCenter = (c: number, r: number): Vec => v(c * TILE + TILE / 2, r * TILE + TILE / 2);
+export const cellKey = (c: number, r: number) => `${c},${r}`;
+
+// ---------------------------------------------------------------------------
+// The growing island
+//
+// The map starts as a compact corridor around a short route to the castle
+// (about ten build pads) and physically grows every 5 waves: new land
+// appears, the enemy route gets longer, and a few more pads are carved out.
+//
+// The stage routes form a chain — each route's cell sequence ends with the
+// previous route's — so growth extends the walk without ever re-routing over
+// an existing pad. Build spots are never placed on a cell of ANY stage's
+// route, so a newly revealed route can never cross a player's tower.
+// Every route spawns over the top water and ends at the castle.
+
+const STAGE_WAYPOINTS: [number, number][][] = [
+  // Stage 0 (waves 1-5): a compact S — the opening island.
+  [[12, -1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 1 (waves 6-10): the western arm joins in.
+  [[6, -1], [6, 1], [12, 1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 2 (waves 11-15): the eastern arm joins in.
+  [[24, -1], [24, 1], [15, 1], [15, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 3 (waves 16+): the full span — the final route.
+  [[2, -1], [2, 1], [6, 1], [12, 1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
 ];
 
-// Enemy path as corner waypoints; each consecutive pair is axis-aligned and the
-// polyline runs straight through the intermediate cell centers. Bands are spaced
-// 4 rows apart so the build pads form distinct strips with grass gaps between them.
-const PATH_WAYPOINTS: [number, number][] = [
-  [2, -1],
-  [2, 1],
-  [24, 1],
-  [24, 5],
-  [3, 5],
-  [3, 9],
-  [24, 9],
-  [24, 13],
-  [14, 13],
-  [14, 14],
-];
+/** Which island stage a given (1-based) wave belongs to. */
+export function stageForWave(wave: number): number {
+  return wave < 6 ? 0 : wave < 11 ? 1 : wave < 16 ? 2 : 3;
+}
 
 /** Expand axis-aligned waypoints into every cell the path passes through. */
 function expandPath(wps: [number, number][]): [number, number][] {
@@ -58,7 +54,10 @@ function expandPath(wps: [number, number][]): [number, number][] {
   return out;
 }
 
-const PATH_CELLS: [number, number][] = expandPath(PATH_WAYPOINTS);
+const STAGE_PATH_CELLS: [number, number][][] = STAGE_WAYPOINTS.map(expandPath);
+
+/** Cells of any stage's route — build spots are never placed here. */
+const RESERVED_CELLS = new Set(STAGE_PATH_CELLS.flat().map(([c, r]) => cellKey(c, r)));
 
 export interface BuildSpot {
   c: number;
@@ -70,18 +69,17 @@ export interface BuildSpot {
 export interface Deco {
   x: number;
   y: number;
+  cell: string;
   kind: "tree" | "bush" | "rock" | "stump";
   idx: number;
   flip: boolean;
   scale: number;
 }
 
-const cellCenter = (c: number, r: number): Vec => v(c * TILE + TILE / 2, r * TILE + TILE / 2);
-export const cellKey = (c: number, r: number) => `${c},${r}`;
-
 export class World {
   assets: Assets;
   rng: RNG;
+  stage = 0;
   island: Uint8Array = new Uint8Array(COLS * ROWS);
   path: Vec[] = [];
   pathLen = 0;
@@ -94,26 +92,14 @@ export class World {
   decos: Deco[] = [];
   bg: HTMLCanvasElement;
 
-  constructor(assets: Assets, rng: RNG) {
+  constructor(assets: Assets, rng: RNG, stage = 0) {
     this.assets = assets;
     this.rng = rng;
+    this.castlePos = cellCenter(CASTLE_CELL.c, CASTLE_CELL.r);
 
-    // island mask
-    for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++)
-        this.island[r * COLS + c] = ISLAND[r][c] === "1" ? 1 : 0;
-
-    // path polyline
-    this.path = PATH_CELLS.map(([c, r]) => cellCenter(c, r));
-    this.pathCells = new Set(PATH_CELLS.filter(([, r]) => r >= 0).map(([c, r]) => cellKey(c, r)));
-    for (let i = 1; i < this.path.length; i++) {
-      const d = dist(this.path[i - 1], this.path[i]);
-      this.cum.push(this.cum[i - 1] + d);
-    }
-    this.pathLen = this.cum[this.cum.length - 1];
+    this.island = this.islandFor(stage);
 
     // castle footprint (a few cells around CASTLE_CELL)
-    this.castlePos = cellCenter(CASTLE_CELL.c, CASTLE_CELL.r);
     for (let dc = -1; dc <= 1; dc++)
       for (let dr = -1; dr <= 1; dr++) {
         const c = CASTLE_CELL.c + dc;
@@ -122,39 +108,9 @@ export class World {
           this.castleCells.add(cellKey(c, r));
       }
 
-    // build spots: specific pads that hug the path — grass cells directly adjacent
-    // (Chebyshev distance 1) to a path cell, excluding the path and the castle.
-    const nearPath = new Set<string>();
-    for (const [c, r] of PATH_CELLS) {
-      if (r < 0) continue;
-      for (let dc = -1; dc <= 1; dc++)
-        for (let dr = -1; dr <= 1; dr++) {
-          if (dc === 0 && dr === 0) continue;
-          nearPath.add(cellKey(c + dc, r + dr));
-        }
-    }
-    // Only keep a checkerboard subset of the ring so the pads read as distinct,
-    // well-spaced build spots rather than a solid band.
-    for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++) {
-        if (!this.isGrass(c, r) || (c + r) % 2 !== 0) continue;
-        const k = cellKey(c, r);
-        if (!nearPath.has(k) || this.pathCells.has(k) || this.castleCells.has(k)) continue;
-        const p = cellCenter(c, r);
-        const spot = { c, r, x: p.x, y: p.y };
-        this.buildSpots.push(spot);
-        this.buildSpotByCell.set(k, spot);
-      }
-
-    // decorations on grass that is not path / build spot / castle
-    const free = new Set<string>();
-    for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++) {
-        const k = cellKey(c, r);
-        if (this.isGrass(c, r) && !this.pathCells.has(k) && !this.buildSpotByCell.has(k) && !this.castleCells.has(k))
-          free.add(k);
-      }
-    this.scatterDecos(free);
+    this.setStagePath(stage);
+    this.addSpotsForStage(stage, true);
+    this.scatterDecos(this.freeCells());
 
     // prerender background
     this.bg = document.createElement("canvas");
@@ -166,6 +122,98 @@ export class World {
   isGrass(c: number, r: number): boolean {
     if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return false;
     return this.island[r * COLS + c] === 1;
+  }
+
+  /** (Re)compute the enemy route for a stage. */
+  private setStagePath(stage: number): void {
+    this.stage = stage;
+    this.path = STAGE_PATH_CELLS[stage].map(([c, r]) => cellCenter(c, r));
+    this.pathCells = new Set(STAGE_PATH_CELLS[stage].filter(([, r]) => r >= 0).map(([c, r]) => cellKey(c, r)));
+    this.cum = [0];
+    for (let i = 1; i < this.path.length; i++) {
+      this.cum.push(this.cum[i - 1] + dist(this.path[i - 1], this.path[i]));
+    }
+    this.pathLen = this.cum[this.cum.length - 1];
+  }
+
+  /**
+   * Land up to a stage: the UNION of a 5-wide corridor around every stage's
+   * route so far, an organic fringe on top, and the castle yard. Land only
+   * ever grows — existing pads and towers must never be left floating over
+   * water.
+   */
+  private islandFor(stage: number): Uint8Array {
+    const m = new Uint8Array(COLS * ROWS);
+    for (let s = 0; s <= stage; s++) {
+      const cells = STAGE_PATH_CELLS[s];
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++) {
+          if (m[r * COLS + c]) continue;
+          let d = Infinity;
+          for (const [pc, pr] of cells) {
+            const dd = Math.max(Math.abs(pc - c), Math.abs(pr - r));
+            if (dd < d) d = dd;
+          }
+          if (d <= 2 || (d === 3 && (c * 7 + r * 13) % 3 === 0)) m[r * COLS + c] = 1;
+        }
+    }
+    for (let dc = -1; dc <= 1; dc++)
+      for (let dr = -1; dr <= 1; dr++) {
+        const c = CASTLE_CELL.c + dc;
+        const r = CASTLE_CELL.r + dr;
+        if (r >= 0 && r < ROWS && c >= 0 && c < COLS) m[r * COLS + c] = 1;
+      }
+    return m;
+  }
+
+  /** Grow the island to a later stage: new land, longer route, new pads. */
+  growToStage(stage: number): void {
+    if (stage <= this.stage || stage >= STAGE_PATH_CELLS.length) return;
+    this.island = this.islandFor(stage);
+    this.setStagePath(stage);
+    this.addSpotsForStage(stage, false);
+    this.scatterDecos(this.freeCells());
+    this.renderBackground(this.bg.getContext("2d")!);
+  }
+
+  /**
+   * Build pads: grass cells hugging the stage route (Chebyshev distance 1),
+   * checkerboarded so pads read as distinct slabs. Existing pads are never
+   * touched, so growth only ever ADDS spots.
+   */
+  private addSpotsForStage(stage: number, initial: boolean): void {
+    const nearPath = new Set<string>();
+    for (const [c, r] of STAGE_PATH_CELLS[stage]) {
+      if (r < 0) continue;
+      for (let dc = -1; dc <= 1; dc++)
+        for (let dr = -1; dr <= 1; dr++) {
+          if (dc === 0 && dr === 0) continue;
+          nearPath.add(cellKey(c + dc, r + dr));
+        }
+    }
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) {
+        if (!this.isGrass(c, r) || (c + r) % 2 !== 0) continue;
+        const k = cellKey(c, r);
+        if (!nearPath.has(k) || RESERVED_CELLS.has(k) || this.castleCells.has(k)) continue;
+        if (!initial && this.buildSpotByCell.has(k)) continue;
+        const p = cellCenter(c, r);
+        const spot = { c, r, x: p.x, y: p.y };
+        this.buildSpots.push(spot);
+        this.buildSpotByCell.set(k, spot);
+      }
+  }
+
+  /** Grass cells carrying no route / pad / castle — deco candidates. */
+  private freeCells(): Set<string> {
+    const free = new Set<string>();
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) {
+        const k = cellKey(c, r);
+        if (this.isGrass(c, r) && !this.pathCells.has(k) && !this.buildSpotByCell.has(k) && !this.castleCells.has(k))
+          free.add(k);
+      }
+    return free;
   }
 
   private scaleFor(kind: Deco["kind"]): number {
@@ -182,21 +230,23 @@ export class World {
   }
 
   private scatterDecos(free: Set<string>): void {
-    const cells = [...free];
+    // Only decorate cells that don't already carry a deco, so growth adds
+    // fresh scatter on the new land instead of duplicating the old.
+    const occupied = new Set(this.decos.map((d) => d.cell));
+    const cells = [...free].filter((k) => !occupied.has(k));
     this.rng.shuffle(cells);
     const kinds: Deco["kind"][] = ["tree", "tree", "bush", "bush", "rock", "rock", "stump"];
-    // The map is large: place a deco on ~62% of free cells so trees/bushes/rocks
-    // are scattered across the whole island (including the open bottom rows),
-    // not just a few patches.
     const target = Math.floor(cells.length * 0.62);
     for (let i = 0; i < target; i++) {
       const k = cells[i];
-      const p = cellCenter(...(k.split(",").map(Number) as [number, number]));
+      const [c, r] = k.split(",").map(Number);
+      const p = cellCenter(c, r);
       const kind = this.rng.pick(kinds);
       const count = this.assets.manifest.deco[kind].length;
       this.decos.push({
         x: p.x + this.rng.range(-14, 14),
         y: p.y + this.rng.range(-8, 12),
+        cell: k,
         kind,
         idx: this.rng.int(0, count - 1),
         flip: this.rng.chance(0.5),
