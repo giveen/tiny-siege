@@ -19,7 +19,7 @@ import {
   type UpgradeTrack,
 } from "./tower";
 import { RARITY_COLOR } from "./boons";
-import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H } from "./config";
+import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST } from "./config";
 import { VICTORY_RUNES, RELICS, relicLevel } from "./meta";
 import {
   GEAR_BY_ID,
@@ -750,6 +750,7 @@ export class Hud {
       "",
       "• Enemies march from the top toward your castle.",
       "• Click a tower in the bottom bar, then click a green spot to build.",
+      `• Click an empty pad to relocate it to any grass cell for ${SPOT_MOVE_COST}g (right-click cancels).`,
       "• Click a built tower to Upgrade or Sell it.",
       "• Survive the wave, then pick 1 of 3 random Boons (upgrades).",
       "• The island grows every 5 waves — new land, a longer route, more spots.",
@@ -1160,7 +1161,7 @@ export class Hud {
         h: 74,
       } as Rect,
     }));
-    // five tower columns (the Barracks column is empty until it has gear)
+    // five tower columns, one per tower type
     const towerX0 = 830;
     const tw = 210;
     const tgap = 12;

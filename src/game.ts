@@ -1,5 +1,5 @@
 import { loadAssets, type Assets, ENEMY_COLORS, asAsset } from "./assets";
-import { World, stageForWave } from "./map";
+import { World, stageForWave, type BuildSpot } from "./map";
 import { Input } from "./input";
 import { Audio } from "./audio";
 import { RNG } from "./rng";
@@ -57,8 +57,12 @@ import {
   WORLD_H,
   CANVAS_W,
   CANVAS_H,
+  TILE,
+  COLS,
+  ROWS,
   START_GOLD,
   START_CASTLE_HP,
+  SPOT_MOVE_COST,
   WAVE_CLEAR_GOLD,
   KILL_GOLD_BASE,
   SIEGE_WAVE,
@@ -117,6 +121,8 @@ export class Game {
 
   // interaction
   placing: TowerType | null = null;
+  /** Pad awaiting relocation (click a target cell to commit, right-click to cancel). */
+  movingSpot: BuildSpot | null = null;
   selectedTower: Tower | null = null;
   _showHelp = false;
   _showCodex = false;
@@ -394,6 +400,7 @@ export class Game {
     this.fx = [];
     this.spawnQueue = [];
     this.placing = null;
+    this.movingSpot = null;
     this.selectedTower = null;
     this.wavePhase = "build";
     this.paused = false;
@@ -526,6 +533,7 @@ export class Game {
     this.waveTime = 0;
     this.wavePhase = "active";
     this.placing = null;
+    this.movingSpot = null;
     this.selectedTower = null;
     // Boss waves (every 5th) shift the score to the ominous cave theme.
     this.audio.music(this.wave % 5 === 0 ? "cave" : "forest");
@@ -976,6 +984,14 @@ export class Game {
     this._eKey = this.input.key("Escape");
     this._spaceKey = this.input.key("Space");
 
+    // Right-click cancels the current action. Its own gate — the left-click
+    // gate below would return early and swallow a lone right press.
+    if (this.input.consumeRightClick()) {
+      this.audio.unlock();
+      this.cancelAction();
+      return;
+    }
+
     const clicked = this.input.consumeClick();
     if (!clicked) return;
     // Any click is a user gesture: safe to unlock (resume) the AudioContext.
@@ -1005,9 +1021,6 @@ export class Game {
     // placing / selecting (only within the world, not the HUD margins)
     if (this.paused) return;
     if (this.mouse.over) this.worldInteract(this.mouse.x, this.mouse.y);
-
-    // right-click cancels
-    if (this.input.consumeRightClick()) this.cancelAction();
   }
 
   _pKey = false;
@@ -1027,17 +1040,57 @@ export class Game {
       }
       return;
     }
+    if (this.movingSpot) {
+      // A valid click commits; an invalid target keeps the mode alive
+      // (right-click / Esc cancels, same as tower placing).
+      const cell = this.cellAtWorld(x, y);
+      const isOrigin = !!cell && cell.c === this.movingSpot.c && cell.r === this.movingSpot.r;
+      if (cell && !isOrigin && this.world.canRelocateTo(cell.c, cell.r)) {
+        if (this.gold >= SPOT_MOVE_COST) {
+          this.gold -= SPOT_MOVE_COST;
+          this.world.moveSpot(this.movingSpot, cell.c, cell.r);
+          this.addText(this.movingSpot.x, this.movingSpot.y - 30, `-${SPOT_MOVE_COST}`, "#ffd24a");
+          this.spawnRingFx(this.movingSpot.x, this.movingSpot.y, "#ffd24a", 0.8);
+          this.sfx("build");
+        } else {
+          this.addText(x, y - 30, `Need ${SPOT_MOVE_COST}g`, "#e07a5a");
+        }
+        this.movingSpot = null;
+      }
+      return;
+    }
     const t = this.towerAtWorld(x, y);
     if (t) {
       this.selectedTower = t;
       this.sfx("click");
     } else {
-      this.selectedTower = null;
+      // Empty pad: click it to start relocating (if the gold is there).
+      const spot = this.spotAtWorld(x, y);
+      if (spot && !this.towerAt(spot.c, spot.r)) {
+        if (this.gold >= SPOT_MOVE_COST) {
+          this.movingSpot = spot;
+          this.selectedTower = null;
+          this.sfx("click");
+        } else {
+          this.addText(x, y - 30, `Need ${SPOT_MOVE_COST}g to move a pad`, "#e07a5a");
+        }
+      } else {
+        this.selectedTower = null;
+      }
     }
+  }
+
+  /** The map cell under a world position (null outside the grid). */
+  private cellAtWorld(x: number, y: number): { c: number; r: number } | null {
+    const c = Math.floor(x / TILE);
+    const r = Math.floor(y / TILE);
+    if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return null;
+    return { c, r };
   }
 
   cancelAction(): void {
     this.placing = null;
+    this.movingSpot = null;
     this.selectedTower = null;
   }
 
@@ -1058,6 +1111,7 @@ export class Game {
   toMenu(): void {
     this.screen = "menu";
     this.placing = null;
+    this.movingSpot = null;
     this.selectedTower = null;
     this.paused = false;
     this.audio.music("forest");
@@ -1065,6 +1119,7 @@ export class Game {
   }
   setPlacing(type: TowerType | null): void {
     this.placing = type;
+    this.movingSpot = null;
     this.selectedTower = null;
     if (type) this.sfx("click");
   }
@@ -1131,6 +1186,9 @@ export class Game {
     // placement preview
     this.drawPlacementPreview(ctx);
 
+    // pad relocation preview
+    this.drawMovingPreview(ctx);
+
     // range ring for the selected tower
     if (this.selectedTower) this.drawSelectedRange(ctx);
 
@@ -1177,6 +1235,57 @@ export class Game {
     // ghost building (matches the in-world tower scale)
     const b = asAsset(this.assets.building("blue", def.building));
     drawSprite(ctx, this.assets, b, 0, x, y + 6, { scale: 0.32, alpha: 0.7 });
+    ctx.restore();
+  }
+
+  private drawMovingPreview(ctx: CanvasRenderingContext2D): void {
+    if (!this.movingSpot || !this.mouse.over) return;
+    const pad = TILE * 0.82;
+
+    // origin pad: dashed gold outline marking the pad being moved
+    ctx.save();
+    ctx.setLineDash([6, 5]);
+    ctx.strokeStyle = "#ffd24a";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.roundRect(this.movingSpot.x - pad / 2, this.movingSpot.y - pad / 2, pad, pad, 9);
+    ctx.stroke();
+    ctx.restore();
+
+    // ghost pad on the hovered cell
+    const cell = this.cellAtWorld(this.mouse.x, this.mouse.y);
+    const isOrigin = !!cell && cell.c === this.movingSpot.c && cell.r === this.movingSpot.r;
+    const valid =
+      !!cell &&
+      !isOrigin &&
+      this.world.canRelocateTo(cell.c, cell.r) &&
+      this.gold >= SPOT_MOVE_COST;
+    const gx = cell ? cell.c * TILE + TILE / 2 : this.mouse.x;
+    const gy = cell ? cell.r * TILE + TILE / 2 : this.mouse.y;
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(gx - pad / 2, gy - pad / 2, pad, pad, 9);
+    ctx.fillStyle = valid ? "rgba(127,224,127,0.30)" : "rgba(224,85,85,0.28)";
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = valid ? "#7fe07f" : "#e05555";
+    ctx.stroke();
+    ctx.restore();
+
+    // cost + cancel hint above the ghost
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.font = "700 15px 'Segoe UI', sans-serif";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(0,0,0,0.65)";
+    const label = valid ? `Move pad · ${SPOT_MOVE_COST}g` : "Move pad";
+    ctx.strokeText(label, gx, gy - pad / 2 - 20);
+    ctx.fillStyle = valid ? "#d8f5d8" : "#e8b8b8";
+    ctx.fillText(label, gx, gy - pad / 2 - 20);
+    ctx.font = "600 12px 'Segoe UI', sans-serif";
+    ctx.strokeText("click a grass cell · right-click to cancel", gx, gy - pad / 2 - 5);
+    ctx.fillStyle = "rgba(230,240,245,0.9)";
+    ctx.fillText("click a grass cell · right-click to cancel", gx, gy - pad / 2 - 5);
     ctx.restore();
   }
 

@@ -17,6 +17,9 @@ export const CANVAS_H = WORLD_H + MARGIN_B;
 export const START_GOLD = 220;
 export const START_CASTLE_HP = 100;
 
+/** Gold cost to relocate an unoccupied build pad to another grass cell. */
+export const SPOT_MOVE_COST = 50;
+
 // Castle sits at the bottom-center of the island.
 export const CASTLE_CELL = { c: 14, r: 14 };
 

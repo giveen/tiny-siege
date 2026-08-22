@@ -13,21 +13,28 @@ export const cellKey = (c: number, r: number) => `${c},${r}`;
 // (about ten build pads) and physically grows every 5 waves: new land
 // appears, the enemy route gets longer, and a few more pads are carved out.
 //
-// The stage routes form a chain — each route's cell sequence ends with the
-// previous route's — so growth extends the walk without ever re-routing over
-// an existing pad. Build spots are never placed on a cell of ANY stage's
-// route, so a newly revealed route can never cross a player's tower.
-// Every route spawns over the top water and ends at the castle.
+// The stage routes form a CUMULATIVE chain: every route still traverses the
+// previous stage's walk (only the spawn side and length change), so growing
+// never strands a player's towers far from the road. Build spots are never
+// placed on a cell of ANY stage's route, so a newly revealed route can never
+// cross a player's tower. Every route spawns over the top water and ends at
+// the castle.
+//
+//   stage 1: spawn W,  row 1  6→12, drop col 12, row 2 12→16, tail
+//   stage 2: spawn E,  over the TOP row (24→6), then stage 1's exact walk
+//   stage 3: spawn far W, row 1 2→24 (both arms), row 2 24→16, tail
 
 const STAGE_WAYPOINTS: [number, number][][] = [
   // Stage 0 (waves 1-5): a compact S — the opening island.
   [[12, -1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
   // Stage 1 (waves 6-10): the western arm joins in.
   [[6, -1], [6, 1], [12, 1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
-  // Stage 2 (waves 11-15): the eastern arm joins in.
-  [[24, -1], [24, 1], [15, 1], [15, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
-  // Stage 3 (waves 16+): the full span — the final route.
-  [[2, -1], [2, 1], [6, 1], [12, 1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 2 (waves 11-15): the eastern arm joins in; the walk detours over
+  // the top row and then follows stage 1's walk, so western towers stay live.
+  [[24, -1], [24, 0], [6, 0], [6, 1], [12, 1], [12, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
+  // Stage 3 (waves 16+): the full span — one row-1 crossing of both arms,
+  // then row 2 back to the shared tail.
+  [[2, -1], [2, 1], [24, 1], [24, 2], [16, 2], [16, 8], [14, 8], [14, 14]],
 ];
 
 /** Which island stage a given (1-based) wave belongs to. */
@@ -204,13 +211,51 @@ export class World {
       }
   }
 
-  /** Grass cells carrying no route / pad / castle — deco candidates. */
+  /**
+   * Can an empty pad be relocated to this cell? Grass only, never on ANY
+   * stage's route (so later growth can't cross a player pad), never on the
+   * castle footprint, never stacked on another pad.
+   */
+  canRelocateTo(c: number, r: number): boolean {
+    if (!this.isGrass(c, r)) return false;
+    const k = cellKey(c, r);
+    if (RESERVED_CELLS.has(k)) return false;
+    if (this.castleCells.has(k)) return false;
+    if (this.buildSpotByCell.has(k)) return false;
+    return true;
+  }
+
+  /**
+   * Relocate a pad to a new cell (the caller enforces the gold cost). Any
+   * deco on the target cell is cleared, and the prerendered background is
+   * redrawn since the pads are painted into it.
+   */
+  moveSpot(spot: BuildSpot, c: number, r: number): void {
+    this.buildSpotByCell.delete(cellKey(spot.c, spot.r));
+    spot.c = c;
+    spot.r = r;
+    const p = cellCenter(c, r);
+    spot.x = p.x;
+    spot.y = p.y;
+    this.buildSpotByCell.set(cellKey(c, r), spot);
+    this.decos = this.decos.filter((d) => d.cell !== cellKey(c, r));
+    this.renderBackground(this.bg.getContext("2d")!);
+  }
+
+  /** Grass cells carrying no route / pad / castle — deco candidates.
+   *  ANY stage's route is excluded so a tree never sits under a future road. */
   private freeCells(): Set<string> {
     const free = new Set<string>();
     for (let r = 0; r < ROWS; r++)
       for (let c = 0; c < COLS; c++) {
         const k = cellKey(c, r);
-        if (this.isGrass(c, r) && !this.pathCells.has(k) && !this.buildSpotByCell.has(k) && !this.castleCells.has(k))
+        if (
+          this.isGrass(c, r) &&
+          !this.pathCells.has(k) &&
+          !RESERVED_CELLS.has(k) &&
+          !this.buildSpotByCell.has(k) &&
+          !this.castleCells.has(k)
+        )
           free.add(k);
       }
     return free;

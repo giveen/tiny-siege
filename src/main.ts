@@ -25,6 +25,8 @@ if (!canvas) {
   fit();
 
   const game = new Game(canvas);
+  // dev handle for verification tools (stripped from production builds)
+  if (import.meta.env.DEV) (window as any).__game = game;
   game
     .init()
     .then(() => {
