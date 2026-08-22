@@ -4,7 +4,7 @@ import { asAsset } from "./assets";
 import { drawSprite } from "./sprite";
 import { TOWER_DEFS, TOWER_ORDER, MAX_UPGRADE, upgradeCost, tracksFor, trackLabel, type UpgradeTrack } from "./tower";
 import { RARITY_COLOR } from "./boons";
-import { WORLD_W, WORLD_H } from "./config";
+import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H } from "./config";
 import { fmt } from "./util";
 
 interface Rect {
@@ -28,22 +28,21 @@ export class Hud {
 
   // ------------------------------------------------------------- layout
   private computeLayout(game: Game) {
-    // Right-side vertical panel: castle HP, gold, wave, start-wave, controls.
-    // Placed over the grass margin right of the path so the top of the map is clear.
-    const rp = { x: WORLD_W - 172, y: 8, w: 164, h: 322 };
+    // Right-margin info panel (off the map): castle HP, gold, wave, start-wave, controls.
+    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 330 };
     const ix = rp.x + 12;
     const iw = rp.w - 24;
     const castleHp = { x: ix, y: rp.y + 12, w: iw, h: 18 };
-    const goldRect = { x: ix, y: rp.y + 40, w: iw, h: 26 };
-    const waveRect = { x: ix, y: rp.y + 72, w: iw, h: 34 };
-    const startWave = { x: ix, y: rp.y + 112, w: iw, h: 40 };
-    const speed = { x: ix, y: rp.y + 162, w: iw, h: 40 };
-    const pause = { x: ix, y: speed.y + 46, w: iw, h: 40 };
-    const mute = { x: ix, y: pause.y + 46, w: iw, h: 40 };
+    const goldRect = { x: ix, y: rp.y + 42, w: iw, h: 26 };
+    const waveRect = { x: ix, y: rp.y + 74, w: iw, h: 34 };
+    const startWave = { x: ix, y: rp.y + 116, w: iw, h: 40 };
+    const speed = { x: ix, y: rp.y + 168, w: iw, h: 40 };
+    const pause = { x: ix, y: speed.y + 48, w: iw, h: 40 };
+    const mute = { x: ix, y: pause.y + 48, w: iw, h: 40 };
 
-    // palette (bottom)
-    const palH = 78;
-    const palY = WORLD_H - palH - 8;
+    // bottom-margin palette (off the map), aligned to the map width
+    const palH = 88;
+    const palY = WORLD_H + (MARGIN_B - palH) / 2;
     const n = TOWER_ORDER.length;
     const pad = 14;
     const gap = 10;
@@ -54,7 +53,7 @@ export class Hud {
       palette[t] = { x: pad + i * (bw + gap), y: palY, w: bw, h: palH };
     });
 
-    // selected tower panel — per-stat upgrade tracks
+    // selected tower panel — per-stat upgrade tracks (clamped to the world)
     let sel: { panel: Rect; upgrades: { track: UpgradeTrack; rect: Rect }[]; sell: Rect } | null = null;
     if (game.selectedTower && game.screen === "game" && game.wavePhase !== "boon") {
       const t = game.selectedTower;
@@ -62,11 +61,10 @@ export class Hud {
       const pw = 240, ppad = 10, btnH = 24, btnGap = 5;
       const headH = 66;
       const ph = headH + tracks.length * (btnH + btnGap) + btnH + 16;
-      const maxLeft = rp.x - pw - 8; // keep clear of the right panel
       let px = t.x + 44;
       let py = t.y - ph / 2;
-      px = Math.min(Math.max(8, px), Math.max(8, maxLeft));
-      py = Math.min(Math.max(8, py), WORLD_H - palH - ph - 8);
+      px = Math.min(Math.max(8, px), WORLD_W - pw - 8);
+      py = Math.min(Math.max(8, py), WORLD_H - ph - 8);
       const upgrades = tracks.map((track, i) => ({
         track,
         rect: { x: px + ppad, y: py + headH + i * (btnH + btnGap), w: pw - ppad * 2, h: btnH },
@@ -324,7 +322,7 @@ export class Hud {
     ctx.save();
     ctx.globalAlpha = 0.65;
     ctx.fillStyle = "#04141a";
-    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.restore();
 
     ctx.save();
@@ -468,15 +466,15 @@ export class Hud {
     const w = 260;
     const h = 60;
     return {
-      start: { x: WORLD_W / 2 - w / 2, y: WORLD_H / 2 + 40, w, h } as Rect,
-      help: { x: WORLD_W / 2 - w / 2, y: WORLD_H / 2 + 112, w, h } as Rect,
+      start: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 40, w, h } as Rect,
+      help: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 112, w, h } as Rect,
     };
   }
 
   drawMenu(game: Game, ctx: CanvasRenderingContext2D): void {
     // background: water + a decorative castle + title
     ctx.fillStyle = "#0a3540";
-    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     // subtle waves
     ctx.save();
     ctx.globalAlpha = 0.5;
@@ -484,7 +482,7 @@ export class Hud {
       ctx.strokeStyle = `rgba(120,190,205,${0.12 + i * 0.03})`;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      for (let x = 0; x <= WORLD_W; x += 8) {
+      for (let x = 0; x <= CANVAS_W; x += 8) {
         const y = 120 + i * 70 + Math.sin(x * 0.03 + this.time(game) * 1.5 + i) * 6;
         if (x === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
@@ -495,17 +493,17 @@ export class Hud {
 
     // castle preview
     const castle = asAsset(this.assets.building("blue", "castle"));
-    drawSprite(ctx, this.assets, castle, 0, WORLD_W / 2, 258, { scale: 1.05 });
+    drawSprite(ctx, this.assets, castle, 0, CANVAS_W / 2, 258, { scale: 1.05 });
 
     // title
     ctx.save();
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffd24a";
     ctx.font = "900 64px 'Segoe UI', sans-serif";
-    ctx.fillText("TINY SIEGE", WORLD_W / 2, 120);
+    ctx.fillText("TINY SIEGE", CANVAS_W / 2, 120);
     ctx.fillStyle = "#bfe6ef";
     ctx.font = "600 20px 'Segoe UI', sans-serif";
-    ctx.fillText("a tower-defense roguelite", WORLD_W / 2, 152);
+    ctx.fillText("a tower-defense roguelite", CANVAS_W / 2, 152);
     ctx.restore();
 
     const r = this.menuRects();
@@ -517,7 +515,7 @@ export class Hud {
     ctx.textAlign = "center";
     ctx.fillStyle = "#8fb8c8";
     ctx.font = "600 15px 'Segoe UI', sans-serif";
-    ctx.fillText(`Best run: ${game.best} waves`, WORLD_W / 2, WORLD_H - 40);
+    ctx.fillText(`Best run: ${game.best} waves`, CANVAS_W / 2, CANVAS_H - 40);
     ctx.restore();
 
     if (game._showHelp) this.drawHelp(ctx);
@@ -531,7 +529,7 @@ export class Hud {
     ctx.save();
     ctx.globalAlpha = 0.95;
     ctx.fillStyle = "#04141a";
-    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.fillStyle = "#eaf6ff";
     ctx.textAlign = "left";
     const lines = [
@@ -578,8 +576,8 @@ export class Hud {
     const w = 240;
     const h = 56;
     return {
-      again: { x: WORLD_W / 2 - w / 2, y: WORLD_H / 2 + 90, w, h } as Rect,
-      menu: { x: WORLD_W / 2 - w / 2, y: WORLD_H / 2 + 158, w, h } as Rect,
+      again: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 90, w, h } as Rect,
+      menu: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 158, w, h } as Rect,
     };
   }
 
@@ -587,24 +585,24 @@ export class Hud {
     ctx.save();
     ctx.globalAlpha = 0.72;
     ctx.fillStyle = "#04141a";
-    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.restore();
 
     ctx.save();
     ctx.textAlign = "center";
     ctx.fillStyle = "#ff6a5a";
     ctx.font = "900 52px 'Segoe UI', sans-serif";
-    ctx.fillText("THE CASTLE HAS FALLEN", WORLD_W / 2, WORLD_H / 2 - 90);
+    ctx.fillText("THE CASTLE HAS FALLEN", CANVAS_W / 2, CANVAS_H / 2 - 90);
     ctx.fillStyle = "#eaf6ff";
     ctx.font = "700 26px 'Segoe UI', sans-serif";
-    ctx.fillText(`You survived ${game.wave} waves`, WORLD_W / 2, WORLD_H / 2 - 20);
+    ctx.fillText(`You survived ${game.wave} waves`, CANVAS_W / 2, CANVAS_H / 2 - 20);
     ctx.fillStyle = "#bfe6ef";
     ctx.font = "600 18px 'Segoe UI', sans-serif";
-    ctx.fillText(`${game.kills} enemies slain`, WORLD_W / 2, WORLD_H / 2 + 16);
+    ctx.fillText(`${game.kills} enemies slain`, CANVAS_W / 2, CANVAS_H / 2 + 16);
     const isBest = game.wave >= game.best && game.wave > 0;
     ctx.fillStyle = isBest ? "#ffd24a" : "#8fb8c8";
     ctx.font = "700 18px 'Segoe UI', sans-serif";
-    ctx.fillText(`${isBest ? "★ NEW BEST!  " : ""}Best: ${game.best} waves`, WORLD_W / 2, WORLD_H / 2 + 50);
+    ctx.fillText(`${isBest ? "★ NEW BEST!  " : ""}Best: ${game.best} waves`, CANVAS_W / 2, CANVAS_H / 2 + 50);
     ctx.restore();
 
     const r = this.overRects();

@@ -6,6 +6,14 @@ export const TILE = 64;
 export const COLS = WORLD_W / TILE; // 28
 export const ROWS = WORLD_H / TILE; // 16
 
+// Black margins around the gameplay world. The HUD lives here — the info
+// panel in the right margin and the tower palette in the bottom margin — so
+// nothing ever covers the island itself.
+export const MARGIN_R = 240;
+export const MARGIN_B = 108;
+export const CANVAS_W = WORLD_W + MARGIN_R;
+export const CANVAS_H = WORLD_H + MARGIN_B;
+
 export const START_GOLD = 220;
 export const START_CASTLE_HP = 100;
 
@@ -14,6 +22,10 @@ export const CASTLE_CELL = { c: 14, r: 14 };
 
 // Enemy damage to the castle when they reach it is enemy.castleDamage.
 // Gold rewards scale with enemy.reward.
+
+// Global multiplier on every enemy's sprite scale. The island is large, so the
+// (small) source sprites are shrunk to read correctly against the map.
+export const ENEMY_SCALE_MULT = 0.8;
 
 // Wave / economy tuning
 export const WAVE_CLEAR_GOLD = (wave: number) => 20 + wave * 6;

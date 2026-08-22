@@ -1,7 +1,7 @@
 import type { Game } from "./game";
 import { Sprite, drawSprite } from "./sprite";
 import type { UnitColor } from "./assets";
-import { PATH_SPEED_MULT } from "./config";
+import { PATH_SPEED_MULT, ENEMY_SCALE_MULT } from "./config";
 
 export type EnemyType =
   | "pawn"
@@ -102,7 +102,7 @@ export class Enemy {
     this.speed = base.speed * PATH_SPEED_MULT * (1 + wave * 0.008);
     this.castleDamage = Math.round(base.castleDamage * dmgScale);
     this.reward = Math.round(base.reward * (1 + wave * 0.02));
-    this.scale = base.scale;
+    this.scale = base.scale * ENEMY_SCALE_MULT;
     const spawn = game.world.spawnPoint();
     this.x = spawn.x;
     this.y = spawn.y;

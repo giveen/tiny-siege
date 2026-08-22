@@ -2857,14 +2857,17 @@
     "enemies/minotaur_1.png",
     "enemies/minotaur_2.png",
     "enemies/minotaur_3.png",
-    "enemies/minotaur_4.png"
+    "enemies/minotaur_4.png",
+    "enemies/minotaur_5.png",
+    "enemies/minotaur_6.png",
+    "enemies/minotaur_7.png"
    ],
    "cell": [
     52,
-    42
+    44
    ],
    "anchor": "bottom-center",
-   "fps": 10,
+   "fps": 11,
    "loop": true
   },
   "mantis": {

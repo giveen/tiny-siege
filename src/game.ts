@@ -14,6 +14,8 @@ import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./ty
 import {
   WORLD_W,
   WORLD_H,
+  CANVAS_W,
+  CANVAS_H,
   START_GOLD,
   START_CASTLE_HP,
   WAVE_CLEAR_GOLD,
@@ -92,8 +94,10 @@ export class Game {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    canvas.width = WORLD_W;
-    canvas.height = WORLD_H;
+    // Canvas is the world plus black HUD margins (right + bottom); the world
+    // itself is drawn at (0,0) and the HUD lives in the margins.
+    canvas.width = CANVAS_W;
+    canvas.height = CANVAS_H;
     this.ctx = canvas.getContext("2d")!;
     this.ctx.imageSmoothingEnabled = false;
     this.input = new Input(canvas);
@@ -597,9 +601,9 @@ export class Game {
       return;
     }
 
-    // placing / selecting
+    // placing / selecting (only within the world, not the HUD margins)
     if (this.paused) return;
-    this.worldInteract(this.mouse.x, this.mouse.y);
+    if (this.mouse.over) this.worldInteract(this.mouse.x, this.mouse.y);
 
     // right-click cancels
     if (this.input.consumeRightClick()) this.cancelAction();
@@ -660,7 +664,10 @@ export class Game {
   // ---------------------------------------------------------------- render
   render(): void {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, WORLD_W, WORLD_H);
+    // Fill the whole canvas (world + black HUD margins) dark. The world is
+    // drawn at (0,0) over the top-left, leaving the right/bottom margins black.
+    ctx.fillStyle = "#05080b";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
     if (this.screen === "loading") {
       this.drawLoading(ctx);
@@ -805,7 +812,7 @@ export class Game {
     ctx.save();
     ctx.globalAlpha = 0.6;
     ctx.fillStyle = "#04141a";
-    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.globalAlpha = 1;
     ctx.fillStyle = "#eaf6ff";
     ctx.font = "bold 40px 'Segoe UI', sans-serif";
@@ -818,13 +825,13 @@ export class Game {
 
   private drawLoading(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = "#06222b";
-    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.fillStyle = "#bfe6ef";
     ctx.font = "bold 28px 'Segoe UI', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Tiny Siege", WORLD_W / 2, WORLD_H / 2 - 10);
+    ctx.fillText("Tiny Siege", CANVAS_W / 2, CANVAS_H / 2 - 10);
     ctx.font = "16px 'Segoe UI', sans-serif";
-    ctx.fillText("Loading…", WORLD_W / 2, WORLD_H / 2 + 24);
+    ctx.fillText("Loading…", CANVAS_W / 2, CANVAS_H / 2 + 24);
   }
 
   destroy(): void {

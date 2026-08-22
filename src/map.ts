@@ -185,9 +185,10 @@ export class World {
     const cells = [...free];
     this.rng.shuffle(cells);
     const kinds: Deco["kind"][] = ["tree", "tree", "bush", "bush", "rock", "rock", "stump"];
-    // The map is large: place a deco on ~55% of free cells so trees/bushes/rocks
-    // are scattered across the whole island, not just a few patches.
-    const target = Math.floor(cells.length * 0.55);
+    // The map is large: place a deco on ~62% of free cells so trees/bushes/rocks
+    // are scattered across the whole island (including the open bottom rows),
+    // not just a few patches.
+    const target = Math.floor(cells.length * 0.62);
     for (let i = 0; i < target; i++) {
       const k = cells[i];
       const p = cellCenter(...(k.split(",").map(Number) as [number, number]));

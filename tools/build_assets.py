@@ -508,9 +508,10 @@ def main():
         "Skeletons_Free_Pack/Skeleton_Sword/Skeleton_White/Skeleton_Without_VFX/Skeleton_01_White_Walk.png", fps=12)
     special_anim("skeleton_yellow",
         "Skeletons_Free_Pack/Skeleton_Sword/Skeleton_Yellow/Skeleton_Without_VFX/Skeleton_01_Yellow_Walk.png", fps=12)
-    # Minotaur — the boss. Row 0 is the clean walk cycle (variable-width
-    # strips, ~5 frames); row 1 is a weapon thrust. Slice by content, not grid.
-    special_row_varwidth("minotaur", "Minotaur - Sprite Sheet.png", rows=0, fps=10)
+    # Minotaur — the boss. Row 1 is the clean 8-frame walk cycle (variable-width
+    # strips with a full leg stride); row 0 is a near-static idle. Slice by
+    # content, not grid.
+    special_row_varwidth("minotaur", "Minotaur - Sprite Sheet.png", rows=1, fps=11)
     # Insects — small ground bugs (variable-width strips)
     special_anim("mantis", "Animated insect enemy assets/MantisMove.png", fps=13)
     special_anim("beetle", "Animated insect enemy assets/BeetleMove.png", fps=9)
