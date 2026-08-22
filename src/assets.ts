@@ -68,6 +68,18 @@ export interface Manifest {
     /** Cropped center square of the 3×3 sheets — clean parchment fill. */
     paper_center?: StaticDef;
     paper_special_center?: StaticDef;
+    /**
+     * paper_special decorative tiles (the sheet is a tile set, not a 9-slice):
+     * corner brackets + edge accent lines, placed discretely by the HUD.
+     */
+    ps_corner_tl?: StaticDef;
+    ps_corner_tr?: StaticDef;
+    ps_corner_bl?: StaticDef;
+    ps_corner_br?: StaticDef;
+    ps_edge_t?: StaticDef;
+    ps_edge_b?: StaticDef;
+    ps_edge_l?: StaticDef;
+    ps_edge_r?: StaticDef;
   };
 }
 
@@ -127,6 +139,9 @@ export class Assets {
     add(u.paper_special.image);
     add(u.paper_center?.image);
     add(u.paper_special_center?.image);
+    for (const k of ["ps_corner_tl", "ps_corner_tr", "ps_corner_bl", "ps_corner_br", "ps_edge_t", "ps_edge_b", "ps_edge_l", "ps_edge_r"] as const) {
+      add(u[k]?.image);
+    }
     return paths;
   }
 

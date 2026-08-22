@@ -2788,6 +2788,70 @@
     64
    ],
    "anchor": "center"
+  },
+  "ps_corner_tl": {
+   "image": "ui/ps_corner_tl.png",
+   "size": [
+    54,
+    44
+   ],
+   "anchor": "center"
+  },
+  "ps_corner_tr": {
+   "image": "ui/ps_corner_tr.png",
+   "size": [
+    53,
+    44
+   ],
+   "anchor": "center"
+  },
+  "ps_edge_l": {
+   "image": "ui/ps_edge_l.png",
+   "size": [
+    54,
+    64
+   ],
+   "anchor": "center"
+  },
+  "ps_edge_r": {
+   "image": "ui/ps_edge_r.png",
+   "size": [
+    53,
+    64
+   ],
+   "anchor": "center"
+  },
+  "ps_edge_t": {
+   "image": "ui/ps_edge_t.png",
+   "size": [
+    64,
+    43
+   ],
+   "anchor": "center"
+  },
+  "ps_edge_b": {
+   "image": "ui/ps_edge_b.png",
+   "size": [
+    64,
+    43
+   ],
+   "anchor": "center"
+  },
+  "ps_corner_bl": {
+   "image": "ui/ps_corner_bl.png",
+   "size": [
+    55,
+    43
+   ],
+   "anchor": "center"
+  },
+  "ps_corner_br": {
+   "image": "ui/ps_corner_br.png",
+   "size": [
+    53,
+    43
+   ],
+   "anchor": "center"
   }
  },
  "special": {

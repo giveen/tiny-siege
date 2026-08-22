@@ -886,8 +886,25 @@ export class Hud {
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.restore();
 
-    // panel — dark stone sheet with gold corners
-    this.uiNine(ctx, u.paper_special, L.panel.x, L.panel.y, L.panel.w, L.panel.h, 56, 48);
+    // panel — plain center fill, then the sheet's corner brackets + edge
+    // accents placed at native size (the tiles are discrete, not 9-slice)
+    this.uiCenter(ctx, u.paper_special_center ?? u.paper_special, L.panel.x, L.panel.y, L.panel.w, L.panel.h);
+    const place = (def: StaticDef | undefined, x: number, y: number) => {
+      if (!def) return;
+      const im = this.assets.img(def.image);
+      if (im) ctx.drawImage(im, x, y);
+    };
+    const tw = (def: StaticDef | undefined) => def?.size[0] ?? 0;
+    const th = (def: StaticDef | undefined) => def?.size[1] ?? 0;
+    const P = L.panel;
+    place(u.ps_corner_tl, P.x, P.y);
+    place(u.ps_corner_tr, P.x + P.w - tw(u.ps_corner_tr), P.y);
+    place(u.ps_corner_bl, P.x, P.y + P.h - th(u.ps_corner_bl));
+    place(u.ps_corner_br, P.x + P.w - tw(u.ps_corner_br), P.y + P.h - th(u.ps_corner_br));
+    place(u.ps_edge_t, P.x + (P.w - tw(u.ps_edge_t)) / 2, P.y);
+    place(u.ps_edge_b, P.x + (P.w - tw(u.ps_edge_b)) / 2, P.y + P.h - th(u.ps_edge_b));
+    place(u.ps_edge_l, P.x, P.y + (P.h - th(u.ps_edge_l)) / 2);
+    place(u.ps_edge_r, P.x + P.w - tw(u.ps_edge_r), P.y + (P.h - th(u.ps_edge_r)) / 2);
 
     // header — parchment
     this.uiNine(ctx, u.banner_slots, L.header.x, L.header.y, L.header.w, L.header.h, 64, 56);

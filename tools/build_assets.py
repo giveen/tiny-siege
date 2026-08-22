@@ -672,6 +672,29 @@ def main():
             "anchor": "center",
         }
 
+    # paper_special is a decorative tile sheet (grey corner brackets + edge
+    # accent lines + plain center), not a 9-slice. Emit the individual tiles
+    # so the HUD can place them discretely around a stretched center fill.
+    ps = os.path.join(OUT, "ui/paper_special.png")
+    if os.path.exists(ps):
+        sheet = load(ps)
+        cw = sheet.width // 3
+        ch = sheet.height // 3
+        for name, (c, r) in {
+            "ps_corner_tl": (0, 0), "ps_corner_tr": (2, 0),
+            "ps_edge_l": (0, 1), "ps_edge_r": (2, 1),
+            "ps_edge_t": (1, 0), "ps_edge_b": (1, 2),
+            "ps_corner_bl": (0, 2), "ps_corner_br": (2, 2),
+        }.items():
+            tile = crop_to_bbox(sheet.crop((c * cw, r * ch, (c + 1) * cw, (r + 1) * ch)))
+            out = f"ui/{name}.png"
+            save(tile, out)
+            manifest["ui"][name] = {
+                "image": out,
+                "size": [tile.width, tile.height],
+                "anchor": "center",
+            }
+
     # ---- relic icons (same pack, repurposed for the Codex) ---------------
     # One icon per meta relic so the rune menu has life.
     RELIC_TILES = {
