@@ -1,7 +1,7 @@
-// Gear: equipment (helm / armor / ring) that enemies drop during a run.
-// Dropped pieces are banked permanently and can be equipped — per tower
-// type, one piece per slot — from the Armory in the main menu. A piece's
-// bonus scales linearly with its tier; higher waves drop higher tiers.
+// Gear: equipment (helm / armor / ring). Pieces are won from Supply Crates —
+// a gacha lootbox bought with the crate currency banked between runs — and
+// can then be equipped, per tower type, one piece per slot, from the Armory
+// in the main menu. A piece's bonus scales linearly with its tier.
 
 import type { TowerType } from "./types";
 import type { RNG } from "./rng";
@@ -128,19 +128,32 @@ function nextUid(): string {
   return "g" + Date.now().toString(36) + uidCounter.toString(36) + Math.floor(Math.random() * 1296).toString(36);
 }
 
-/** Roll a gear drop for a cleared wave: guaranteed on boss waves (every 5th),
- *  otherwise a 40% chance. Returns null when nothing drops. */
-export function rollGearDrop(wave: number, rng: RNG): GearInstance | null {
-  const boss = wave % 5 === 0;
-  if (!boss && rng.next() > 0.4) return null;
-  const def = GEARS[Math.floor(rng.next() * GEARS.length)];
-  return { uid: nextUid(), def: def.id, tier: gearTierForWave(wave) };
-}
-
 /** A guaranteed drop of a given tier (e.g. the victory bonus). */
 export function makeGearDrop(tier: number, rng: RNG): GearInstance {
   const def = GEARS[Math.floor(rng.next() * GEARS.length)];
   return { uid: nextUid(), def: def.id, tier: Math.min(TIER_MAX, Math.max(1, tier)) };
+}
+
+// ---------------------------------------------------------------- supply crates (gacha)
+/** Crate currency cost to open one Supply Crate (one random gear piece). */
+export const LOOTBOX_COST = 10;
+/** Tier odds per pull, 1-based (index 0 unused): T1 .. T5. */
+export const LOOTBOX_TIER_WEIGHTS = [0, 45, 27, 18, 8, 2];
+
+/** Roll one gear piece from a Supply Crate: weighted tier, then a random piece. */
+export function rollLootbox(rng: RNG): GearInstance {
+  const total = LOOTBOX_TIER_WEIGHTS.reduce((a, b) => a + b, 0);
+  let r = rng.next() * total;
+  let tier = TIER_MAX;
+  for (let t = 1; t <= TIER_MAX; t++) {
+    r -= LOOTBOX_TIER_WEIGHTS[t];
+    if (r <= 0) {
+      tier = t;
+      break;
+    }
+  }
+  const def = GEARS[Math.floor(rng.next() * GEARS.length)];
+  return { uid: nextUid(), def: def.id, tier };
 }
 
 // ---------------------------------------------------------------- blacksmith

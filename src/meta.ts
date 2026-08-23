@@ -1,7 +1,7 @@
 // Persistent meta-progression (between runs): a rune economy + relic unlock
-// tree, and the gear vault (equipment dropped by enemies). A lost (or won)
-// run still banks runes + gear, so every attempt moves you closer to the
-// build you're chasing. Stored in localStorage.
+// tree, the Supply Crate currency (spent on gacha lootboxes of gear), and the
+// gear vault. A lost (or won) run still banks runes + crates, so every
+// attempt moves you closer to the build you're chasing. Stored in localStorage.
 
 import { emptyGearState, type GearState } from "./gear";
 
@@ -13,6 +13,8 @@ export interface MetaState {
   gear: GearState;
   /** Blacksmith currency from recycled gear; spends on tier upgrades. */
   scrap: number;
+  /** Supply Crate currency banked from cleared waves; spent on gacha lootboxes. */
+  crates: number;
 }
 
 export interface Relic {
@@ -102,7 +104,7 @@ export const RELICS: Relic[] = [
 ];
 
 export function loadMeta(): MetaState {
-  const state = { runes: 0, levels: {} as Record<string, number>, gear: emptyGearState(), scrap: 0 };
+  const state = { runes: 0, levels: {} as Record<string, number>, gear: emptyGearState(), scrap: 0, crates: 0 };
   try {
     const raw = localStorage.getItem(META_KEY);
     if (raw) {
@@ -110,6 +112,8 @@ export function loadMeta(): MetaState {
       state.runes = typeof p.runes === "number" ? p.runes : 0;
       state.levels = p.levels && typeof p.levels === "object" ? p.levels : {};
       state.scrap = typeof p.scrap === "number" ? p.scrap : 0;
+      // Migrate pre-crate saves: absent field means zero.
+      state.crates = typeof p.crates === "number" ? p.crates : 0;
       // Migrate pre-gear saves: keep owned/equipped only if the shapes are sane.
       const g = p.gear;
       if (g && typeof g === "object" && Array.isArray(g.owned) && g.equipped && typeof g.equipped === "object") {
@@ -140,6 +144,14 @@ export function runesForWave(wave: number): number {
 }
 
 export const VICTORY_RUNES = 40;
+
+/** Supply crates granted for clearing a wave (banked immediately, so a loss still counts). */
+export function cratesForWave(wave: number): number {
+  return 1 + Math.floor(wave / 5);
+}
+
+/** Bonus crates banked for winning the siege. */
+export const VICTORY_CRATES = 20;
 
 export function metaStartGold(level: number): number {
   return level * 40;

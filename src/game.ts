@@ -29,6 +29,8 @@ import {
   relicLevel,
   runesForWave,
   VICTORY_RUNES,
+  cratesForWave,
+  VICTORY_CRATES,
   metaStartGold,
   metaCastleHp,
   metaDamageMult,
@@ -47,8 +49,9 @@ import {
   GEAR_SLOTS,
   gearTierForWave,
   gearUpgradeCost,
+  LOOTBOX_COST,
   makeGearDrop,
-  rollGearDrop,
+  rollLootbox,
   scrapValue,
   TIER_COLORS,
   TIER_MAX,
@@ -316,6 +319,13 @@ export class Game {
       this._showArmory = true;
       if (params.has("smith")) this.hud.armoryTab = "smith";
     }
+    // ?crates=N — seed the Supply Crate balance (verification / dev tool)
+    const crateParam = params.get("crates");
+    if (crateParam) {
+      const n = parseInt(crateParam, 10);
+      if (Number.isFinite(n) && n >= 0) this.meta.crates = n;
+      saveMeta(this.meta);
+    }
     // ?gearseed — bank a handful of random gear so the Armory has content
     if (params.has("gearseed")) {
       for (let i = 0; i < 8; i++) {
@@ -353,6 +363,28 @@ export class Game {
     // ?ff=N — applied last so debug startRun blocks above don't reset the jump.
     // Works with ?demo (drives the attract loop) or any started run.
     if (ffSeconds > 0 && this.screen === "game") this.fastForward(ffSeconds);
+
+    // ?click=x,y — synthesize one canvas click at canvas coordinates after the
+    // first paint (verification / dev tool; lets URL flows drive any button).
+    const clickParam = params.get("click");
+    if (clickParam) {
+      const [cx, cy] = clickParam.split(",").map((s) => parseFloat(s));
+      if (Number.isFinite(cx) && Number.isFinite(cy)) {
+        setTimeout(() => this.debugClick(cx, cy), 700);
+      }
+    }
+  }
+
+  /** Synthesize a pointer click at canvas coordinates (verification / dev tool). */
+  private debugClick(cx: number, cy: number): void {
+    const r = this.canvas.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) return;
+    const px = r.left + (cx / this.canvas.width) * r.width;
+    const py = r.top + (cy / this.canvas.height) * r.height;
+    const down = new PointerEvent("pointerdown", { clientX: px, clientY: py, button: 0 });
+    const up = new PointerEvent("pointerup", { clientX: px, clientY: py, button: 0 });
+    this.canvas.dispatchEvent(down);
+    window.dispatchEvent(up);
   }
 
   /** Deterministically advance the simulation (used for ?demo screenshots/tests). */
@@ -586,10 +618,13 @@ export class Game {
     this.addText(this.castle.x, this.castle.y - 84, `+${runes} ◆`, "#c58bff");
     this.sfx("coin");
 
-    // Enemies drop gear: guaranteed on boss waves, 40% otherwise (tier scales
-    // with the wave). Banked permanently — equip it in the Armory.
-    const drop = rollGearDrop(this.wave, this.rng);
-    if (drop) this.bankGearDrop(drop, -132);
+    // Supply crates: banked for every cleared wave (a loss or a win, it
+    // counts) — spend them in the Armory to open a Supply Crate for a random
+    // gear piece.
+    const crates = cratesForWave(this.wave);
+    this.meta.crates += crates;
+    saveMeta(this.meta);
+    this.addText(this.castle.x, this.castle.y - 108, `+${crates} crate${crates === 1 ? "" : "s"}`, "#d2a24c");
 
     // The island grows every 5 waves: new land, a longer enemy route, and a
     // few more build pads — the map itself is the meta-progression.
@@ -612,6 +647,7 @@ export class Game {
   private onVictory(): void {
     this.runWon = true;
     this.meta.runes += VICTORY_RUNES;
+    this.meta.crates += VICTORY_CRATES;
     saveMeta(this.meta);
     // Victory bonus: a guaranteed top-tier piece from the Siege.
     this.bankGearDrop(makeGearDrop(gearTierForWave(SIEGE_WAVE), this.rng));
@@ -735,7 +771,18 @@ export class Game {
     return true;
   }
 
-  /** Bank a drop into the vault (called on wave-clear loot + victory bonus). */
+  /** Spend crates to open a Supply Crate. Returns the rolled piece, or null
+   *  when the player can't afford it. The piece is banked to the vault. */
+  buyLootbox(): GearInstance | null {
+    if (this.meta.crates < LOOTBOX_COST) return null;
+    this.meta.crates -= LOOTBOX_COST;
+    const inst = rollLootbox(this.rng);
+    this.meta.gear.owned.push(inst);
+    saveMeta(this.meta);
+    return inst;
+  }
+
+  /** Bank a piece into the vault (the victory bonus still uses this). */
   private bankGearDrop(inst: GearInstance, yOff = -108): void {
     this.meta.gear.owned.push(inst);
     saveMeta(this.meta);

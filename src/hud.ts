@@ -20,13 +20,15 @@ import {
 } from "./tower";
 import { RARITY_COLOR } from "./boons";
 import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE } from "./config";
-import { VICTORY_RUNES, RELICS, relicLevel } from "./meta";
+import { VICTORY_RUNES, VICTORY_CRATES, RELICS, relicLevel } from "./meta";
 import {
   GEAR_BY_ID,
   GEAR_SLOTS,
   SLOT_LABEL,
   TIER_COLORS,
   TIER_MAX,
+  LOOTBOX_COST,
+  LOOTBOX_TIER_WEIGHTS,
   gearBonusText,
   gearUpgradeCost,
   scrapValue,
@@ -67,6 +69,8 @@ export class Hud {
   armoryTab: "vault" | "smith" = "vault";
   private smithPageRecycle = 0;
   private smithPageUpgrade = 0;
+  /** Last opened Supply Crate, shown in a reveal overlay until dismissed. */
+  private crateReveal: GearInstance | null = null;
 
   constructor(assets: Assets) {
     this.assets = assets;
@@ -364,11 +368,17 @@ export class Hud {
             : "build phase"
           : "";
     ctx.fillText(sub, L.waveRect.x, L.waveRect.y + 25);
-    // meta rune balance, right-aligned on the Wave line
+    // meta rune + crate balances, right-aligned on the Wave line
     ctx.fillStyle = "#c58bff";
     ctx.font = "700 14px 'Segoe UI', sans-serif";
     ctx.textAlign = "right";
-    ctx.fillText(`◆ ${game.meta.runes}`, L.waveRect.x + L.waveRect.w, L.waveRect.y + 14);
+    const rightX = L.waveRect.x + L.waveRect.w;
+    ctx.fillText(`◆ ${game.meta.runes}`, rightX, L.waveRect.y + 14);
+    const runeW = this.txtW(`◆ ${game.meta.runes}`, "700 14px 'Segoe UI', sans-serif");
+    ctx.fillStyle = "#d2a24c";
+    const crateX = rightX - runeW - 24;
+    this.crateIcon(ctx, crateX - this.txtW(String(game.meta.crates), "700 14px 'Segoe UI', sans-serif") - 4, L.waveRect.y + 8, 14);
+    ctx.fillText(`${game.meta.crates}`, crateX, L.waveRect.y + 14);
     ctx.restore();
 
     // start wave / status
@@ -715,7 +725,7 @@ export class Hud {
           accent: "#f0c060",
           lines: [
             { t: `Clear all ${SIEGE_WAVE} waves to win the campaign.`, c: "#cfe3f5" },
-            { t: "Between waves pick a Boon; surviving banks gear and runes." },
+            { t: "Between waves pick a Boon; surviving banks runes and supply crates." },
           ],
         };
       if (inRect(p, M.codex))
@@ -731,7 +741,7 @@ export class Hud {
           title: "The Armory",
           lines: [
             { t: "Gear banked from your runs.", c: "#cfe3f5" },
-            { t: "Equip pieces on tower types — they boost every one of those towers." },
+            { t: "Open Supply Crates to win gear, then equip pieces on tower types — they boost every one of those towers." },
           ],
         };
       if (inRect(p, M.help))
@@ -950,6 +960,20 @@ export class Hud {
     const L = this.armoryLayout(game);
     const vault = this.armoryTab === "vault";
 
+    // Supply Crate purchase (both tabs)
+    if (inRect(p, L.crateBtn)) {
+      const w = (t: number) => LOOTBOX_TIER_WEIGHTS[t];
+      return {
+        title: "Supply Crate",
+        accent: "#d2a24c",
+        lines: [
+          { t: `One random gear piece for ${LOOTBOX_COST} crates.`, c: "#cfe3f5" },
+          { t: `Tier odds: T1 ${w(1)}% · T2 ${w(2)}% · T3 ${w(3)}% · T4 ${w(4)}% · T5 ${w(5)}%.`, c: "#8fa8bd" },
+          { t: "Earn crates by clearing waves — they bank between runs.", c: "#8fa8bd" },
+        ],
+      };
+    }
+
     // vault tab: banked pieces
     if (vault) {
       for (const row of L.rows) {
@@ -1151,8 +1175,8 @@ export class Hud {
       "• At +3 upgrades a tower can Specialize: pick one of three lines, then level it.",
       "• Barracks muster soldiers who march the road and hold it against ground foes.",
       "• Unlock new towers and stack powers to go deeper.",
-      "• Every cleared wave banks ◆ runes (a lost run keeps them; winning the siege pays +40).",
-      "• Spend runes in The Codex on relics that carry over between sieges.",
+      "• Every cleared wave banks ◆ runes and supply crates (a lost run keeps them; winning pays +40 ◆ / +20 crates).",
+      "• Spend runes in The Codex on relics — and open Supply Crates in the Armory to win gear (T1–T5 by the odds).",
       "",
       "Keys: 1-6 build · Space start wave · P pause · F speed · M mute · Esc cancel",
       "Mouse: drag the map to slide around · wheel to zoom in and out",
@@ -1290,10 +1314,10 @@ export class Hud {
     ctx.fillText("The Minotaur assault is repelled.", CANVAS_W / 2, CANVAS_H / 2 - 42);
     ctx.fillStyle = "#bfe6ef";
     ctx.font = "600 18px 'Segoe UI', sans-serif";
-    ctx.fillText(`${game.kills} enemies slain  ·  +${VICTORY_RUNES} ◆ banked`, CANVAS_W / 2, CANVAS_H / 2);
+    ctx.fillText(`${game.kills} enemies slain  ·  +${VICTORY_RUNES} ◆  ·  +${VICTORY_CRATES} crates banked`, CANVAS_W / 2, CANVAS_H / 2);
     ctx.fillStyle = "#c58bff";
     ctx.font = "700 18px 'Segoe UI', sans-serif";
-    ctx.fillText(`Relic vault: ${game.meta.runes} ◆`, CANVAS_W / 2, CANVAS_H / 2 + 28);
+    ctx.fillText(`Relic vault: ${game.meta.runes} ◆  ·  ${game.meta.crates} crates`, CANVAS_W / 2, CANVAS_H / 2 + 28);
     ctx.restore();
 
     const r = this.victoryRects();
@@ -1535,6 +1559,8 @@ export class Hud {
     const close = { x: CANVAS_W / 2 - 110, y: 648, w: 220, h: 52 } as Rect;
     const vaultTab = { x: CANVAS_W / 2 - 210, y: 164, w: 200, h: 32 } as Rect;
     const smithTab = { x: CANVAS_W / 2 + 10, y: 164, w: 200, h: 32 } as Rect;
+    // Supply Crate purchase, in the tab row (visible on both tabs).
+    const crateBtn = { x: CANVAS_W / 2 + 240, y: 158, w: 230, h: 44 } as Rect;
 
     // The vault holds UNEQUIPPED pieces only — equipping moves a piece into
     // its slot (it returns to the vault when unequipped).
@@ -1612,7 +1638,7 @@ export class Hud {
     const uNext = { x: 1400, y: 576, w: 96, h: 44 } as Rect;
 
     return {
-      topY, close, vaultTab, smithTab,
+      topY, close, vaultTab, smithTab, crateBtn,
       rows, slots, prev, next, page, pages, count: vaultList.length, equippedCount: eqUids.size,
       rRows, rPrev, rNext, rPage, rPages,
       uRows, uPrev, uNext, uPage, uPages,
@@ -1646,30 +1672,49 @@ export class Hud {
     ctx.fillStyle = "#8fd0ff";
     ctx.font = "700 20px 'Segoe UI', sans-serif";
     if (this.armoryTab === "vault") {
-      ctx.fillText(`${L.count} piece${L.count === 1 ? "" : "s"} in the vault · ${L.equippedCount} equipped`, CANVAS_W / 2, 146);
+      const label = `${L.count} piece${L.count === 1 ? "" : "s"} in the vault · ${L.equippedCount} equipped`;
+      const tw = this.txtW(label, "700 20px 'Segoe UI', sans-serif");
+      const startX = CANVAS_W / 2 - (tw + 40) / 2;
+      this.crateIcon(ctx, startX, 129, 19);
+      ctx.textAlign = "left";
+      ctx.fillText(label, startX + 24, 146);
+      ctx.fillStyle = "#d2a24c";
+      ctx.fillText(` · ${game.meta.crates} crates`, startX + 24 + tw, 146);
+      ctx.textAlign = "center";
     } else {
       const label = `${game.meta.scrap} scrap`;
       const tw = this.txtW(label, "700 20px 'Segoe UI', sans-serif");
-      const startX = CANVAS_W / 2 - (tw + 24) / 2;
+      const crateLabel = ` · ${game.meta.crates} crates`;
+      const cw = this.txtW(crateLabel, "700 20px 'Segoe UI', sans-serif");
+      const startX = CANVAS_W / 2 - (tw + cw + 24) / 2;
       this.scrapIcon(ctx, startX, 129, 19);
       ctx.textAlign = "left";
       ctx.fillText(label, startX + 24, 146);
+      ctx.fillStyle = "#d2a24c";
+      ctx.fillText(crateLabel, startX + 24 + tw, 146);
       ctx.textAlign = "center";
     }
     ctx.fillStyle = "#8fb8c8";
     ctx.font = "600 14px 'Segoe UI', sans-serif";
     ctx.fillText(
       this.armoryTab === "vault"
-        ? "Enemies drop gear as you clear waves — deeper waves drop higher tiers. Click a piece, then click its slot to equip. It carries into every siege."
+        ? "Win gear by opening Supply Crates — clear waves to earn crates. Click a piece, then click its slot to equip. It carries into every siege."
         : "Recycle spare gear for scrap, then spend scrap to upgrade pieces to higher tiers. Equipped pieces can be upgraded in place.",
       CANVAS_W / 2,
       216
     );
     ctx.restore();
 
-    // tab buttons
+    // tab buttons + Supply Crate purchase (both tabs)
     this.drawArmoryTab(ctx, L.vaultTab, "THE VAULT", this.armoryTab === "vault");
     this.drawArmoryTab(ctx, L.smithTab, "THE BLACKSMITH", this.armoryTab === "smith");
+    this.button(
+      ctx,
+      L.crateBtn,
+      `Open Supply Crate  ·  ${LOOTBOX_COST}`,
+      { active: game.meta.crates >= LOOTBOX_COST, disabled: game.meta.crates < LOOTBOX_COST, small: true, fg: "#1a1206" }
+    );
+    this.crateIcon(ctx, L.crateBtn.x + 12, L.crateBtn.y + L.crateBtn.h / 2 - 10, 20);
 
     if (this.armoryTab === "smith") {
       this.drawSmith(game, ctx, L);
@@ -1801,6 +1846,69 @@ export class Hud {
     }
 
     this.button(ctx, L.close, "Close", { small: true });
+
+    // Supply Crate reveal, drawn last so it sits on top of everything.
+    if (this.crateReveal) this.drawCrateReveal(game, ctx);
+  }
+
+  /** Gacha reveal for the last opened Supply Crate. */
+  private drawCrateReveal(game: Game, ctx: CanvasRenderingContext2D): void {
+    const inst = this.crateReveal;
+    if (!inst) return;
+    const def = GEAR_BY_ID.get(inst.def);
+    if (!def) {
+      this.crateReveal = null;
+      return;
+    }
+    const W = 420;
+    const H = 330;
+    const x = CANVAS_W / 2 - W / 2;
+    const y = CANVAS_H / 2 - H / 2 - 20;
+    const tcolor = TIER_COLORS[inst.tier];
+
+    ctx.save();
+    ctx.globalAlpha = 0.78;
+    ctx.fillStyle = "#05090d";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.restore();
+
+    ctx.save();
+    this.roundRect(ctx, { x, y, w: W, h: H }, 12);
+    ctx.fillStyle = "#0c1c26";
+    ctx.fill();
+    ctx.strokeStyle = tcolor;
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#d2a24c";
+    ctx.font = "800 20px 'Segoe UI', sans-serif";
+    ctx.fillText("SUPPLY CRATE OPENED", x + W / 2, y + 38);
+
+    if (inst.tier >= 4) {
+      ctx.fillStyle = tcolor;
+      ctx.font = "900 24px 'Segoe UI', sans-serif";
+      ctx.fillText(inst.tier === 5 ? "★ LEGENDARY DROP ★" : "◆ RARE DROP ◆", x + W / 2, y + 68);
+    }
+
+    // icon
+    const icons = game.assets.manifest.gear?.icons ?? {};
+    const img = this.assets.img(icons[def.icon]);
+    if (img) ctx.drawImage(img, x + W / 2 - 48, y + 84, 96, 96);
+
+    ctx.fillStyle = "#eaf6ff";
+    ctx.font = "800 24px 'Segoe UI', sans-serif";
+    ctx.fillText(def.name, x + W / 2, y + 208);
+    ctx.fillStyle = tcolor;
+    ctx.font = "900 18px 'Segoe UI', sans-serif";
+    ctx.fillText(`TIER ${inst.tier}  ·  ${SLOT_LABEL[def.slot]}`, x + W / 2, y + 236);
+    ctx.fillStyle = "#9fd8a8";
+    ctx.font = "700 16px 'Segoe UI', sans-serif";
+    ctx.fillText(`${gearBonusText(def, inst.tier)} — boosts every ${TOWER_DEFS[def.tower].name}`, x + W / 2, y + 262);
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 14px 'Segoe UI', sans-serif";
+    ctx.fillText("Banked to your vault — equip it below.", x + W / 2, y + 296);
+    ctx.restore();
   }
 
   private drawArmoryTab(ctx: CanvasRenderingContext2D, r: Rect, label: string, active: boolean): void {
@@ -1826,6 +1934,39 @@ export class Hud {
     if (!img) return false;
     ctx.drawImage(img, x, y, size, size);
     return true;
+  }
+
+  /** A small hand-drawn wooden supply crate (currency icon). */
+  private crateIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size = 16): void {
+    const s = size;
+    ctx.save();
+    // planks
+    this.roundRect(ctx, { x, y, w: s, h: s }, 2);
+    ctx.fillStyle = "#b07a3e";
+    ctx.fill();
+    ctx.strokeStyle = "#5f3f1c";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // diagonal brace
+    ctx.beginPath();
+    ctx.moveTo(x + 1.5, y + 1.5);
+    ctx.lineTo(x + s - 1.5, y + s - 1.5);
+    ctx.moveTo(x + s - 1.5, y + 1.5);
+    ctx.lineTo(x + 1.5, y + s - 1.5);
+    ctx.strokeStyle = "rgba(95,63,28,0.7)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // nails
+    ctx.fillStyle = "#3c2810";
+    for (const [nx, ny] of [
+      [x + 2, y + 2],
+      [x + s - 3, y + 2],
+      [x + 2, y + s - 3],
+      [x + s - 3, y + s - 3],
+    ]) {
+      ctx.fillRect(nx, ny, 1.4, 1.4);
+    }
+    ctx.restore();
   }
 
   /** The Blacksmith tab: recycle banked pieces for scrap (left), upgrade any
@@ -1953,6 +2094,28 @@ export class Hud {
 
   handleArmoryClick(game: Game, p: { x: number; y: number }): boolean {
     const L = this.armoryLayout(game);
+
+    // The crate reveal swallows every click until dismissed.
+    if (this.crateReveal) {
+      this.crateReveal = null;
+      game.sfx("click");
+      return true;
+    }
+
+    // Supply Crate purchase (both tabs).
+    if (inRect(p, L.crateBtn)) {
+      const inst = game.buyLootbox();
+      if (inst) {
+        this.crateReveal = inst;
+        this.selectedGearUid = null;
+        this.armoryTab = "vault";
+        game.sfx(inst.tier >= 4 ? "castle" : "boon");
+      } else {
+        game.sfx("click");
+      }
+      return true;
+    }
+
     if (inRect(p, L.vaultTab)) {
       this.armoryTab = "vault";
       this.selectedGearUid = null;
@@ -1968,6 +2131,7 @@ export class Hud {
     if (inRect(p, L.close)) {
       game._showArmory = false;
       this.selectedGearUid = null;
+      this.crateReveal = null;
       game.sfx("click");
       return true;
     }
