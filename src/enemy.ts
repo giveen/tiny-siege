@@ -15,6 +15,8 @@ export type EnemyType =
   | "mantis"
   | "beetle"
   | "fly3"
+  | "maggot"
+  | "acidblob"
   | "boss";
 
 export interface EnemyDef {
@@ -38,6 +40,7 @@ export interface EnemyDef {
 // Base stats; scaled by wave number at spawn.
 export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   // Distinct HP tiers: frail speedsters -> sturdy melee -> heavy tanks -> boss.
+  maggot: { type: "maggot", unit: null, special: "maggot", hp: 14, speed: 70, castleDamage: 3, reward: 1, scale: 0.9 },
   mantis: { type: "mantis", unit: null, special: "mantis", hp: 16, speed: 104, castleDamage: 4, reward: 3, scale: 1.7 },
   mushroom: { type: "mushroom", unit: null, special: "mushroom", hp: 20, speed: 92, castleDamage: 5, reward: 3, scale: 1.1 },
   archer: { type: "archer", unit: "archer", hp: 24, speed: 78, castleDamage: 7, reward: 3, scale: 1.0 },
@@ -45,6 +48,7 @@ export const ENEMY_DEFS: Record<EnemyType, EnemyDef> = {
   pawn: { type: "pawn", unit: "pawn", hp: 42, speed: 56, castleDamage: 6, reward: 2, scale: 1.0 },
   flydemon: { type: "flydemon", unit: null, special: "flydemon", flying: true, hp: 54, speed: 66, castleDamage: 8, reward: 4, scale: 1.05 },
   healer: { type: "healer", unit: "monk", hp: 68, speed: 46, castleDamage: 5, reward: 6, scale: 1.0, healer: true },
+  acidblob: { type: "acidblob", unit: null, special: "acidblob", hp: 26, speed: 48, castleDamage: 5, reward: 3, scale: 1.2 },
   beetle: { type: "beetle", unit: null, special: "beetle", hp: 84, speed: 33, castleDamage: 9, reward: 4, scale: 1.7, armor: 3 },
   warrior: { type: "warrior", unit: "warrior", hp: 110, speed: 40, castleDamage: 11, reward: 4, scale: 1.05, armor: 2 },
   skeleton: {

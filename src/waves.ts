@@ -30,12 +30,13 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
   // small and early towers are weak). The armored heavies (warrior/beetle/
   // lancer/skeleton) only join after an island growth, and the Minotaur
   // itself appears solely on boss waves — the 5th, right before each growth.
-  const available: EnemyType[] = ["pawn"];
+  const available: EnemyType[] = ["pawn", "maggot"];
   if (N >= 2) available.push("archer");
   if (N >= 3) {
     available.push("mushroom");
     available.push("mantis");
   }
+  if (N >= 5) available.push("acidblob");
   if (N >= 6) {
     available.push("warrior");
     available.push("fly3");
@@ -50,6 +51,7 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
 
   const weights: Record<EnemyType, number> = {
     pawn: 10,
+    maggot: 7,
     archer: 6,
     warrior: 5,
     lancer: 3,
@@ -59,6 +61,7 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
     flydemon: 0,
     mantis: 0,
     beetle: 0,
+    acidblob: 0,
     fly3: 0,
     boss: 0,
   };
@@ -68,6 +71,7 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
     weights.mushroom = 5;
     weights.mantis = 4;
   }
+  if (N >= 5) weights.acidblob = 3;
   if (N >= 6) {
     weights.warrior = 6;
     weights.fly3 = 3;
@@ -76,6 +80,7 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
   if (N >= 8) {
     weights.beetle = 4;
     weights.healer += 1;
+    weights.acidblob += 1;
   }
   if (N >= 9) weights.fly3 += 2;
   if (N >= 10) {

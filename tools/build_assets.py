@@ -582,6 +582,11 @@ def main():
     # right-facing profile row (2) to match the other enemies' facing.
     special_grid("mantis", "Animated insect enemy assets/MantisMove.png", cols=4, row_count=4, rows=2, fps=13)
     special_grid("beetle", "Animated insect enemy assets/BeetleMove.png", cols=4, row_count=4, rows=2, fps=9)
+    # Maggot — same 4x4 directional-grid sheet format as mantis/beetle.
+    special_grid("maggot", "Animated insect enemy assets/MaggotWalk.png", cols=4, row_count=4, rows=2, fps=10)
+    # Acid Blob — a pulsing idle animation, 4 rows x 7 frames; any row works
+    # since the blob has no real facing.
+    special_grid("acidblob", "Animated insect enemy assets/AcidBlob.png", cols=7, row_count=4, rows=0, fps=8)
     # Enemy3 — a second, smaller flying type
     special_anim("fly3", "FlyingForestEnemies_FREE/Enemy3/Enemy3-Movement-In-Animation/Enemy3-Fly.png", fps=11)
 

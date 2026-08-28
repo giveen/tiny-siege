@@ -952,6 +952,12 @@ export class Game {
     this.spawnExplosionFx(e.x, e.y - 6, e.def.type === "boss" ? 1.6 : 0.7);
     this.addText(e.x, e.y - 18, `+${reward}`, "#ffd24a");
     this.sfx("die");
+    // Acid Blob: bursts into a corrosive puddle on death, poisoning any
+    // other foes still standing in it — a small bonus for killing one in a cluster.
+    if (e.def.type === "acidblob") {
+      this.spawnSplashFx(e.x, e.y - 6);
+      this.addFirePatch(e.x, e.y, 30, 2.5, 8, "poison");
+    }
   }
 
   private killed = new Set<Enemy>();

@@ -3351,6 +3351,39 @@
    "anchor": "bottom-center",
    "fps": 11,
    "loop": true
+  },
+  "maggot": {
+   "frames": [
+    "enemies/maggot_0.png",
+    "enemies/maggot_1.png",
+    "enemies/maggot_2.png",
+    "enemies/maggot_3.png"
+   ],
+   "cell": [
+    32,
+    12
+   ],
+   "anchor": "bottom-center",
+   "fps": 10,
+   "loop": true
+  },
+  "acidblob": {
+   "frames": [
+    "enemies/acidblob_0.png",
+    "enemies/acidblob_1.png",
+    "enemies/acidblob_2.png",
+    "enemies/acidblob_3.png",
+    "enemies/acidblob_4.png",
+    "enemies/acidblob_5.png",
+    "enemies/acidblob_6.png"
+   ],
+   "cell": [
+    32,
+    21
+   ],
+   "anchor": "bottom-center",
+   "fps": 8,
+   "loop": true
   }
  },
  "sound": {
