@@ -1189,7 +1189,10 @@ export class Game {
     this.mouse.x = (this.input.world.x - ox) / z;
     this.mouse.y = (this.input.world.y - oy) / z;
     this.mouse.over =
-      this.mouse.x >= 0 && this.mouse.x <= WORLD_W && this.mouse.y >= 0 && this.mouse.y <= WORLD_H;
+      this.mouse.x >= 0 &&
+      this.mouse.x <= WORLD_W &&
+      this.mouse.y >= this.world.minRow * TILE &&
+      this.mouse.y <= WORLD_H;
 
     // global keys
     if (this.input.key("KeyP") && !this._pKey) this.togglePause();
@@ -1320,7 +1323,7 @@ export class Game {
   private cellAtWorld(x: number, y: number): { c: number; r: number } | null {
     const c = Math.floor(x / TILE);
     const r = Math.floor(y / TILE);
-    if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return null;
+    if (c < 0 || r < this.world.minRow || c >= COLS || r >= ROWS) return null;
     return { c, r };
   }
 
@@ -1345,8 +1348,13 @@ export class Game {
   /** The zoomed world must always cover the viewport (no water gaps). */
   private clampCam(): void {
     const z = this.cam.zoom;
+    // The island only ever grows upward (taller), never wider, so the top
+    // bound (unlike the original fixed-at-0 top) tracks how far above y=0
+    // the world currently extends — that's what makes dragging able to
+    // reveal newly grown land above the default (bottom/castle) view.
+    const top = this.world.minRow * TILE;
     this.cam.x = clamp(this.cam.x, WORLD_W - WORLD_W * z, 0);
-    this.cam.y = clamp(this.cam.y, WORLD_H - WORLD_H * z, 0);
+    this.cam.y = clamp(this.cam.y, WORLD_H - WORLD_H * z, -top * z);
   }
 
   togglePause(): void {
@@ -1414,7 +1422,7 @@ export class Game {
       const s = this.shake * 6;
       ctx.translate((this.rng.next() - 0.5) * s, (this.rng.next() - 0.5) * s);
     }
-    ctx.drawImage(this.world.bg, 0, 0);
+    ctx.drawImage(this.world.bg, 0, this.world.minRow * TILE);
 
     this.drawBuildSpots(ctx);
     this.drawCastle(ctx);

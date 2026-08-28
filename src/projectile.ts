@@ -1,7 +1,7 @@
 import type { Game } from "./game";
 import type { Enemy } from "./enemy";
 import type { TowerStats } from "./types";
-import { WORLD_W, WORLD_H } from "./config";
+import { WORLD_W, WORLD_H, TILE } from "./config";
 import { drawSprite } from "./sprite";
 
 type ProjKind = "arrow" | "spear" | "cannonball" | "bolt";
@@ -134,7 +134,12 @@ export class Projectile {
     this.y += this.vy * dt;
     this.travel += this.speed * dt;
 
-    if (this.travel > this.maxTravel || this.x < -40 || this.x > WORLD_W + 40 || this.y < -40 || this.y > WORLD_H + 40) {
+    // The island only grows upward, so the top edge a stray shot should
+    // despawn past tracks the world's current (possibly very negative) top
+    // row rather than a fixed -40 — otherwise anything fired in newly grown
+    // territory would instantly "fly off the edge".
+    const topY = game.world.minRow * TILE - 40;
+    if (this.travel > this.maxTravel || this.x < -40 || this.x > WORLD_W + 40 || this.y < topY || this.y > WORLD_H + 40) {
       if (this.kind === "cannonball") this.explode(game);
       else if (!this.tryRicochet(game)) this.dead = true;
       return;
