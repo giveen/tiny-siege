@@ -39,14 +39,36 @@ import {
   metaCostMult,
   metaRangeMult,
   metaRateMult,
+  metaVictoryBonus,
+  metaCaravanBonus,
+  metaWallsReduction,
+  metaCastleRegen,
+  metaSplashMult,
+  metaBoonBonus,
+  relicPrereqMet,
   RELICS,
   type MetaState,
 } from "./meta";
+import {
+  loadProgress,
+  saveProgress,
+  refreshMissions,
+  bumpStat,
+  achievementProgress,
+  isAchievementClaimed,
+  missionProgress,
+  missionDef,
+  canClaimLogin,
+  claimLoginReward as claimLoginRewardProgress,
+  ACHIEVEMENTS,
+  type ProgressState,
+} from "./progress";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
 import {
   EMPTY_GEAR_BONUS,
   GEAR_BY_ID,
   GEAR_SLOTS,
+  gearActiveStats,
   gearTierForWave,
   gearUpgradeCost,
   LOOTBOX_COST,
@@ -138,6 +160,7 @@ export class Game {
   _showHelp = false;
   _showCodex = false;
   _showArmory = false;
+  _showProgress = false;
   /** World-space cursor (through the camera). */
   mouse = { x: 0, y: 0, over: false };
   /** Canvas-space cursor — the HUD is screen-space, so it clicks here. */
@@ -170,6 +193,7 @@ export class Game {
 
   best = 0;
   meta: MetaState = loadMeta();
+  progress: ProgressState = loadProgress();
   /** Sage's Insight level — shifts boon rarity weights (0..3). */
   sageLevel = 0;
   /** True once the run's victory has been claimed (guards rune banking). */
@@ -220,6 +244,7 @@ export class Game {
     this.castleSprite = new Sprite(asAsset(assets.building("blue", "castle")));
     this.hud = new Hud(assets);
     this.screen = "menu";
+    refreshMissions(this.progress, this.rng);
 
     const params = new URLSearchParams(location.search);
     const seedParam = params.get("seed");
@@ -318,6 +343,10 @@ export class Game {
     if (params.has("armory") || params.has("smith")) {
       this._showArmory = true;
       if (params.has("smith")) this.hud.armoryTab = "smith";
+    }
+    // ?progress — open the Achievements/Missions/Rewards screen (verification / dev tool)
+    if (params.has("progress")) {
+      this._showProgress = true;
     }
     // ?crates=N — seed the Supply Crate balance (verification / dev tool)
     const crateParam = params.get("crates");
@@ -440,6 +469,8 @@ export class Game {
     this.buffs.damageMult = metaDamageMult(relicLevel(this.meta, "armory"));
     this.buffs.goldKillMult = metaGoldMult(relicLevel(this.meta, "mint"));
     this.buffs.goldWaveMult = metaGoldMult(relicLevel(this.meta, "mint"));
+    this.buffs.castleDmgReduction = metaWallsReduction(relicLevel(this.meta, "walls"));
+    this.buffs.splashMult = metaSplashMult(relicLevel(this.meta, "siege_engineers"));
     this.metaCostMult = metaCostMult(relicLevel(this.meta, "quartermaster"));
     this.metaRangeMult = metaRangeMult(relicLevel(this.meta, "lookouts"));
     this.metaRateMult = metaRateMult(relicLevel(this.meta, "drums"));
@@ -468,6 +499,7 @@ export class Game {
     this.audio.unlock();
     this.audio.music("forest");
     this.sfx("wave");
+    bumpStat(this.progress, "runsPlayed");
   }
 
   // ---------------------------------------------------------------- sim
@@ -610,6 +642,7 @@ export class Game {
   private onWaveCleared(): void {
     const reward = Math.round(WAVE_CLEAR_GOLD(this.wave) * this.buffs.goldWaveMult);
     this.gold += reward;
+    bumpStat(this.progress, "goldEarned", reward);
     this.addText(this.castle.x, this.castle.y - 60, `+${reward} gold`, "#ffd24a");
     // Bank meta runes for clearing this wave (a loss or a win, it counts).
     const runes = runesForWave(this.wave);
@@ -626,6 +659,19 @@ export class Game {
     saveMeta(this.meta);
     this.addText(this.castle.x, this.castle.y - 108, `+${crates} crate${crates === 1 ? "" : "s"}`, "#d2a24c");
 
+    // Caravan relic: a bonus gold delivery every 5th wave.
+    const caravan = metaCaravanBonus(relicLevel(this.meta, "caravan"));
+    if (caravan > 0 && this.wave % 5 === 0) {
+      this.gold += caravan;
+      bumpStat(this.progress, "goldEarned", caravan);
+      this.addText(this.castle.x, this.castle.y - 132, `+${caravan} caravan gold`, "#ffd24a");
+    }
+    // Menders relic: patch the castle up after every wave.
+    const mend = metaCastleRegen(relicLevel(this.meta, "menders"));
+    if (mend > 0) this.healCastle(mend);
+
+    bumpStat(this.progress, "wavesCleared");
+
     // The island grows every 5 waves: new land, a longer enemy route, and a
     // few more build pads — the map itself is the meta-progression.
     const nextStage = stageForWave(this.wave + 1);
@@ -640,15 +686,18 @@ export class Game {
       this.onVictory();
       return;
     }
-    this.boonChoices = rollBoons(this, this.rng, 3);
+    const boonBonus = metaBoonBonus(relicLevel(this.meta, "vanguard_scouts"));
+    this.boonChoices = rollBoons(this, this.rng, 3 + boonBonus);
     this.wavePhase = "boon";
   }
 
   private onVictory(): void {
     this.runWon = true;
-    this.meta.runes += VICTORY_RUNES;
-    this.meta.crates += VICTORY_CRATES;
+    const victoryBonus = metaVictoryBonus(relicLevel(this.meta, "treasury"));
+    this.meta.runes += VICTORY_RUNES + victoryBonus;
+    this.meta.crates += VICTORY_CRATES + victoryBonus;
     saveMeta(this.meta);
+    bumpStat(this.progress, "sieges");
     // Victory bonus: a guaranteed top-tier piece from the Siege.
     this.bankGearDrop(makeGearDrop(gearTierForWave(SIEGE_WAVE), this.rng));
     this.screen = "victory";
@@ -680,6 +729,7 @@ export class Game {
     // Telegraph the following wave while the player plans.
     this.nextWave = generateWave(this.wave + 1, this.rng);
     this.sfx("boon");
+    bumpStat(this.progress, "boonsChosen");
   }
 
   countBoon(id: string): number {
@@ -691,6 +741,7 @@ export class Game {
   buyRelic(id: string): boolean {
     const relic = RELICS.find((r) => r.id === id);
     if (!relic) return false;
+    if (!relicPrereqMet(this.meta, id)) return false;
     const lvl = relicLevel(this.meta, id);
     if (lvl >= relic.maxLevel) return false;
     const cost = relic.cost(lvl);
@@ -698,6 +749,7 @@ export class Game {
     this.meta.runes -= cost;
     this.meta.levels[id] = lvl + 1;
     saveMeta(this.meta);
+    bumpStat(this.progress, "relicsBought");
     return true;
   }
 
@@ -712,7 +764,9 @@ export class Game {
       if (!inst) continue;
       const def = GEAR_BY_ID.get(inst.def);
       if (!def) continue;
-      b[def.stat] += (def.base * inst.tier) / 100;
+      for (const roll of gearActiveStats(def, inst.tier)) {
+        b[roll.stat] += (roll.base * inst.tier) / 100;
+      }
     }
     return b;
   }
@@ -731,6 +785,7 @@ export class Game {
     if (!def || def.tower !== type || def.slot !== slot) return;
     this.meta.gear.equipped[type] = { ...(this.meta.gear.equipped[type] ?? {}), [slot]: uid };
     saveMeta(this.meta);
+    bumpStat(this.progress, "gearEquipped");
   }
 
   /** Remove a slot's equipped piece (it returns to the vault). */
@@ -756,6 +811,7 @@ export class Game {
     this.meta.gear.owned.splice(i, 1);
     this.meta.scrap += value;
     saveMeta(this.meta);
+    bumpStat(this.progress, "gearRecycled");
     return value;
   }
 
@@ -779,7 +835,57 @@ export class Game {
     const inst = rollLootbox(this.rng);
     this.meta.gear.owned.push(inst);
     saveMeta(this.meta);
+    bumpStat(this.progress, "cratesOpened");
     return inst;
+  }
+
+  // -------------------------------------------------------------- progress
+  /** Grant a Reward's currencies into MetaState and persist. */
+  private grantReward(reward: { runes?: number; crates?: number; scrap?: number }): void {
+    if (reward.runes) this.meta.runes += reward.runes;
+    if (reward.crates) this.meta.crates += reward.crates;
+    if (reward.scrap) this.meta.scrap += reward.scrap;
+    saveMeta(this.meta);
+  }
+
+  /** Claim a completed achievement's reward. Returns true if it succeeded. */
+  claimAchievement(id: string): boolean {
+    const def = ACHIEVEMENTS.find((a) => a.id === id);
+    if (!def || isAchievementClaimed(this.progress, id)) return false;
+    if (achievementProgress(this.progress, def) < def.target) return false;
+    this.grantReward(def.reward);
+    this.progress.claimedAchievements.push(id);
+    saveProgress(this.progress);
+    this.sfx("coin");
+    return true;
+  }
+
+  /** Claim a daily/weekly/bounty mission's reward. Bounties immediately
+   *  re-arm (re-snapshot) so they can be completed again. */
+  claimMission(kind: "daily" | "weekly" | "bounty", defId: string): boolean {
+    const list = kind === "daily" ? this.progress.daily.missions : kind === "weekly" ? this.progress.weekly.missions : this.progress.bounty;
+    const inst = list.find((m) => m.defId === defId);
+    const def = missionDef(defId);
+    if (!inst || !def || inst.claimed) return false;
+    if (missionProgress(this.progress, def, inst) < def.amount) return false;
+    this.grantReward(def.reward);
+    if (kind === "bounty") {
+      inst.base = this.progress.stats[def.statKey] ?? 0; // re-arm, infinitely repeatable
+    } else {
+      inst.claimed = true;
+    }
+    saveProgress(this.progress);
+    this.sfx("coin");
+    return true;
+  }
+
+  /** Claim today's login reward, advancing (or resetting) the streak. */
+  claimLoginReward(): boolean {
+    if (!canClaimLogin(this.progress)) return false;
+    const reward = claimLoginRewardProgress(this.progress);
+    this.grantReward(reward);
+    this.sfx("coin");
+    return true;
   }
 
   /** Bank a piece into the vault (the victory bonus still uses this). */
@@ -837,8 +943,11 @@ export class Game {
     if (e.dead && this.killsCounted(e)) return;
     this.markKilled(e);
     this.kills++;
+    bumpStat(this.progress, "kills");
+    if (e.def.type === "boss") bumpStat(this.progress, "bossKills");
     const reward = Math.round((KILL_GOLD_BASE + e.reward) * this.buffs.goldKillMult) + this.buffs.killGoldFlat;
     this.gold += reward;
+    bumpStat(this.progress, "goldEarned", reward);
     this.spawnExplosionFx(e.x, e.y - 6, e.def.type === "boss" ? 1.6 : 0.7);
     this.addText(e.x, e.y - 18, `+${reward}`, "#ffd24a");
     this.sfx("die");
@@ -888,6 +997,7 @@ export class Game {
     this.towers.push(t);
     this.spawnRingFx(spot.x, spot.y - 10, "#8fe08f", 0.8);
     this.sfx("build");
+    bumpStat(this.progress, "towersBuilt");
     return true;
   }
 
@@ -903,6 +1013,7 @@ export class Game {
     t.upg[track]++;
     this.spawnRingFx(t.x, t.y - 16, "#ffd24a", 0.9);
     this.sfx("upgrade");
+    bumpStat(this.progress, "towerUpgrades");
   }
 
   /** Pick a tower's specialization line (once, after SPEC_UNLOCK_AT upgrade points). */
@@ -937,6 +1048,7 @@ export class Game {
     const sd = t.specDef();
     this.spawnRingFx(t.x, t.y - 16, sd?.color ?? "#ffd24a", 0.9);
     this.sfx("upgrade");
+    bumpStat(this.progress, "towerUpgrades");
   }
 
   /** Barracks musters a soldier (stats come from the barracks' upgrades/specs). */
@@ -1259,6 +1371,7 @@ export class Game {
     this.paused = false;
     this.audio.music("forest");
     this.sfx("click");
+    refreshMissions(this.progress, this.rng);
   }
   setPlacing(type: TowerType | null): void {
     this.placing = type;
