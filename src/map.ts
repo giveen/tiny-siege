@@ -284,7 +284,7 @@ export class World {
     const added: BuildSpot[] = [];
     for (let r = this.minRow; r < ROWS; r++)
       for (let c = 0; c < COLS; c++) {
-        if (!this.isGrass(c, r) || (c + r) % 2 !== 0) continue;
+        if (!this.isGrass(c, r) || (c + r) % 4 !== 0) continue;
         const k = cellKey(c, r);
         if (!nearPath.has(k) || RESERVED_CELLS.has(k) || this.castleCells.has(k)) continue;
         if (!initial && this.buildSpotByCell.has(k)) continue;

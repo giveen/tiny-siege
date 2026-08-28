@@ -1600,20 +1600,26 @@ export class Game {
     ctx.stroke();
     ctx.restore();
 
-    // cost + cancel hint above the ghost
+    // cost + cancel hint above the ghost — unless that would push it past the
+    // island's current top edge (a pad near the newest growth band), in which
+    // case it's drawn below instead so it never gets clipped off-screen.
+    const topBound = this.world.minRow * TILE;
+    const below = gy - pad / 2 - topBound < 40;
+    const y1 = below ? gy + pad / 2 + 24 : gy - pad / 2 - 20;
+    const y2 = below ? gy + pad / 2 + 40 : gy - pad / 2 - 5;
     ctx.save();
     ctx.textAlign = "center";
     ctx.font = "700 15px 'Segoe UI', sans-serif";
     ctx.lineWidth = 3;
     ctx.strokeStyle = "rgba(0,0,0,0.65)";
     const label = valid ? `Move pad · ${SPOT_MOVE_COST}g` : "Move pad";
-    ctx.strokeText(label, gx, gy - pad / 2 - 20);
+    ctx.strokeText(label, gx, y1);
     ctx.fillStyle = valid ? "#d8f5d8" : "#e8b8b8";
-    ctx.fillText(label, gx, gy - pad / 2 - 20);
+    ctx.fillText(label, gx, y1);
     ctx.font = "600 12px 'Segoe UI', sans-serif";
-    ctx.strokeText("click a grass cell · right-click to cancel", gx, gy - pad / 2 - 5);
+    ctx.strokeText("click a grass cell · right-click to cancel", gx, y2);
     ctx.fillStyle = "rgba(230,240,245,0.9)";
-    ctx.fillText("click a grass cell · right-click to cancel", gx, gy - pad / 2 - 5);
+    ctx.fillText("click a grass cell · right-click to cancel", gx, y2);
     ctx.restore();
   }
 
