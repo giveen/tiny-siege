@@ -28,7 +28,23 @@ export interface Relic {
   effect: (level: number) => string;
 }
 
+/** A branch is a linear chain of relics: node i>0 only becomes purchasable
+ *  once node i-1 is fully maxed — the Codex's "research tree" shape. */
+export interface RelicBranch {
+  id: string;
+  name: string;
+  nodeIds: string[];
+}
+
+export const RELIC_BRANCHES: RelicBranch[] = [
+  { id: "economy", name: "Economy", nodeIds: ["provisions", "mint", "treasury", "caravan"] },
+  { id: "defense", name: "Defense", nodeIds: ["bastion", "walls", "menders"] },
+  { id: "offense", name: "Offense", nodeIds: ["armory", "lookouts", "drums", "siege_engineers"] },
+  { id: "support", name: "Support", nodeIds: ["quartermaster", "recruit", "sage", "vanguard_scouts"] },
+];
+
 export const RELICS: Relic[] = [
+  // ---------------------------------------------------------------- economy
   {
     id: "provisions",
     name: "Provisions",
@@ -36,22 +52,6 @@ export const RELICS: Relic[] = [
     maxLevel: 5,
     cost: (l) => 12 + l * 10,
     effect: (l) => `+${l * 40} starting gold`,
-  },
-  {
-    id: "bastion",
-    name: "Bastion",
-    blurb: "Fortify the castle before every run.",
-    maxLevel: 5,
-    cost: (l) => 12 + l * 10,
-    effect: (l) => `+${l * 25} max castle HP`,
-  },
-  {
-    id: "armory",
-    name: "Armory",
-    blurb: "Your towers hit harder.",
-    maxLevel: 5,
-    cost: (l) => 16 + l * 12,
-    effect: (l) => `+${l * 8}% tower damage`,
   },
   {
     id: "mint",
@@ -62,28 +62,54 @@ export const RELICS: Relic[] = [
     effect: (l) => `+${l * 8}% gold earned`,
   },
   {
-    id: "sage",
-    name: "Sage's Insight",
-    blurb: "Boons lean rarer each run.",
-    maxLevel: 3,
-    cost: (l) => 30 + l * 25,
-    effect: (l) => `Boon rarity +${l}`,
-  },
-  {
-    id: "recruit",
-    name: "Old Guard",
-    blurb: "More tower types ready at the start — all six at max.",
+    id: "treasury",
+    name: "Treasury",
+    blurb: "The Crown pays a larger bonus for a won siege.",
     maxLevel: 5,
-    cost: (l) => 40 + l * 30,
-    effect: (l) => `Start with ${1 + l} tower type${l ? "s" : ""}`,
+    cost: (l) => 20 + l * 15,
+    effect: (l) => `+${l * 4} victory runes & crates`,
   },
   {
-    id: "quartermaster",
-    name: "Quartermaster",
-    blurb: "Builds and upgrades cost less, every run.",
+    id: "caravan",
+    name: "Caravan",
+    blurb: "A supply caravan arrives every fifth wave.",
+    maxLevel: 5,
+    cost: (l) => 24 + l * 16,
+    effect: (l) => `+${l * 20} gold every 5th wave`,
+  },
+  // ---------------------------------------------------------------- defense
+  {
+    id: "bastion",
+    name: "Bastion",
+    blurb: "Fortify the castle before every run.",
+    maxLevel: 5,
+    cost: (l) => 12 + l * 10,
+    effect: (l) => `+${l * 25} max castle HP`,
+  },
+  {
+    id: "walls",
+    name: "Walls",
+    blurb: "Thicker walls, permanently, every run.",
+    maxLevel: 5,
+    cost: (l) => 18 + l * 14,
+    effect: (l) => `-${l * 5}% castle damage taken`,
+  },
+  {
+    id: "menders",
+    name: "Menders",
+    blurb: "Field medics patch the castle after every wave.",
+    maxLevel: 5,
+    cost: (l) => 20 + l * 16,
+    effect: (l) => `+${l * 8} castle HP restored per wave`,
+  },
+  // ---------------------------------------------------------------- offense
+  {
+    id: "armory",
+    name: "Armory",
+    blurb: "Your towers hit harder.",
     maxLevel: 5,
     cost: (l) => 16 + l * 12,
-    effect: (l) => `-${l * 8}% build & upgrade cost`,
+    effect: (l) => `+${l * 8}% tower damage`,
   },
   {
     id: "lookouts",
@@ -101,7 +127,77 @@ export const RELICS: Relic[] = [
     cost: (l) => 16 + l * 12,
     effect: (l) => `+${l * 8}% tower fire rate`,
   },
+  {
+    id: "siege_engineers",
+    name: "Siege Engineers",
+    blurb: "Every blast radius grows a little wider.",
+    maxLevel: 5,
+    cost: (l) => 22 + l * 16,
+    effect: (l) => `+${l * 6}% splash radius (all towers)`,
+  },
+  // ---------------------------------------------------------------- support
+  {
+    id: "quartermaster",
+    name: "Quartermaster",
+    blurb: "Builds and upgrades cost less, every run.",
+    maxLevel: 5,
+    cost: (l) => 16 + l * 12,
+    effect: (l) => `-${l * 8}% build & upgrade cost`,
+  },
+  {
+    id: "recruit",
+    name: "Old Guard",
+    blurb: "More tower types ready at the start — all eight at max.",
+    maxLevel: 7,
+    cost: (l) => 40 + l * 30,
+    effect: (l) => `Start with ${1 + l} tower type${l ? "s" : ""}`,
+  },
+  {
+    id: "sage",
+    name: "Sage's Insight",
+    blurb: "Boons lean rarer each run.",
+    maxLevel: 3,
+    cost: (l) => 30 + l * 25,
+    effect: (l) => `Boon rarity +${l}`,
+  },
+  {
+    id: "vanguard_scouts",
+    name: "Vanguard Scouts",
+    blurb: "Scouts turn up an extra option after every wave.",
+    maxLevel: 2,
+    cost: (l) => 30 + l * 28,
+    effect: (l) => `+${l} boon choice${l > 1 ? "s" : ""} offered`,
+  },
 ];
+
+const RELIC_BY_ID = new Map(RELICS.map((r) => [r.id, r]));
+
+/** Which branch (and position within it) a relic belongs to, if any. */
+function branchNodeIndex(id: string): { branch: RelicBranch; index: number } | null {
+  for (const b of RELIC_BRANCHES) {
+    const index = b.nodeIds.indexOf(id);
+    if (index >= 0) return { branch: b, index };
+  }
+  return null;
+}
+
+/** A branch node beyond the first requires the previous node in its chain to
+ *  be fully maxed — the tree's prerequisite gate. */
+export function relicPrereqMet(m: MetaState, id: string): boolean {
+  const loc = branchNodeIndex(id);
+  if (!loc || loc.index === 0) return true;
+  const prevId = loc.branch.nodeIds[loc.index - 1];
+  const prev = RELIC_BY_ID.get(prevId);
+  if (!prev) return true;
+  return relicLevel(m, prevId) >= prev.maxLevel;
+}
+
+/** The relic (if any) that must be maxed before this one unlocks. */
+export function relicPrereqOf(id: string): Relic | null {
+  const loc = branchNodeIndex(id);
+  if (!loc || loc.index === 0) return null;
+  return RELIC_BY_ID.get(loc.branch.nodeIds[loc.index - 1]) ?? null;
+}
 
 export function loadMeta(): MetaState {
   const state = { runes: 0, levels: {} as Record<string, number>, gear: emptyGearState(), scrap: 0, crates: 0 };
@@ -176,4 +272,22 @@ export function metaRangeMult(level: number): number {
 }
 export function metaRateMult(level: number): number {
   return 1 + level * 0.08;
+}
+export function metaVictoryBonus(level: number): number {
+  return level * 4;
+}
+export function metaCaravanBonus(level: number): number {
+  return level * 20;
+}
+export function metaWallsReduction(level: number): number {
+  return level * 0.05;
+}
+export function metaCastleRegen(level: number): number {
+  return level * 8;
+}
+export function metaSplashMult(level: number): number {
+  return 1 + level * 0.06;
+}
+export function metaBoonBonus(level: number): number {
+  return level;
 }

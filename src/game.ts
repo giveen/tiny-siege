@@ -39,14 +39,37 @@ import {
   metaCostMult,
   metaRangeMult,
   metaRateMult,
+  metaVictoryBonus,
+  metaCaravanBonus,
+  metaWallsReduction,
+  metaCastleRegen,
+  metaSplashMult,
+  metaBoonBonus,
+  relicPrereqMet,
   RELICS,
   type MetaState,
 } from "./meta";
+import {
+  loadProgress,
+  saveProgress,
+  refreshMissions,
+  bumpStat,
+  setStatMax,
+  achievementProgress,
+  isAchievementClaimed,
+  missionProgress,
+  missionDef,
+  canClaimLogin,
+  claimLoginReward as claimLoginRewardProgress,
+  ACHIEVEMENTS,
+  type ProgressState,
+} from "./progress";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
 import {
   EMPTY_GEAR_BONUS,
   GEAR_BY_ID,
   GEAR_SLOTS,
+  gearActiveStats,
   gearTierForWave,
   gearUpgradeCost,
   LOOTBOX_COST,
@@ -121,7 +144,9 @@ export class Game {
   enemies: Enemy[] = [];
   soldiers: Soldier[] = [];
   /** Napalm patches: burning ground that damages grounded enemies standing in it. */
-  firePatches: { x: number; y: number; r: number; until: number; dps: number }[] = [];
+  firePatches: { x: number; y: number; r: number; until: number; dps: number; kind: "fire" | "poison" }[] = [];
+  /** Drifting clouds over the map — purely atmospheric, no gameplay effect. */
+  private clouds: { img: number; x: number; y: number; vx: number; scale: number; alpha: number }[] = [];
   projectiles: Projectile[] = [];
   fx: Fx[] = [];
   spawnQueue: SpawnEntry[] = [];
@@ -138,6 +163,7 @@ export class Game {
   _showHelp = false;
   _showCodex = false;
   _showArmory = false;
+  _showProgress = false;
   /** World-space cursor (through the camera). */
   mouse = { x: 0, y: 0, over: false };
   /** Canvas-space cursor — the HUD is screen-space, so it clicks here. */
@@ -170,6 +196,7 @@ export class Game {
 
   best = 0;
   meta: MetaState = loadMeta();
+  progress: ProgressState = loadProgress();
   /** Sage's Insight level — shifts boon rarity weights (0..3). */
   sageLevel = 0;
   /** True once the run's victory has been claimed (guards rune banking). */
@@ -220,6 +247,7 @@ export class Game {
     this.castleSprite = new Sprite(asAsset(assets.building("blue", "castle")));
     this.hud = new Hud(assets);
     this.screen = "menu";
+    refreshMissions(this.progress, this.rng);
 
     const params = new URLSearchParams(location.search);
     const seedParam = params.get("seed");
@@ -239,12 +267,12 @@ export class Game {
     // ?buildall — place one of every tower type (verification / dev tool)
     if (params.has("buildall")) {
       this.startRun();
-      this.unlocked = new Set(["archer", "lancer", "cannon", "monastery", "barracks", "wizard"]);
+      this.unlocked = new Set(TOWER_ORDER);
       this.gold = 9999;
       const spots = [...this.world.buildSpots];
       this.rng.shuffle(spots);
-      const types: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks", "wizard"];
-      for (let i = 0; i < 6 && i < spots.length; i++) this.buildTower(types[i], spots[i]);
+      const types: TowerType[] = [...TOWER_ORDER];
+      for (let i = 0; i < types.length && i < spots.length; i++) this.buildTower(types[i], spots[i]);
       for (let i = 0; i < 3; i++) {
         const e = new Enemy(this, "pawn", "red", 3);
         e.pathDist = 320 + i * 130;
@@ -318,6 +346,10 @@ export class Game {
     if (params.has("armory") || params.has("smith")) {
       this._showArmory = true;
       if (params.has("smith")) this.hud.armoryTab = "smith";
+    }
+    // ?progress — open the Achievements/Missions/Rewards screen (verification / dev tool)
+    if (params.has("progress")) {
+      this._showProgress = true;
     }
     // ?crates=N — seed the Supply Crate balance (verification / dev tool)
     const crateParam = params.get("crates");
@@ -440,6 +472,8 @@ export class Game {
     this.buffs.damageMult = metaDamageMult(relicLevel(this.meta, "armory"));
     this.buffs.goldKillMult = metaGoldMult(relicLevel(this.meta, "mint"));
     this.buffs.goldWaveMult = metaGoldMult(relicLevel(this.meta, "mint"));
+    this.buffs.castleDmgReduction = metaWallsReduction(relicLevel(this.meta, "walls"));
+    this.buffs.splashMult = metaSplashMult(relicLevel(this.meta, "siege_engineers"));
     this.metaCostMult = metaCostMult(relicLevel(this.meta, "quartermaster"));
     this.metaRangeMult = metaRangeMult(relicLevel(this.meta, "lookouts"));
     this.metaRateMult = metaRateMult(relicLevel(this.meta, "drums"));
@@ -455,6 +489,7 @@ export class Game {
     this.firePatches = [];
     this.projectiles = [];
     this.fx = [];
+    this.clouds = Array.from({ length: 10 }, () => this.respawnCloud(this.rng.range(-WORLD_W * 0.2, WORLD_W * 1.2)));
     this.spawnQueue = [];
     this.placing = null;
     this.movingSpot = null;
@@ -468,6 +503,7 @@ export class Game {
     this.audio.unlock();
     this.audio.music("forest");
     this.sfx("wave");
+    bumpStat(this.progress, "runsPlayed");
   }
 
   // ---------------------------------------------------------------- sim
@@ -493,11 +529,12 @@ export class Game {
     for (const s of this.soldiers) s.update(this, dt);
     this.soldiers = this.soldiers.filter((s) => !s.dead);
 
-    // napalm patches: burn grounded enemies standing in them
+    // napalm/poison patches: burn (or poison) enemies standing in them.
+    // Fire patches only reach the ground; poison clouds drift up and tick fliers too.
     if (this.firePatches.length > 0) {
       for (const f of this.firePatches) {
         for (const e of this.enemies) {
-          if (e.dead || e.flying) continue;
+          if (e.dead || (e.flying && f.kind === "fire")) continue;
           if (Math.hypot(e.x - f.x, e.y - f.y) <= f.r + 6 * e.scale) {
             this.damageEnemy(e, f.dps * dt, "burn");
           }
@@ -515,6 +552,7 @@ export class Game {
 
     // fx
     this.fxTick(dt, true);
+    this.cloudTick(dt);
 
     // castle ballista aura
     if (this.buffs.castleAuraDps > 0) {
@@ -590,6 +628,31 @@ export class Game {
     this.fx = this.fx.filter((f) => !f.done);
   }
 
+  /** A fresh drifting cloud entering from `x` — reused both to seed the run
+   *  and to recycle one that's drifted off the right edge. Sized so every
+   *  cloud reads at roughly the same on-screen scale regardless of which of
+   *  the 8 source images (88px to 495px wide) got picked. */
+  private respawnCloud(x: number): { img: number; x: number; y: number; vx: number; scale: number; alpha: number } {
+    const defs = this.assets.manifest.clouds;
+    const img = this.rng.int(0, defs.length - 1);
+    const scale = this.rng.range(220, 420) / defs[img].size[0];
+    return {
+      img,
+      x,
+      y: this.rng.range(this.world.minRow * TILE, WORLD_H),
+      vx: this.rng.range(8, 22),
+      scale,
+      alpha: this.rng.range(0.4, 0.65),
+    };
+  }
+
+  private cloudTick(dt: number): void {
+    for (const c of this.clouds) {
+      c.x += c.vx * dt;
+      if (c.x > WORLD_W + 300) Object.assign(c, this.respawnCloud(-300));
+    }
+  }
+
   // ---------------------------------------------------------------- waves
   startWave(): void {
     if (this.wavePhase !== "build") return;
@@ -610,6 +673,7 @@ export class Game {
   private onWaveCleared(): void {
     const reward = Math.round(WAVE_CLEAR_GOLD(this.wave) * this.buffs.goldWaveMult);
     this.gold += reward;
+    bumpStat(this.progress, "goldEarned", reward);
     this.addText(this.castle.x, this.castle.y - 60, `+${reward} gold`, "#ffd24a");
     // Bank meta runes for clearing this wave (a loss or a win, it counts).
     const runes = runesForWave(this.wave);
@@ -626,6 +690,19 @@ export class Game {
     saveMeta(this.meta);
     this.addText(this.castle.x, this.castle.y - 108, `+${crates} crate${crates === 1 ? "" : "s"}`, "#d2a24c");
 
+    // Caravan relic: a bonus gold delivery every 5th wave.
+    const caravan = metaCaravanBonus(relicLevel(this.meta, "caravan"));
+    if (caravan > 0 && this.wave % 5 === 0) {
+      this.gold += caravan;
+      bumpStat(this.progress, "goldEarned", caravan);
+      this.addText(this.castle.x, this.castle.y - 132, `+${caravan} caravan gold`, "#ffd24a");
+    }
+    // Menders relic: patch the castle up after every wave.
+    const mend = metaCastleRegen(relicLevel(this.meta, "menders"));
+    if (mend > 0) this.healCastle(mend);
+
+    bumpStat(this.progress, "wavesCleared");
+
     // The island grows every 5 waves: new land, a longer enemy route, and a
     // few more build pads — the map itself is the meta-progression.
     const nextStage = stageForWave(this.wave + 1);
@@ -640,15 +717,18 @@ export class Game {
       this.onVictory();
       return;
     }
-    this.boonChoices = rollBoons(this, this.rng, 3);
+    const boonBonus = metaBoonBonus(relicLevel(this.meta, "vanguard_scouts"));
+    this.boonChoices = rollBoons(this, this.rng, 3 + boonBonus);
     this.wavePhase = "boon";
   }
 
   private onVictory(): void {
     this.runWon = true;
-    this.meta.runes += VICTORY_RUNES;
-    this.meta.crates += VICTORY_CRATES;
+    const victoryBonus = metaVictoryBonus(relicLevel(this.meta, "treasury"));
+    this.meta.runes += VICTORY_RUNES + victoryBonus;
+    this.meta.crates += VICTORY_CRATES + victoryBonus;
     saveMeta(this.meta);
+    bumpStat(this.progress, "sieges");
     // Victory bonus: a guaranteed top-tier piece from the Siege.
     this.bankGearDrop(makeGearDrop(gearTierForWave(SIEGE_WAVE), this.rng));
     this.screen = "victory";
@@ -680,6 +760,7 @@ export class Game {
     // Telegraph the following wave while the player plans.
     this.nextWave = generateWave(this.wave + 1, this.rng);
     this.sfx("boon");
+    bumpStat(this.progress, "boonsChosen");
   }
 
   countBoon(id: string): number {
@@ -691,6 +772,7 @@ export class Game {
   buyRelic(id: string): boolean {
     const relic = RELICS.find((r) => r.id === id);
     if (!relic) return false;
+    if (!relicPrereqMet(this.meta, id)) return false;
     const lvl = relicLevel(this.meta, id);
     if (lvl >= relic.maxLevel) return false;
     const cost = relic.cost(lvl);
@@ -698,6 +780,7 @@ export class Game {
     this.meta.runes -= cost;
     this.meta.levels[id] = lvl + 1;
     saveMeta(this.meta);
+    bumpStat(this.progress, "relicsBought");
     return true;
   }
 
@@ -712,7 +795,9 @@ export class Game {
       if (!inst) continue;
       const def = GEAR_BY_ID.get(inst.def);
       if (!def) continue;
-      b[def.stat] += (def.base * inst.tier) / 100;
+      for (const roll of gearActiveStats(def, inst.tier)) {
+        b[roll.stat] += (roll.base * inst.tier) / 100;
+      }
     }
     return b;
   }
@@ -731,6 +816,7 @@ export class Game {
     if (!def || def.tower !== type || def.slot !== slot) return;
     this.meta.gear.equipped[type] = { ...(this.meta.gear.equipped[type] ?? {}), [slot]: uid };
     saveMeta(this.meta);
+    bumpStat(this.progress, "gearEquipped");
   }
 
   /** Remove a slot's equipped piece (it returns to the vault). */
@@ -756,6 +842,7 @@ export class Game {
     this.meta.gear.owned.splice(i, 1);
     this.meta.scrap += value;
     saveMeta(this.meta);
+    bumpStat(this.progress, "gearRecycled");
     return value;
   }
 
@@ -779,7 +866,57 @@ export class Game {
     const inst = rollLootbox(this.rng);
     this.meta.gear.owned.push(inst);
     saveMeta(this.meta);
+    bumpStat(this.progress, "cratesOpened");
     return inst;
+  }
+
+  // -------------------------------------------------------------- progress
+  /** Grant a Reward's currencies into MetaState and persist. */
+  private grantReward(reward: { runes?: number; crates?: number; scrap?: number }): void {
+    if (reward.runes) this.meta.runes += reward.runes;
+    if (reward.crates) this.meta.crates += reward.crates;
+    if (reward.scrap) this.meta.scrap += reward.scrap;
+    saveMeta(this.meta);
+  }
+
+  /** Claim a completed achievement's reward. Returns true if it succeeded. */
+  claimAchievement(id: string): boolean {
+    const def = ACHIEVEMENTS.find((a) => a.id === id);
+    if (!def || isAchievementClaimed(this.progress, id)) return false;
+    if (achievementProgress(this.progress, def) < def.target) return false;
+    this.grantReward(def.reward);
+    this.progress.claimedAchievements.push(id);
+    saveProgress(this.progress);
+    this.sfx("coin");
+    return true;
+  }
+
+  /** Claim a daily/weekly/bounty mission's reward. Bounties immediately
+   *  re-arm (re-snapshot) so they can be completed again. */
+  claimMission(kind: "daily" | "weekly" | "bounty", defId: string): boolean {
+    const list = kind === "daily" ? this.progress.daily.missions : kind === "weekly" ? this.progress.weekly.missions : this.progress.bounty;
+    const inst = list.find((m) => m.defId === defId);
+    const def = missionDef(defId);
+    if (!inst || !def || inst.claimed) return false;
+    if (missionProgress(this.progress, def, inst) < def.amount) return false;
+    this.grantReward(def.reward);
+    if (kind === "bounty") {
+      inst.base = this.progress.stats[def.statKey] ?? 0; // re-arm, infinitely repeatable
+    } else {
+      inst.claimed = true;
+    }
+    saveProgress(this.progress);
+    this.sfx("coin");
+    return true;
+  }
+
+  /** Claim today's login reward, advancing (or resetting) the streak. */
+  claimLoginReward(): boolean {
+    if (!canClaimLogin(this.progress)) return false;
+    const reward = claimLoginRewardProgress(this.progress);
+    this.grantReward(reward);
+    this.sfx("coin");
+    return true;
   }
 
   /** Bank a piece into the vault (the victory bonus still uses this). */
@@ -799,12 +936,13 @@ export class Game {
   }
 
   private spawnEnemy(entry: SpawnEntry): void {
-    const e = new Enemy(this, entry.type, entry.color, this.wave);
+    const e = new Enemy(this, entry.type, entry.color, this.wave, !!entry.elite);
     // apply risky enemy HP buff
     e.maxHp = Math.round(e.maxHp * this.buffs.enemyHpMult);
     e.hp = e.maxHp;
     this.enemies.push(e);
     if (entry.type === "boss") this.addText(e.x, e.y - 40, "BOSS!", "#ff6a5a");
+    else if (entry.elite) this.addText(e.x, e.y - 30, "ELITE", "#ffd24a");
   }
 
   private gameOver(): void {
@@ -818,6 +956,7 @@ export class Game {
         /* ignore */
       }
     }
+    setStatMax(this.progress, "bestEndlessWave", Math.max(0, this.wave - SIEGE_WAVE));
   }
 
   // ---------------------------------------------------------------- combat
@@ -837,11 +976,27 @@ export class Game {
     if (e.dead && this.killsCounted(e)) return;
     this.markKilled(e);
     this.kills++;
+    bumpStat(this.progress, "kills");
+    if (e.def.type === "boss") bumpStat(this.progress, "bossKills");
     const reward = Math.round((KILL_GOLD_BASE + e.reward) * this.buffs.goldKillMult) + this.buffs.killGoldFlat;
     this.gold += reward;
+    bumpStat(this.progress, "goldEarned", reward);
     this.spawnExplosionFx(e.x, e.y - 6, e.def.type === "boss" ? 1.6 : 0.7);
     this.addText(e.x, e.y - 18, `+${reward}`, "#ffd24a");
     this.sfx("die");
+    // Elite kill: a chance at a bonus Supply Crate, so the endless tail keeps
+    // feeding the meta-progression loop instead of just gold.
+    if (e.elite && this.rng.chance(0.25)) {
+      this.meta.crates += 1;
+      saveMeta(this.meta);
+      this.addText(e.x, e.y - 34, "+1 crate", "#d2a24c");
+    }
+    // Acid Blob: bursts into a corrosive puddle on death, poisoning any
+    // other foes still standing in it — a small bonus for killing one in a cluster.
+    if (e.def.type === "acidblob") {
+      this.spawnSplashFx(e.x, e.y - 6);
+      this.addFirePatch(e.x, e.y, 30, 2.5, 8, "poison");
+    }
   }
 
   private killed = new Set<Enemy>();
@@ -870,9 +1025,9 @@ export class Game {
     return healed;
   }
 
-  /** Napalm: a burning ground patch (grounded enemies only). */
-  addFirePatch(x: number, y: number, r: number, dur: number, dps: number): void {
-    this.firePatches.push({ x, y, r, until: this.time + dur, dps });
+  /** A lingering ground effect: napalm (grounded foes only) or poison (also fliers). */
+  addFirePatch(x: number, y: number, r: number, dur: number, dps: number, kind: "fire" | "poison" = "fire"): void {
+    this.firePatches.push({ x, y, r, until: this.time + dur, dps, kind });
   }
 
   // ---------------------------------------------------------------- building
@@ -888,6 +1043,7 @@ export class Game {
     this.towers.push(t);
     this.spawnRingFx(spot.x, spot.y - 10, "#8fe08f", 0.8);
     this.sfx("build");
+    bumpStat(this.progress, "towersBuilt");
     return true;
   }
 
@@ -903,6 +1059,7 @@ export class Game {
     t.upg[track]++;
     this.spawnRingFx(t.x, t.y - 16, "#ffd24a", 0.9);
     this.sfx("upgrade");
+    bumpStat(this.progress, "towerUpgrades");
   }
 
   /** Pick a tower's specialization line (once, after SPEC_UNLOCK_AT upgrade points). */
@@ -937,6 +1094,7 @@ export class Game {
     const sd = t.specDef();
     this.spawnRingFx(t.x, t.y - 16, sd?.color ?? "#ffd24a", 0.9);
     this.sfx("upgrade");
+    bumpStat(this.progress, "towerUpgrades");
   }
 
   /** Barracks musters a soldier (stats come from the barracks' upgrades/specs). */
@@ -991,6 +1149,12 @@ export class Game {
   ): void {
     const a = Math.atan2(ty - y, tx - x);
     this.projectiles.push(new Projectile("cannonball", x, y, a, speed, damage, { tx, ty, splash, mods }));
+  }
+  /** Alchemist flask: arcs to a point like a cannonball, but its splash also
+   *  reaches fliers and it leaves a poison cloud rather than a napalm patch. */
+  spawnFlask(x: number, y: number, tx: number, ty: number, damage: number, splash: number, speed: number, mods: SpecMods = {}): void {
+    const a = Math.atan2(ty - y, tx - x);
+    this.projectiles.push(new Projectile("flask", x, y, a, speed, damage, { tx, ty, splash, mods }));
   }
   /**
    * Wizard Tower bolt: an animated projectile whose sprite sheet follows the
@@ -1077,7 +1241,10 @@ export class Game {
     this.mouse.x = (this.input.world.x - ox) / z;
     this.mouse.y = (this.input.world.y - oy) / z;
     this.mouse.over =
-      this.mouse.x >= 0 && this.mouse.x <= WORLD_W && this.mouse.y >= 0 && this.mouse.y <= WORLD_H;
+      this.mouse.x >= 0 &&
+      this.mouse.x <= WORLD_W &&
+      this.mouse.y >= this.world.minRow * TILE &&
+      this.mouse.y <= WORLD_H;
 
     // global keys
     if (this.input.key("KeyP") && !this._pKey) this.togglePause();
@@ -1093,6 +1260,8 @@ export class Game {
       Digit4: "monastery",
       Digit5: "barracks",
       Digit6: "wizard",
+      Digit7: "alchemist",
+      Digit8: "ballista",
     };
     for (const code in numMap) {
       const t = numMap[code];
@@ -1208,7 +1377,7 @@ export class Game {
   private cellAtWorld(x: number, y: number): { c: number; r: number } | null {
     const c = Math.floor(x / TILE);
     const r = Math.floor(y / TILE);
-    if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return null;
+    if (c < 0 || r < this.world.minRow || c >= COLS || r >= ROWS) return null;
     return { c, r };
   }
 
@@ -1233,8 +1402,13 @@ export class Game {
   /** The zoomed world must always cover the viewport (no water gaps). */
   private clampCam(): void {
     const z = this.cam.zoom;
+    // The island only ever grows upward (taller), never wider, so the top
+    // bound (unlike the original fixed-at-0 top) tracks how far above y=0
+    // the world currently extends — that's what makes dragging able to
+    // reveal newly grown land above the default (bottom/castle) view.
+    const top = this.world.minRow * TILE;
     this.cam.x = clamp(this.cam.x, WORLD_W - WORLD_W * z, 0);
-    this.cam.y = clamp(this.cam.y, WORLD_H - WORLD_H * z, 0);
+    this.cam.y = clamp(this.cam.y, WORLD_H - WORLD_H * z, -top * z);
   }
 
   togglePause(): void {
@@ -1259,6 +1433,7 @@ export class Game {
     this.paused = false;
     this.audio.music("forest");
     this.sfx("click");
+    refreshMissions(this.progress, this.rng);
   }
   setPlacing(type: TowerType | null): void {
     this.placing = type;
@@ -1301,20 +1476,27 @@ export class Game {
       const s = this.shake * 6;
       ctx.translate((this.rng.next() - 0.5) * s, (this.rng.next() - 0.5) * s);
     }
-    ctx.drawImage(this.world.bg, 0, 0);
+    ctx.drawImage(this.world.bg, 0, this.world.minRow * TILE);
+    this.drawClouds(ctx);
 
     this.drawBuildSpots(ctx);
     this.drawCastle(ctx);
 
-    // napalm patches (on the ground, under the entities)
+    // napalm / poison patches (on the ground, under the entities)
     if (this.firePatches.length > 0) {
       for (const f of this.firePatches) {
         const a = Math.min(1, (f.until - this.time) / 0.5) * 0.55;
         ctx.save();
         const g = ctx.createRadialGradient(f.x, f.y, 2, f.x, f.y, f.r);
-        g.addColorStop(0, `rgba(255,170,60,${a})`);
-        g.addColorStop(0.7, `rgba(230,90,30,${a * 0.5})`);
-        g.addColorStop(1, "rgba(160,50,20,0)");
+        if (f.kind === "poison") {
+          g.addColorStop(0, `rgba(140,220,90,${a})`);
+          g.addColorStop(0.7, `rgba(80,160,60,${a * 0.5})`);
+          g.addColorStop(1, "rgba(40,100,40,0)");
+        } else {
+          g.addColorStop(0, `rgba(255,170,60,${a})`);
+          g.addColorStop(0.7, `rgba(230,90,30,${a * 0.5})`);
+          g.addColorStop(1, "rgba(160,50,20,0)");
+        }
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
@@ -1428,20 +1610,26 @@ export class Game {
     ctx.stroke();
     ctx.restore();
 
-    // cost + cancel hint above the ghost
+    // cost + cancel hint above the ghost — unless that would push it past the
+    // island's current top edge (a pad near the newest growth band), in which
+    // case it's drawn below instead so it never gets clipped off-screen.
+    const topBound = this.world.minRow * TILE;
+    const below = gy - pad / 2 - topBound < 40;
+    const y1 = below ? gy + pad / 2 + 24 : gy - pad / 2 - 20;
+    const y2 = below ? gy + pad / 2 + 40 : gy - pad / 2 - 5;
     ctx.save();
     ctx.textAlign = "center";
     ctx.font = "700 15px 'Segoe UI', sans-serif";
     ctx.lineWidth = 3;
     ctx.strokeStyle = "rgba(0,0,0,0.65)";
     const label = valid ? `Move pad · ${SPOT_MOVE_COST}g` : "Move pad";
-    ctx.strokeText(label, gx, gy - pad / 2 - 20);
+    ctx.strokeText(label, gx, y1);
     ctx.fillStyle = valid ? "#d8f5d8" : "#e8b8b8";
-    ctx.fillText(label, gx, gy - pad / 2 - 20);
+    ctx.fillText(label, gx, y1);
     ctx.font = "600 12px 'Segoe UI', sans-serif";
-    ctx.strokeText("click a grass cell · right-click to cancel", gx, gy - pad / 2 - 5);
+    ctx.strokeText("click a grass cell · right-click to cancel", gx, y2);
     ctx.fillStyle = "rgba(230,240,245,0.9)";
-    ctx.fillText("click a grass cell · right-click to cancel", gx, gy - pad / 2 - 5);
+    ctx.fillText("click a grass cell · right-click to cancel", gx, y2);
     ctx.restore();
   }
 
@@ -1460,6 +1648,19 @@ export class Game {
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.restore();
+  }
+
+  private drawClouds(ctx: CanvasRenderingContext2D): void {
+    for (const c of this.clouds) {
+      const def = this.assets.manifest.clouds[c.img];
+      const img = this.assets.img(def.image);
+      const w = def.size[0] * c.scale;
+      const h = def.size[1] * c.scale;
+      ctx.save();
+      ctx.globalAlpha = c.alpha;
+      ctx.drawImage(img, c.x - w / 2, c.y - h / 2, w, h);
+      ctx.restore();
+    }
   }
 
   private drawCastle(ctx: CanvasRenderingContext2D): void {

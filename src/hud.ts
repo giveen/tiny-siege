@@ -19,8 +19,23 @@ import {
   type UpgradeTrack,
 } from "./tower";
 import { RARITY_COLOR } from "./boons";
-import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE } from "./config";
-import { VICTORY_RUNES, VICTORY_CRATES, RELICS, relicLevel } from "./meta";
+import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE, ENDLESS_ELITE_INTERVAL } from "./config";
+import { VICTORY_RUNES, VICTORY_CRATES, RELICS, RELIC_BRANCHES, relicLevel, relicPrereqMet, relicPrereqOf } from "./meta";
+import {
+  ACHIEVEMENTS,
+  LOGIN_REWARDS,
+  achievementProgress,
+  isAchievementClaimed,
+  missionProgress,
+  missionDef,
+  canClaimLogin,
+  hasClaimable,
+  todayKey,
+  isYesterday,
+  type MissionInstance,
+  type MissionDef,
+  type Reward,
+} from "./progress";
 import {
   GEAR_BY_ID,
   GEAR_SLOTS,
@@ -30,8 +45,11 @@ import {
   LOOTBOX_COST,
   LOOTBOX_TIER_WEIGHTS,
   gearBonusText,
+  gearPercent,
   gearUpgradeCost,
+  nextLockedStat,
   scrapValue,
+  statLabel,
   type GearInstance,
   type GearSlot,
 } from "./gear";
@@ -56,6 +74,8 @@ interface Rect {
   h: number;
 }
 
+type ProgressTab = "ach" | "daily" | "weekly" | "bounty" | "rewards";
+
 const inRect = (p: { x: number; y: number }, r: Rect) =>
   p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
 
@@ -71,6 +91,9 @@ export class Hud {
   private smithPageUpgrade = 0;
   /** Last opened Supply Crate, shown in a reveal overlay until dismissed. */
   private crateReveal: GearInstance | null = null;
+  // Progress (menu) temp state
+  progressTab: ProgressTab = "ach";
+  private progressAchPage = 0;
 
   constructor(assets: Assets) {
     this.assets = assets;
@@ -357,6 +380,12 @@ export class Hud {
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     ctx.fillText(`Wave ${game.wave}`, L.waveRect.x, L.waveRect.y + 8);
+    if (game.wave > SIEGE_WAVE) {
+      const waveW = this.txtW(`Wave ${game.wave}`, "700 15px 'Segoe UI', sans-serif");
+      ctx.fillStyle = "#ffd24a";
+      ctx.font = "800 10px 'Segoe UI', sans-serif";
+      ctx.fillText("ENDLESS", L.waveRect.x + waveW + 8, L.waveRect.y + 8);
+    }
     ctx.font = "600 11px 'Segoe UI', sans-serif";
     ctx.fillStyle = "#8fb8c8";
     const sub =
@@ -1092,6 +1121,7 @@ export class Hud {
       help: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 78, w, h } as Rect,
       codex: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 146, w, h } as Rect,
       armory: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 214, w, h } as Rect,
+      progress: { x: CANVAS_W / 2 - w / 2, y: CANVAS_H / 2 + 282, w, h } as Rect,
     };
   }
 
@@ -1135,6 +1165,18 @@ export class Hud {
     this.button(ctx, r.help, "How to Play", { small: true });
     this.button(ctx, r.codex, `◆  The Codex   (${game.meta.runes})`, { small: true });
     this.button(ctx, r.armory, `⚙  The Armory   (${game.meta.gear.owned.length})`, { small: true });
+    this.button(ctx, r.progress, "🏆  Achievements & Missions", { small: true });
+    if (hasClaimable(game.progress)) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(r.progress.x + r.progress.w - 14, r.progress.y + 10, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#ff6a5a";
+      ctx.fill();
+      ctx.strokeStyle = "#1a1206";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // best
     ctx.save();
@@ -1146,6 +1188,7 @@ export class Hud {
 
     if (game._showArmory) this.drawArmory(game, ctx);
     else if (game._showCodex) this.drawCodex(game, ctx);
+    else if (game._showProgress) this.drawProgress(game, ctx);
     else if (game._showHelp) this.drawHelp(ctx);
 
     // tooltips go on top of everything (menu + codex + armory)
@@ -1203,6 +1246,10 @@ export class Hud {
       this.handleCodexClick(game, p);
       return;
     }
+    if (game._showProgress) {
+      this.handleProgressClick(game, p);
+      return;
+    }
     if (game._showHelp) {
       game._showHelp = false;
       game.sfx("click");
@@ -1230,6 +1277,13 @@ export class Hud {
       this.armoryTab = "vault";
       this.smithPageRecycle = 0;
       this.smithPageUpgrade = 0;
+      game.sfx("click");
+      return;
+    }
+    if (inRect(p, r.progress)) {
+      game._showProgress = true;
+      this.progressTab = "ach";
+      this.progressAchPage = 0;
       game.sfx("click");
     }
   }
@@ -1265,6 +1319,11 @@ export class Hud {
     ctx.fillStyle = isBest ? "#ffd24a" : "#8fb8c8";
     ctx.font = "700 18px 'Segoe UI', sans-serif";
     ctx.fillText(`${isBest ? "★ NEW BEST!  " : ""}Best: ${game.best} waves`, CANVAS_W / 2, CANVAS_H / 2 + 50);
+    if (game.wave > SIEGE_WAVE) {
+      ctx.fillStyle = "#ffd24a";
+      ctx.font = "600 14px 'Segoe UI', sans-serif";
+      ctx.fillText(`${game.wave - SIEGE_WAVE} waves survived past the Siege`, CANVAS_W / 2, CANVAS_H / 2 + 76);
+    }
     ctx.restore();
 
     const r = this.overRects();
@@ -1323,6 +1382,17 @@ export class Hud {
     const r = this.victoryRects();
     this.button(ctx, r.again, "⚔  Keep Defending (Endless)", { bg: "#c98a2e", fg: "#1a1206", active: true });
     this.button(ctx, r.menu, "Bank Runes & Menu", { small: true });
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 13px 'Segoe UI', sans-serif";
+    ctx.fillText(
+      `No end past here — the island stops growing, but Elite reinforcements join every ${ENDLESS_ELITE_INTERVAL} waves.`,
+      CANVAS_W / 2,
+      r.menu.y + r.menu.h + 30
+    );
+    ctx.restore();
   }
 
   handleVictoryClick(game: Game, p: { x: number; y: number }): boolean {
@@ -1345,25 +1415,31 @@ export class Hud {
   private codexLayout() {
     const panel = { x: 446, y: 80, w: 1140, h: 860 } as Rect;
     const header = { x: 486, y: 108, w: 1060, h: 176 } as Rect;
-    // Two columns of up to five relic rows — the tree keeps fitting as it grows.
-    const colW = 520,
-      colGap = 20,
-      rowH = 92,
+    // One column per research branch, its nodes stacked top-to-bottom in
+    // prerequisite order — node i unlocks once node i-1 is maxed.
+    const colW = 255,
+      colGap = 16,
+      rowH = 88,
       rowGap = 10,
-      x0 = 486,
-      y0 = 316;
-    const rows = RELICS.map((r, i) => {
-      const col = Math.floor(i / 5);
-      const row = i % 5;
-      const rect = { x: x0 + col * (colW + colGap), y: y0 + row * (rowH + rowGap), w: colW, h: rowH } as Rect;
-      return {
-        id: r.id,
-        rect,
-        buy: { x: rect.x + rect.w - 152, y: rect.y + 12, w: 140, h: 36 } as Rect,
-      };
+      x0 = 470,
+      y0 = 328;
+    const branchHeaders: { name: string; x: number; y: number }[] = [];
+    const rows: { id: string; branchId: string; rect: Rect; buy: Rect }[] = [];
+    RELIC_BRANCHES.forEach((branch, col) => {
+      const colX = x0 + col * (colW + colGap);
+      branchHeaders.push({ name: branch.name, x: colX + colW / 2, y: y0 - 22 });
+      branch.nodeIds.forEach((id, row) => {
+        const rect = { x: colX, y: y0 + row * (rowH + rowGap), w: colW, h: rowH } as Rect;
+        rows.push({
+          id,
+          branchId: branch.id,
+          rect,
+          buy: { x: rect.x + rect.w - 100, y: rect.y + rect.h - 34, w: 92, h: 28 } as Rect,
+        });
+      });
     });
     const close = { x: CANVAS_W / 2 - 110, y: 828, w: 220, h: 52 } as Rect;
-    return { panel, header, rows, close };
+    return { panel, header, branchHeaders, rows, close };
   }
 
   /**
@@ -1464,64 +1540,84 @@ export class Hud {
     ctx.fillText("Spend runes on relics that carry over between sieges.", CANVAS_W / 2, L.header.y + 140);
     ctx.restore();
 
+    // branch column headers
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#6a3fa0";
+    ctx.font = "800 15px 'Segoe UI', sans-serif";
+    for (const h of L.branchHeaders) ctx.fillText(h.name.toUpperCase(), h.x, h.y);
+    ctx.restore();
+
     for (const row of L.rows) {
       const relic = RELICS.find((r) => r.id === row.id)!;
       const lvl = relicLevel(game.meta, relic.id);
       const maxed = lvl >= relic.maxLevel;
       const cost = relic.cost(lvl);
-      const canBuy = !maxed && game.meta.runes >= cost;
+      const unlocked = relicPrereqMet(game.meta, relic.id);
+      const canBuy = unlocked && !maxed && game.meta.runes >= cost;
       const r = row.rect;
 
       // row — clean parchment fill (cropped center tile) + ink border
-      this.uiCenter(ctx, u.paper_center ?? u.paper, r.x, r.y, r.w, r.h);
       ctx.save();
+      if (!unlocked) ctx.globalAlpha = 0.55;
+      this.uiCenter(ctx, u.paper_center ?? u.paper, r.x, r.y, r.w, r.h);
       ctx.strokeStyle = "rgba(58,42,24,0.4)";
       ctx.lineWidth = 2;
       ctx.strokeRect(r.x + 1, r.y + 1, r.w - 2, r.h - 2);
       ctx.restore();
 
+      ctx.save();
+      if (!unlocked) ctx.globalAlpha = 0.55;
+
       // relic icon (repurposed RPG icon pack art)
       const iconPath = relicIcons[relic.id];
       if (iconPath) {
         const im = this.assets.img(iconPath);
-        if (im) ctx.drawImage(im, r.x + 14, r.y + 12, 48, 48);
+        if (im) ctx.drawImage(im, r.x + 8, r.y + 8, 34, 34);
       }
 
-      ctx.save();
       ctx.textAlign = "left";
       ctx.fillStyle = "#3a2a18";
-      const ns = this.fitSize(relic.name, "700", 18, 14, r.w - 72 - 156);
+      const ns = this.fitSize(relic.name, "700", 15, 11, r.w - 50 - 8);
       ctx.font = `700 ${ns}px 'Segoe UI', sans-serif`;
-      ctx.fillText(relic.name, r.x + 72, r.y + 34);
-      ctx.fillStyle = "#5a4632";
-      ctx.font = "600 13px 'Segoe UI', sans-serif";
-      ctx.fillText(relic.blurb, r.x + 72, r.y + 56);
-      // current effect
-      ctx.fillStyle = lvl > 0 ? "#8a5a10" : "rgba(58,42,24,0.45)";
-      ctx.font = "700 14px 'Segoe UI', sans-serif";
-      ctx.fillText(lvl > 0 ? relic.effect(lvl) : "— not yet purchased", r.x + 72, r.y + 80);
-      ctx.restore();
+      ctx.fillText(relic.name, r.x + 50, r.y + 22);
 
-      // level pips (right-anchored on the effect line)
-      ctx.save();
-      for (let i = 0; i < relic.maxLevel; i++) {
-        ctx.beginPath();
-        ctx.arc(r.x + r.w - 30 - (relic.maxLevel - 1 - i) * 16, r.y + 76, 5, 0, Math.PI * 2);
-        ctx.fillStyle = i < lvl ? "#c98a2e" : "rgba(58,42,24,0.18)";
-        ctx.fill();
+      if (unlocked) {
+        ctx.fillStyle = lvl > 0 ? "#8a5a10" : "rgba(58,42,24,0.55)";
+        const es = this.fitSize(lvl > 0 ? relic.effect(lvl) : relic.blurb, "600", 12, 9, r.w - 58);
+        ctx.font = `600 ${es}px 'Segoe UI', sans-serif`;
+        ctx.fillText(lvl > 0 ? relic.effect(lvl) : relic.blurb, r.x + 50, r.y + 42);
+
+        // level pips
+        for (let i = 0; i < relic.maxLevel; i++) {
+          ctx.beginPath();
+          ctx.arc(r.x + 54 + i * 13, r.y + 58, 4, 0, Math.PI * 2);
+          ctx.fillStyle = i < lvl ? "#c98a2e" : "rgba(58,42,24,0.18)";
+          ctx.fill();
+        }
+      } else {
+        const prereq = relicPrereqOf(relic.id);
+        ctx.fillStyle = "rgba(58,42,24,0.6)";
+        const lockText = `🔒 Max ${prereq?.name ?? "prior relic"} to unlock`;
+        const ls = this.fitSize(lockText, "600", 12, 9, r.w - 58);
+        ctx.font = `600 ${ls}px 'Segoe UI', sans-serif`;
+        ctx.fillText(lockText, r.x + 50, r.y + 46);
       }
       ctx.restore();
 
       // buy button — teal 9-slice
-      ctx.save();
-      if (!canBuy) ctx.globalAlpha = 0.55;
-      this.uiNine(ctx, u.buttons.sq_blue, row.buy.x, row.buy.y, row.buy.w, row.buy.h, 16, 10);
-      ctx.globalAlpha = 1;
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#0f2a33";
-      ctx.font = "800 15px 'Segoe UI', sans-serif";
-      ctx.fillText(maxed ? "MAX" : `Buy ${cost} ◆`, row.buy.x + row.buy.w / 2, row.buy.y + row.buy.h / 2 + 5);
-      ctx.restore();
+      if (unlocked) {
+        ctx.save();
+        if (!canBuy) ctx.globalAlpha = 0.55;
+        this.uiNine(ctx, u.buttons.sq_blue, row.buy.x, row.buy.y, row.buy.w, row.buy.h, 16, 10);
+        ctx.globalAlpha = 1;
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#0f2a33";
+        const label = maxed ? "MAX" : `${cost} ◆`;
+        ctx.font = `800 ${this.fitSize(label, "800", 14, 10, row.buy.w - 10)}px 'Segoe UI', sans-serif`;
+        ctx.fillText(label, row.buy.x + row.buy.w / 2, row.buy.y + row.buy.h / 2 + 5);
+        ctx.restore();
+      }
     }
 
     // close
@@ -1544,6 +1640,319 @@ export class Hud {
     for (const row of L.rows) {
       if (inRect(p, row.buy)) {
         if (game.buyRelic(row.id)) game.sfx("coin");
+        else game.sfx("click");
+        return true;
+      }
+    }
+    return true;
+  }
+
+  // ------------------------------------------------------- progress screen
+  private rewardText(r: Reward): string {
+    const parts: string[] = [];
+    if (r.runes) parts.push(`${r.runes} ◆`);
+    if (r.crates) parts.push(`${r.crates} crate${r.crates === 1 ? "" : "s"}`);
+    if (r.scrap) parts.push(`${r.scrap} scrap`);
+    return parts.join(" · ");
+  }
+
+  /** Like button(), but shrinks the label to fit — reward pills vary a lot
+   *  in length ("5 ◆" vs "60 ◆ · 15 crates · 30 scrap"). */
+  private claimButton(ctx: CanvasRenderingContext2D, r: Rect, label: string, state: "ready" | "claimed" | "locked"): void {
+    ctx.save();
+    this.roundRect(ctx, r, 7);
+    ctx.fillStyle = state === "ready" ? "#e8b23c" : state === "claimed" ? "rgba(111,224,111,0.16)" : "rgba(60,70,80,0.7)";
+    ctx.fill();
+    ctx.strokeStyle = state === "ready" ? "#fff0c0" : state === "claimed" ? "rgba(111,224,111,0.45)" : "rgba(150,200,220,0.4)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = state === "ready" ? "#1a1206" : state === "claimed" ? "#8fe08f" : "rgba(200,210,220,0.6)";
+    const size = this.fitSize(label, "700", 13, 9, r.w - 14);
+    ctx.font = `700 ${size}px 'Segoe UI', sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + 1);
+    ctx.restore();
+  }
+
+  private progressLayout(game: Game) {
+    const panel = { x: 60, y: 64, w: CANVAS_W - 120, h: 648 } as Rect;
+    const close = { x: CANVAS_W / 2 - 110, y: 648, w: 220, h: 52 } as Rect;
+
+    const tabDefs: { id: ProgressTab; label: string }[] = [
+      { id: "ach", label: "ACHIEVEMENTS" },
+      { id: "daily", label: "DAILY" },
+      { id: "weekly", label: "WEEKLY" },
+      { id: "bounty", label: "BOUNTY" },
+      { id: "rewards", label: "REWARDS" },
+    ];
+    const tabW = 190,
+      tabGap = 12,
+      tabY = 164,
+      tabH = 32;
+    const tabsTotalW = tabDefs.length * tabW + (tabDefs.length - 1) * tabGap;
+    const tabX0 = CANVAS_W / 2 - tabsTotalW / 2;
+    const tabs = tabDefs.map((t, i) => ({
+      id: t.id,
+      label: t.label,
+      rect: { x: tabX0 + i * (tabW + tabGap), y: tabY, w: tabW, h: tabH } as Rect,
+    }));
+
+    const topY = 260;
+    const rowW = CANVAS_W - 120 - 180;
+    const rowX = (CANVAS_W - rowW) / 2;
+    const rowH = 62,
+      rowGap = 12;
+    const rowRect = (i: number) => ({ x: rowX, y: topY + i * (rowH + rowGap), w: rowW, h: rowH } as Rect);
+    const claimRect = (r: Rect) => ({ x: r.x + r.w - 216, y: r.y + (r.h - 34) / 2, w: 200, h: 34 } as Rect);
+
+    const achPerPage = 4;
+    const achPages = Math.max(1, Math.ceil(ACHIEVEMENTS.length / achPerPage));
+    const achPage = Math.min(Math.max(0, this.progressAchPage), achPages - 1);
+    const achRows = ACHIEVEMENTS.slice(achPage * achPerPage, (achPage + 1) * achPerPage).map((def, i) => {
+      const rect = rowRect(i);
+      return { def, rect, claim: claimRect(rect) };
+    });
+    const achPrev = { x: rowX, y: topY + achPerPage * (rowH + rowGap) + 4, w: 96, h: 40 } as Rect;
+    const achNext = { x: rowX + rowW - 96, y: achPrev.y, w: 96, h: 40 } as Rect;
+
+    const missionRows = (list: MissionInstance[]) =>
+      list.map((inst, i) => {
+        const rect = rowRect(i);
+        return { inst, def: missionDef(inst.defId)!, rect, claim: claimRect(rect) };
+      });
+    const dailyRows = missionRows(game.progress.daily.missions);
+    const weeklyRows = missionRows(game.progress.weekly.missions);
+    const bountyRows = missionRows(game.progress.bounty);
+
+    // rewards: a 7-cell login-streak calendar
+    const cellW = 170,
+      cellGap = 14;
+    const cellsTotalW = 7 * cellW + 6 * cellGap;
+    const cellX0 = (CANVAS_W - cellsTotalW) / 2;
+    const cells = LOGIN_REWARDS.map((reward, i) => ({
+      day: i + 1,
+      reward,
+      rect: { x: cellX0 + i * (cellW + cellGap), y: topY, w: cellW, h: 140 } as Rect,
+    }));
+    const claimLogin = { x: CANVAS_W / 2 - 130, y: topY + 172, w: 260, h: 52 } as Rect;
+
+    return { panel, close, tabs, achRows, achPrev, achNext, achPage, achPages, dailyRows, weeklyRows, bountyRows, cells, claimLogin };
+  }
+
+  private drawProgress(game: Game, ctx: CanvasRenderingContext2D): void {
+    const L = this.progressLayout(game);
+    ctx.save();
+    ctx.globalAlpha = 0.97;
+    ctx.fillStyle = "#08131a";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.restore();
+
+    ctx.save();
+    this.roundRect(ctx, L.panel, 12);
+    ctx.fillStyle = "#0c1c26";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(180,210,225,0.2)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffd24a";
+    ctx.font = "900 32px 'Segoe UI', sans-serif";
+    ctx.fillText("ACHIEVEMENTS & MISSIONS", CANVAS_W / 2, 112);
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 14px 'Segoe UI', sans-serif";
+    const tab = this.progressTab;
+    const subtitle =
+      tab === "ach"
+        ? "Lifetime goals — claim once, forever banked."
+        : tab === "daily"
+          ? "Resets every day. Unclaimed progress expires at reset."
+          : tab === "weekly"
+            ? "Resets every week. Unclaimed progress expires at reset."
+            : tab === "bounty"
+              ? "No reset — claim it, then go do it again."
+              : "Come back once a day for a reward. Miss a day and the streak resets.";
+    ctx.fillText(subtitle, CANVAS_W / 2, 138);
+    ctx.restore();
+
+    for (const t of L.tabs) this.drawArmoryTab(ctx, t.rect, t.label, tab === t.id);
+
+    if (tab === "ach") this.drawAchievementRows(game, ctx, L);
+    else if (tab === "rewards") this.drawRewardCells(game, ctx, L);
+    else this.drawMissionRows(game, ctx, tab === "daily" ? L.dailyRows : tab === "weekly" ? L.weeklyRows : L.bountyRows);
+
+    this.button(ctx, L.close, "Close", { small: true });
+  }
+
+  private drawAchievementRows(game: Game, ctx: CanvasRenderingContext2D, L: ReturnType<Hud["progressLayout"]>): void {
+    for (const row of L.achRows) {
+      const def = row.def;
+      const cur = achievementProgress(game.progress, def);
+      const claimed = isAchievementClaimed(game.progress, def.id);
+      const complete = cur >= def.target;
+      const r = row.rect;
+      this.panel(ctx, r);
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 16px 'Segoe UI', sans-serif";
+      ctx.fillText(def.name, r.x + 16, r.y + 22);
+      ctx.fillStyle = "#8fb8c8";
+      ctx.font = "600 12px 'Segoe UI', sans-serif";
+      ctx.fillText(def.desc, r.x + 16, r.y + 40);
+      ctx.restore();
+
+      const barW = r.w - 32 - 232;
+      this.bar(ctx, r.x + 16, r.y + 46, barW, 9, cur / def.target, claimed ? "#6fe06f" : complete ? "#ffd24a" : "#4a90b8");
+      ctx.save();
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#cfe3f5";
+      ctx.font = "600 11px 'Segoe UI', sans-serif";
+      ctx.fillText(`${cur.toLocaleString()} / ${def.target.toLocaleString()}`, r.x + 16 + barW, r.y + 42);
+      ctx.restore();
+
+      const label = claimed ? "Claimed" : complete ? `Claim ${this.rewardText(def.reward)}` : this.rewardText(def.reward);
+      this.claimButton(ctx, row.claim, label, claimed ? "claimed" : complete ? "ready" : "locked");
+    }
+    if (L.achPages > 1) {
+      this.button(ctx, L.achPrev, "◀ Prev", { small: true, disabled: L.achPage === 0 });
+      this.button(ctx, L.achNext, "Next ▶", { small: true, disabled: L.achPage >= L.achPages - 1 });
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#8fb8c8";
+      ctx.font = "600 13px 'Segoe UI', sans-serif";
+      ctx.fillText(`Page ${L.achPage + 1} / ${L.achPages}`, CANVAS_W / 2, L.achPrev.y + 26);
+      ctx.restore();
+    }
+  }
+
+  private drawMissionRows(
+    game: Game,
+    ctx: CanvasRenderingContext2D,
+    rows: { inst: MissionInstance; def: MissionDef; rect: Rect; claim: Rect }[]
+  ): void {
+    for (const row of rows) {
+      const cur = missionProgress(game.progress, row.def, row.inst);
+      const complete = cur >= row.def.amount;
+      const r = row.rect;
+      this.panel(ctx, r);
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 16px 'Segoe UI', sans-serif";
+      ctx.fillText(row.def.name, r.x + 16, r.y + 26);
+      ctx.restore();
+
+      const barW = r.w - 32 - 232;
+      this.bar(ctx, r.x + 16, r.y + 38, barW, 9, cur / row.def.amount, row.inst.claimed ? "#6fe06f" : complete ? "#ffd24a" : "#4a90b8");
+      ctx.save();
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#cfe3f5";
+      ctx.font = "600 11px 'Segoe UI', sans-serif";
+      ctx.fillText(`${cur} / ${row.def.amount}`, r.x + 16 + barW, r.y + 34);
+      ctx.restore();
+
+      const label = row.inst.claimed ? "Claimed" : complete ? `Claim ${this.rewardText(row.def.reward)}` : this.rewardText(row.def.reward);
+      this.claimButton(ctx, row.claim, label, row.inst.claimed ? "claimed" : complete ? "ready" : "locked");
+    }
+  }
+
+  private drawRewardCells(game: Game, ctx: CanvasRenderingContext2D, L: ReturnType<Hud["progressLayout"]>): void {
+    const streak = game.progress.login.streakDay;
+    const claimable = canClaimLogin(game.progress);
+    const nextDay = claimable ? (isYesterday(game.progress.login.lastClaimDate, todayKey()) ? (streak % 7) + 1 : 1) : streak;
+    for (const cell of L.cells) {
+      const isToday = claimable && cell.day === nextDay;
+      const isPast = !isToday && cell.day <= streak;
+      this.panel(ctx, cell.rect);
+      if (isToday) {
+        ctx.save();
+        this.roundRect(ctx, cell.rect, 8);
+        ctx.strokeStyle = "#ffd24a";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.fillStyle = isPast ? "#6fe06f" : isToday ? "#ffd24a" : "#8fb8c8";
+      ctx.font = "800 15px 'Segoe UI', sans-serif";
+      ctx.fillText(cell.day === 7 ? "DAY 7 ★" : `DAY ${cell.day}`, cell.rect.x + cell.rect.w / 2, cell.rect.y + 26);
+      ctx.fillStyle = "#eaf6ff";
+      ctx.font = "700 14px 'Segoe UI', sans-serif";
+      ctx.fillText(this.rewardText(cell.reward), cell.rect.x + cell.rect.w / 2, cell.rect.y + 56);
+      if (isPast) {
+        ctx.fillStyle = "#6fe06f";
+        ctx.font = "700 20px 'Segoe UI', sans-serif";
+        ctx.fillText("✓", cell.rect.x + cell.rect.w / 2, cell.rect.y + 92);
+      }
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 14px 'Segoe UI', sans-serif";
+    ctx.fillText(`Current streak: day ${streak || 0}`, CANVAS_W / 2, L.claimLogin.y - 20);
+    ctx.restore();
+    this.button(ctx, L.claimLogin, claimable ? "Claim Today's Reward" : "Already claimed today", {
+      bg: "#c98a2e",
+      fg: "#1a1206",
+      active: claimable,
+      disabled: !claimable,
+    });
+  }
+
+  handleProgressClick(game: Game, p: { x: number; y: number }): boolean {
+    const L = this.progressLayout(game);
+    if (inRect(p, L.close)) {
+      game._showProgress = false;
+      game.sfx("click");
+      return true;
+    }
+    for (const t of L.tabs) {
+      if (inRect(p, t.rect)) {
+        this.progressTab = t.id;
+        this.progressAchPage = 0;
+        game.sfx("click");
+        return true;
+      }
+    }
+    const tab = this.progressTab;
+    if (tab === "ach") {
+      if (L.achPages > 1) {
+        if (inRect(p, L.achPrev)) {
+          this.progressAchPage = Math.max(0, L.achPage - 1);
+          game.sfx("click");
+          return true;
+        }
+        if (inRect(p, L.achNext)) {
+          this.progressAchPage = Math.min(L.achPages - 1, L.achPage + 1);
+          game.sfx("click");
+          return true;
+        }
+      }
+      for (const row of L.achRows) {
+        if (inRect(p, row.claim)) {
+          if (game.claimAchievement(row.def.id)) game.sfx("coin");
+          else game.sfx("click");
+          return true;
+        }
+      }
+    } else if (tab === "daily" || tab === "weekly" || tab === "bounty") {
+      const rows = tab === "daily" ? L.dailyRows : tab === "weekly" ? L.weeklyRows : L.bountyRows;
+      for (const row of rows) {
+        if (inRect(p, row.claim)) {
+          if (game.claimMission(tab, row.def.id)) game.sfx("coin");
+          else game.sfx("click");
+          return true;
+        }
+      }
+    } else if (tab === "rewards") {
+      if (inRect(p, L.claimLogin)) {
+        if (game.claimLoginReward()) game.sfx("coin");
         else game.sfx("click");
         return true;
       }
@@ -1594,10 +2003,11 @@ export class Hud {
         h: 74,
       } as Rect,
     }));
-    // one column per tower type, sized to fit all six inside the panel
+    // one column per tower type, sized to fit every tower inside the panel
+    // (width adapts to TOWER_ORDER.length so adding a tower never overflows)
     const towerX0 = 830;
-    const tw = 180;
     const tgap = 8;
+    const tw = Math.floor((CANVAS_W - 72 - towerX0 - (TOWER_ORDER.length - 1) * tgap) / TOWER_ORDER.length);
     const slots: { tower: TowerType; slot: GearSlot; rect: Rect }[] = [];
     TOWER_ORDER.forEach((t, i) => {
       const x = towerX0 + i * (tw + tgap);
@@ -1765,8 +2175,10 @@ export class Hud {
       // Bonus left, slot/tower right-anchored on the second line.
       ctx.textAlign = "left";
       ctx.fillStyle = "#9fd8a8";
-      ctx.font = "700 13px 'Segoe UI', sans-serif";
-      ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
+      const bonusTxt = gearBonusText(def, row.inst.tier);
+      const bs0 = this.fitSize(bonusTxt, "700", 13, 9, row.rect.w - 70 - 140);
+      ctx.font = `700 ${bs0}px 'Segoe UI', sans-serif`;
+      ctx.fillText(bonusTxt, row.rect.x + 70, row.rect.y + 50);
       ctx.fillStyle = "#8fb8c8";
       ctx.font = "600 12px 'Segoe UI', sans-serif";
       ctx.textAlign = "right";
@@ -1791,8 +2203,10 @@ export class Hud {
         ctx.save();
         ctx.textAlign = "left";
         ctx.fillStyle = "#bfe6ef";
-        ctx.font = "700 16px 'Segoe UI', sans-serif";
-        ctx.fillText(TOWER_DEFS[s.tower].name.toUpperCase(), x0, L.topY - 14);
+        const label = TOWER_DEFS[s.tower].name.toUpperCase();
+        const size = this.fitSize(label, "700", 16, 10, s.rect.w);
+        ctx.font = `700 ${size}px 'Segoe UI', sans-serif`;
+        ctx.fillText(label, x0, L.topY - 14);
         ctx.restore();
       }
       const cur = game.equippedFor(s.tower, s.slot);
@@ -1905,9 +2319,21 @@ export class Hud {
     ctx.fillStyle = "#9fd8a8";
     ctx.font = "700 16px 'Segoe UI', sans-serif";
     ctx.fillText(`${gearBonusText(def, inst.tier)} — boosts every ${TOWER_DEFS[def.tower].name}`, x + W / 2, y + 262);
+    const locked = nextLockedStat(def, inst.tier);
+    let bankedY = y + 296;
+    if (locked) {
+      ctx.fillStyle = "rgba(159,216,168,0.6)";
+      ctx.font = "600 13px 'Segoe UI', sans-serif";
+      ctx.fillText(
+        `+${gearPercent(locked, locked.unlockTier)}% ${statLabel(def.tower, locked.stat)} unlocks at T${locked.unlockTier}`,
+        x + W / 2,
+        y + 282
+      );
+      bankedY = y + 314;
+    }
     ctx.fillStyle = "#8fb8c8";
     ctx.font = "600 14px 'Segoe UI', sans-serif";
-    ctx.fillText("Banked to your vault — equip it below.", x + W / 2, y + 296);
+    ctx.fillText("Banked to your vault — equip it below.", x + W / 2, bankedY);
     ctx.restore();
   }
 
@@ -2006,8 +2432,10 @@ export class Hud {
       ctx.font = "800 13px 'Segoe UI', sans-serif";
       ctx.fillText(`T${row.inst.tier}`, row.rect.x + 70, row.rect.y + 50);
       ctx.fillStyle = "#9fd8a8";
-      ctx.font = "700 13px 'Segoe UI', sans-serif";
-      ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 86, row.rect.y + 50);
+      const bonusTxt1 = gearBonusText(def, row.inst.tier);
+      const bs1 = this.fitSize(bonusTxt1, "700", 13, 9, row.rect.w - 86 - 140);
+      ctx.font = `700 ${bs1}px 'Segoe UI', sans-serif`;
+      ctx.fillText(bonusTxt1, row.rect.x + 86, row.rect.y + 50);
       ctx.fillStyle = selected ? "#ffd24a" : "#8fb8c8";
       ctx.font = selected ? "800 13px 'Segoe UI', sans-serif" : "600 13px 'Segoe UI', sans-serif";
       ctx.textAlign = "right";
@@ -2046,8 +2474,10 @@ export class Hud {
       ctx.font = "800 14px 'Segoe UI', sans-serif";
       ctx.fillText(prog, row.rect.x + 70 + this.txtW(def.name, `700 ${ns}px 'Segoe UI', sans-serif`) + 16, row.rect.y + 28);
       ctx.fillStyle = "#9fd8a8";
-      ctx.font = "700 13px 'Segoe UI', sans-serif";
-      ctx.fillText(gearBonusText(def, row.inst.tier), row.rect.x + 70, row.rect.y + 50);
+      const bonusTxt2 = gearBonusText(def, row.inst.tier);
+      const bs2 = this.fitSize(bonusTxt2, "700", 13, 9, row.rect.w - 70 - 140);
+      ctx.font = `700 ${bs2}px 'Segoe UI', sans-serif`;
+      ctx.fillText(bonusTxt2, row.rect.x + 70, row.rect.y + 50);
       ctx.textAlign = "right";
       if (maxed) {
         ctx.fillStyle = "#8fb8c8";

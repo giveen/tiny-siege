@@ -2,12 +2,14 @@ import type { RNG } from "./rng";
 import type { EnemyType } from "./enemy";
 import type { UnitColor } from "./assets";
 import { ENEMY_COLORS } from "./assets";
-import { SIEGE_WAVE } from "./config";
+import { SIEGE_WAVE, ENDLESS_ELITE_INTERVAL, ENDLESS_ELITE_FRACTION } from "./config";
 
 export interface SpawnEntry {
   type: EnemyType;
   color: UnitColor;
   time: number; // seconds into the wave
+  /** Endless mode: a tougher, higher-reward reinforcement (see enemy.ts). */
+  elite?: boolean;
 }
 
 function weightedPick(rng: RNG, types: EnemyType[], weights: Record<EnemyType, number>): EnemyType {
@@ -30,12 +32,13 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
   // small and early towers are weak). The armored heavies (warrior/beetle/
   // lancer/skeleton) only join after an island growth, and the Minotaur
   // itself appears solely on boss waves — the 5th, right before each growth.
-  const available: EnemyType[] = ["pawn"];
+  const available: EnemyType[] = ["pawn", "maggot"];
   if (N >= 2) available.push("archer");
   if (N >= 3) {
     available.push("mushroom");
     available.push("mantis");
   }
+  if (N >= 5) available.push("acidblob");
   if (N >= 6) {
     available.push("warrior");
     available.push("fly3");
@@ -50,6 +53,7 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
 
   const weights: Record<EnemyType, number> = {
     pawn: 10,
+    maggot: 7,
     archer: 6,
     warrior: 5,
     lancer: 3,
@@ -59,6 +63,7 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
     flydemon: 0,
     mantis: 0,
     beetle: 0,
+    acidblob: 0,
     fly3: 0,
     boss: 0,
   };
@@ -68,6 +73,7 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
     weights.mushroom = 5;
     weights.mantis = 4;
   }
+  if (N >= 5) weights.acidblob = 3;
   if (N >= 6) {
     weights.warrior = 6;
     weights.fly3 = 3;
@@ -76,6 +82,7 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
   if (N >= 8) {
     weights.beetle = 4;
     weights.healer += 1;
+    weights.acidblob += 1;
   }
   if (N >= 9) weights.fly3 += 2;
   if (N >= 10) {
@@ -89,6 +96,12 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
   let count = 5 + Math.floor(N * 1.35);
   if (isBoss) count = Math.max(4, Math.floor(count * 0.6));
 
+  // Endless (past the Siege): every ENDLESS_ELITE_INTERVAL waves, a chunk of
+  // this wave's spawns are reinforced as tougher, higher-reward Elites —
+  // fresh challenge without needing new enemy content.
+  const endlessWaves = N - SIEGE_WAVE;
+  const eliteWave = endlessWaves > 0 && endlessWaves % ENDLESS_ELITE_INTERVAL === 0;
+
   let t = 0.5;
   const squad = 3 + rng.int(0, 2);
   let ci = 0;
@@ -96,7 +109,8 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
     const type = weightedPick(rng, available, weights);
     const color = ENEMY_COLORS[ci % ENEMY_COLORS.length];
     ci++;
-    entries.push({ type, color, time: t });
+    const elite = eliteWave && rng.chance(ENDLESS_ELITE_FRACTION);
+    entries.push({ type, color, time: t, elite });
     const gap = Math.max(0.28, rng.range(0.4, 0.85) - N * 0.012);
     t += gap;
     if (i % squad === squad - 1) t += rng.range(0.5, 1.3);

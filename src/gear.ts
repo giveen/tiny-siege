@@ -9,15 +9,23 @@ import type { RNG } from "./rng";
 export type GearSlot = "helm" | "armor" | "ring";
 export type GearStat = "damage" | "rate" | "range" | "splash" | "bless" | "health";
 
+/** One stat roll on a gear piece. `base` is the bonus % per tier (total =
+ *  base * tier); `unlockTier` is the tier at which this stat kicks in — a
+ *  piece's later stats only come online as it's upgraded at the Blacksmith. */
+export interface GearStatRoll {
+  stat: GearStat;
+  base: number;
+  unlockTier: number;
+}
+
 export interface GearDef {
   id: string;
   name: string;
   icon: string; // file under assets/gear/
   slot: GearSlot;
   tower: TowerType;
-  stat: GearStat;
-  /** Bonus % at tier 1; total bonus = base * tier. */
-  base: number;
+  /** 2 stats for helm/armor, 3 for the capstone ring slot; ordered by unlockTier. */
+  stats: GearStatRoll[];
 }
 
 export interface GearInstance {
@@ -34,7 +42,19 @@ export interface GearState {
 }
 
 export function emptyGearState(): GearState {
-  return { owned: [], equipped: { archer: {}, lancer: {}, cannon: {}, monastery: {}, barracks: {}, wizard: {} } };
+  return {
+    owned: [],
+    equipped: {
+      archer: {},
+      lancer: {},
+      cannon: {},
+      monastery: {},
+      barracks: {},
+      wizard: {},
+      alchemist: {},
+      ballista: {},
+    },
+  };
 }
 
 export const GEAR_SLOTS: GearSlot[] = ["helm", "armor", "ring"];
@@ -43,42 +63,68 @@ export const TIER_MAX = 5;
 /** 1-based tier color (index 0 unused). */
 export const TIER_COLORS = ["", "#c9d6e2", "#7ec87e", "#6fb7ff", "#c58bff", "#ffd24a"];
 
+/** helm/armor: primary at T1, a second stat wakes up at T3.
+ *  ring (capstone slot): primary + secondary, plus a third stat at T5. */
+const two = (stat: GearStat, base: number, stat2: GearStat, base2: number): GearStatRoll[] => [
+  { stat, base, unlockTier: 1 },
+  { stat: stat2, base: base2, unlockTier: 3 },
+];
+const three = (stat: GearStat, base: number, stat2: GearStat, base2: number, stat3: GearStat, base3: number): GearStatRoll[] => [
+  { stat, base, unlockTier: 1 },
+  { stat: stat2, base: base2, unlockTier: 3 },
+  { stat: stat3, base: base3, unlockTier: 5 },
+];
+
 export const GEARS: GearDef[] = [
   // ---------------- archer post
-  { id: "archer_sentinel", name: "Sentinel Helm", icon: "archer_sentinel", slot: "helm", tower: "archer", stat: "rate", base: 10 },
-  { id: "archer_ranger", name: "Ranger's Coif", icon: "archer_ranger", slot: "helm", tower: "archer", stat: "damage", base: 12 },
-  { id: "archer_warden", name: "Warden Plate", icon: "archer_warden", slot: "armor", tower: "archer", stat: "range", base: 10 },
-  { id: "archer_hunter", name: "Hunter Tunic", icon: "archer_hunter", slot: "armor", tower: "archer", stat: "rate", base: 12 },
-  { id: "archer_eagle", name: "Eagle Ring", icon: "archer_eagle", slot: "ring", tower: "archer", stat: "damage", base: 10 },
-  { id: "archer_swift", name: "Swift Signet", icon: "archer_swift", slot: "ring", tower: "archer", stat: "range", base: 12 },
+  { id: "archer_sentinel", name: "Sentinel Helm", icon: "archer_sentinel", slot: "helm", tower: "archer", stats: two("rate", 10, "range", 8) },
+  { id: "archer_ranger", name: "Ranger's Coif", icon: "archer_ranger", slot: "helm", tower: "archer", stats: two("damage", 12, "rate", 8) },
+  { id: "archer_warden", name: "Warden Plate", icon: "archer_warden", slot: "armor", tower: "archer", stats: two("range", 10, "damage", 8) },
+  { id: "archer_hunter", name: "Hunter Tunic", icon: "archer_hunter", slot: "armor", tower: "archer", stats: two("rate", 12, "range", 8) },
+  { id: "archer_eagle", name: "Eagle Ring", icon: "archer_eagle", slot: "ring", tower: "archer", stats: three("damage", 10, "range", 8, "rate", 6) },
+  { id: "archer_swift", name: "Swift Signet", icon: "archer_swift", slot: "ring", tower: "archer", stats: three("range", 12, "damage", 8, "rate", 6) },
   // ---------------- lance tower
-  { id: "lancer_horned", name: "Horned Warhelm", icon: "lancer_horned", slot: "helm", tower: "lancer", stat: "damage", base: 14 },
-  { id: "lancer_crimson", name: "Crimson Plume", icon: "lancer_crimson", slot: "helm", tower: "lancer", stat: "rate", base: 10 },
-  { id: "lancer_vanguard", name: "Vanguard Cuirass", icon: "lancer_vanguard", slot: "armor", tower: "lancer", stat: "range", base: 10 },
-  { id: "lancer_surcoat", name: "Lancer's Surcoat", icon: "lancer_surcoat", slot: "armor", tower: "lancer", stat: "rate", base: 12 },
-  { id: "lancer_warlord", name: "Warlord Signet", icon: "lancer_warlord", slot: "ring", tower: "lancer", stat: "damage", base: 14 },
-  { id: "lancer_keen", name: "Keen Ring", icon: "lancer_keen", slot: "ring", tower: "lancer", stat: "rate", base: 10 },
+  { id: "lancer_horned", name: "Horned Warhelm", icon: "lancer_horned", slot: "helm", tower: "lancer", stats: two("damage", 14, "rate", 8) },
+  { id: "lancer_crimson", name: "Crimson Plume", icon: "lancer_crimson", slot: "helm", tower: "lancer", stats: two("rate", 10, "damage", 8) },
+  { id: "lancer_vanguard", name: "Vanguard Cuirass", icon: "lancer_vanguard", slot: "armor", tower: "lancer", stats: two("range", 10, "damage", 8) },
+  { id: "lancer_surcoat", name: "Lancer's Surcoat", icon: "lancer_surcoat", slot: "armor", tower: "lancer", stats: two("rate", 12, "range", 8) },
+  { id: "lancer_warlord", name: "Warlord Signet", icon: "lancer_warlord", slot: "ring", tower: "lancer", stats: three("damage", 14, "rate", 8, "range", 6) },
+  { id: "lancer_keen", name: "Keen Ring", icon: "lancer_keen", slot: "ring", tower: "lancer", stats: three("rate", 10, "damage", 8, "range", 6) },
   // ---------------- cannon
-  { id: "cannon_powder", name: "Powderhelm", icon: "cannon_powder", slot: "helm", tower: "cannon", stat: "damage", base: 12 },
-  { id: "cannon_fusilier", name: "Fusilier Coif", icon: "cannon_fusilier", slot: "helm", tower: "cannon", stat: "splash", base: 10 },
-  { id: "cannon_blast", name: "Blast Aegis", icon: "cannon_blast", slot: "armor", tower: "cannon", stat: "splash", base: 14 },
-  { id: "cannon_brass", name: "Brass Hauberk", icon: "cannon_brass", slot: "armor", tower: "cannon", stat: "rate", base: 10 },
-  { id: "cannon_salvage", name: "Salvage Ring", icon: "cannon_salvage", slot: "ring", tower: "cannon", stat: "splash", base: 12 },
-  { id: "cannon_flint", name: "Flint Signet", icon: "cannon_flint", slot: "ring", tower: "cannon", stat: "rate", base: 10 },
-  // ---------------- monastery
-  { id: "monastery_sage", name: "Sage's Hood", icon: "monastery_sage", slot: "helm", tower: "monastery", stat: "bless", base: 14 },
-  { id: "monastery_pilgrim", name: "Pilgrim Cowl", icon: "monastery_pilgrim", slot: "helm", tower: "monastery", stat: "range", base: 12 },
-  { id: "monastery_benevolent", name: "Benevolent Robe", icon: "monastery_benevolent", slot: "armor", tower: "monastery", stat: "bless", base: 14 },
-  { id: "monastery_aura", name: "Aura Vest", icon: "monastery_aura", slot: "armor", tower: "monastery", stat: "range", base: 12 },
-  { id: "monastery_sanctum", name: "Sanctum Ring", icon: "monastery_sanctum", slot: "ring", tower: "monastery", stat: "bless", base: 14 },
-  { id: "monastery_glow", name: "Glowing Gem", icon: "monastery_glow", slot: "ring", tower: "monastery", stat: "bless", base: 10 },
+  { id: "cannon_powder", name: "Powderhelm", icon: "cannon_powder", slot: "helm", tower: "cannon", stats: two("damage", 12, "splash", 8) },
+  { id: "cannon_fusilier", name: "Fusilier Coif", icon: "cannon_fusilier", slot: "helm", tower: "cannon", stats: two("splash", 10, "damage", 8) },
+  { id: "cannon_blast", name: "Blast Aegis", icon: "cannon_blast", slot: "armor", tower: "cannon", stats: two("splash", 14, "rate", 8) },
+  { id: "cannon_brass", name: "Brass Hauberk", icon: "cannon_brass", slot: "armor", tower: "cannon", stats: two("rate", 10, "splash", 8) },
+  { id: "cannon_salvage", name: "Salvage Ring", icon: "cannon_salvage", slot: "ring", tower: "cannon", stats: three("splash", 12, "damage", 8, "rate", 6) },
+  { id: "cannon_flint", name: "Flint Signet", icon: "cannon_flint", slot: "ring", tower: "cannon", stats: three("rate", 10, "splash", 8, "damage", 6) },
+  // ---------------- monastery (only bless/range are meaningful support stats)
+  { id: "monastery_sage", name: "Sage's Hood", icon: "monastery_sage", slot: "helm", tower: "monastery", stats: two("bless", 14, "range", 8) },
+  { id: "monastery_pilgrim", name: "Pilgrim Cowl", icon: "monastery_pilgrim", slot: "helm", tower: "monastery", stats: two("range", 12, "bless", 8) },
+  { id: "monastery_benevolent", name: "Benevolent Robe", icon: "monastery_benevolent", slot: "armor", tower: "monastery", stats: two("bless", 14, "range", 8) },
+  { id: "monastery_aura", name: "Aura Vest", icon: "monastery_aura", slot: "armor", tower: "monastery", stats: two("range", 12, "bless", 8) },
+  { id: "monastery_sanctum", name: "Sanctum Ring", icon: "monastery_sanctum", slot: "ring", tower: "monastery", stats: three("bless", 14, "range", 8, "bless", 5) },
+  { id: "monastery_glow", name: "Glowing Gem", icon: "monastery_glow", slot: "ring", tower: "monastery", stats: three("bless", 10, "range", 6, "bless", 5) },
   // ---------------- barracks (stats describe the soldiers it musters)
-  { id: "barracks_drill", name: "Drillmaster's Cap", icon: "barracks_drill", slot: "helm", tower: "barracks", stat: "rate", base: 10 },
-  { id: "barracks_hawk", name: "Hawk Helm", icon: "barracks_hawk", slot: "helm", tower: "barracks", stat: "damage", base: 12 },
-  { id: "barracks_cuirass", name: "Guard Cuirass", icon: "barracks_cuirass", slot: "armor", tower: "barracks", stat: "health", base: 14 },
-  { id: "barracks_tunic", name: "Muster Tunic", icon: "barracks_tunic", slot: "armor", tower: "barracks", stat: "rate", base: 10 },
-  { id: "barracks_signet", name: "Vanguard Signet", icon: "barracks_signet", slot: "ring", tower: "barracks", stat: "damage", base: 12 },
-  { id: "barracks_loyal", name: "Loyalist Ring", icon: "barracks_loyal", slot: "ring", tower: "barracks", stat: "health", base: 10 },
+  { id: "barracks_drill", name: "Drillmaster's Cap", icon: "barracks_drill", slot: "helm", tower: "barracks", stats: two("rate", 10, "health", 8) },
+  { id: "barracks_hawk", name: "Hawk Helm", icon: "barracks_hawk", slot: "helm", tower: "barracks", stats: two("damage", 12, "rate", 8) },
+  { id: "barracks_cuirass", name: "Guard Cuirass", icon: "barracks_cuirass", slot: "armor", tower: "barracks", stats: two("health", 14, "damage", 8) },
+  { id: "barracks_tunic", name: "Muster Tunic", icon: "barracks_tunic", slot: "armor", tower: "barracks", stats: two("rate", 10, "health", 8) },
+  { id: "barracks_signet", name: "Vanguard Signet", icon: "barracks_signet", slot: "ring", tower: "barracks", stats: three("damage", 12, "health", 8, "rate", 6) },
+  { id: "barracks_loyal", name: "Loyalist Ring", icon: "barracks_loyal", slot: "ring", tower: "barracks", stats: three("health", 10, "damage", 8, "rate", 6) },
+  // ---------------- alchemist's hut
+  { id: "alchemist_hood", name: "Poisoner's Hood", icon: "alchemist_hood", slot: "helm", tower: "alchemist", stats: two("rate", 10, "splash", 8) },
+  { id: "alchemist_cowl", name: "Tainted Cowl", icon: "alchemist_cowl", slot: "helm", tower: "alchemist", stats: two("damage", 12, "rate", 8) },
+  { id: "alchemist_vest", name: "Corrosive Vest", icon: "alchemist_vest", slot: "armor", tower: "alchemist", stats: two("splash", 14, "damage", 8) },
+  { id: "alchemist_robes", name: "Miasma Robes", icon: "alchemist_robes", slot: "armor", tower: "alchemist", stats: two("rate", 10, "splash", 8) },
+  { id: "alchemist_band", name: "Reagent Band", icon: "alchemist_band", slot: "ring", tower: "alchemist", stats: three("damage", 10, "splash", 8, "rate", 6) },
+  { id: "alchemist_signet", name: "Vial Signet", icon: "alchemist_signet", slot: "ring", tower: "alchemist", stats: three("splash", 12, "damage", 8, "rate", 6) },
+  // ---------------- ballista nest
+  { id: "ballista_sallet", name: "Marksman's Sallet", icon: "ballista_sallet", slot: "helm", tower: "ballista", stats: two("damage", 14, "rate", 8) },
+  { id: "ballista_crest", name: "Crimson Crest Helm", icon: "ballista_crest", slot: "helm", tower: "ballista", stats: two("rate", 10, "damage", 8) },
+  { id: "ballista_plating", name: "Reinforced Plating", icon: "ballista_plating", slot: "armor", tower: "ballista", stats: two("range", 10, "damage", 8) },
+  { id: "ballista_harness", name: "Loader's Harness", icon: "ballista_harness", slot: "armor", tower: "ballista", stats: two("rate", 12, "range", 8) },
+  { id: "ballista_sight", name: "Sighting Ring", icon: "ballista_sight", slot: "ring", tower: "ballista", stats: three("damage", 14, "rate", 8, "range", 6) },
+  { id: "ballista_windage", name: "Windage Band", icon: "ballista_windage", slot: "ring", tower: "ballista", stats: three("range", 12, "damage", 8, "rate", 6) },
 ];
 
 export const GEAR_BY_ID = new Map(GEARS.map((g) => [g.id, g]));
@@ -87,9 +133,20 @@ export function gearBySlotTower(tower: TowerType): GearDef[] {
   return GEARS.filter((g) => g.tower === tower);
 }
 
-/** Total bonus % a piece grants at its tier. */
-export function gearPercent(def: GearDef, tier: number): number {
-  return def.base * tier;
+/** The stat rolls currently active on a piece at a given tier (a piece's
+ *  later rolls only switch on once the piece is upgraded that far). */
+export function gearActiveStats(def: GearDef, tier: number): GearStatRoll[] {
+  return def.stats.filter((s) => s.unlockTier <= tier);
+}
+
+/** The next stat still waiting to unlock at a higher tier, if any. */
+export function nextLockedStat(def: GearDef, tier: number): GearStatRoll | null {
+  return def.stats.find((s) => s.unlockTier > tier) ?? null;
+}
+
+/** Total bonus % a stat roll grants at a given tier. */
+export function gearPercent(roll: GearStatRoll, tier: number): number {
+  return roll.base * tier;
 }
 
 export function statLabel(tower: TowerType, stat: GearStat): string {
@@ -111,9 +168,11 @@ export function statLabel(tower: TowerType, stat: GearStat): string {
   }
 }
 
-/** Short human line: "+24% damage". */
+/** Short human line, one segment per active stat: "+24% damage · +8% range". */
 export function gearBonusText(def: GearDef, tier: number): string {
-  return `+${gearPercent(def, tier)}% ${statLabel(def.tower, def.stat)}`;
+  return gearActiveStats(def, tier)
+    .map((s) => `+${gearPercent(s, tier)}% ${statLabel(def.tower, s.stat)}`)
+    .join(" · ");
 }
 
 // ---------------------------------------------------------------- drops

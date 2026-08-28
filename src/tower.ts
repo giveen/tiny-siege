@@ -124,9 +124,41 @@ export const TOWER_DEFS: Record<TowerType, TowerDef> = {
     buffSpeed: 0,
     desc: "Arcane bolts; evolves as you upgrade it.",
   },
+  alchemist: {
+    type: "alchemist",
+    name: "Alchemist's Hut",
+    building: "house2",
+    unit: "warrior",
+    cost: 140,
+    damage: 13,
+    rate: 0.65,
+    range: 130,
+    splash: 42,
+    pierce: 0,
+    projSpeed: 250,
+    buffDmg: 0,
+    buffSpeed: 0,
+    desc: "Lobs corrosive flasks: splash damage plus a lingering poison cloud. Hits fliers too.",
+  },
+  ballista: {
+    type: "ballista",
+    name: "Ballista Nest",
+    building: "house3",
+    unit: "archer",
+    cost: 160,
+    damage: 68,
+    rate: 0.35,
+    range: 210,
+    splash: 0,
+    pierce: 0,
+    projSpeed: 620,
+    buffDmg: 0,
+    buffSpeed: 0,
+    desc: "A single devastating bolt. Slow to reload, but strikes from incredible range.",
+  },
 };
 
-export const TOWER_ORDER: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks", "wizard"];
+export const TOWER_ORDER: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks", "wizard", "alchemist", "ballista"];
 export const MAX_UPGRADE = 5;
 
 // ---------------------------------------------------------------- specializations
@@ -170,6 +202,16 @@ export const SPECS: Record<TowerType, SpecDef[]> = {
     { id: "frost", name: "Frost Nova", color: "#7ec8ff", blurb: "Bolts chill foes: 35% / 50% / 65% slower for 1.5s." },
     { id: "blast", name: "Arcane Blast", color: "#c58bff", blurb: "Each hit bursts for 50% / 70% / 90% damage to nearby foes (r 44 / 54 / 64)." },
     { id: "lance", name: "Lance of Light", color: "#ffd24a", blurb: "Bolts fly straight and pierce 1 / 2 / 3 extra foes." },
+  ],
+  alchemist: [
+    { id: "virulence", name: "Virulence", color: "#7ec87e", blurb: "The poison cloud deals 8 / 14 / 22 damage per second." },
+    { id: "miasma", name: "Miasma", color: "#c58bff", blurb: "Cloud radius +35% / +70% / +105%, duration +1 / +2 / +3s." },
+    { id: "volatile", name: "Volatile Reagents", color: "#ff8a3c", blurb: "The flask shatters into 3 / 5 / 7 corrosive shards, each a small blast for 35% damage." },
+  ],
+  ballista: [
+    { id: "ironbreaker", name: "Ironbreaker", color: "#6fb7ff", blurb: "The bolt ignores 2 / 4 / all enemy armor." },
+    { id: "skewer", name: "Skewer", color: "#ffd24a", blurb: "The bolt skewers 1 / 2 / 3 extra foes in its path." },
+    { id: "concussive", name: "Concussive Bolt", color: "#ff6a5a", blurb: "The impact staggers the foe: 40% / 55% / 70% slower for 1.2s." },
   ],
 };
 
@@ -237,7 +279,17 @@ export class Tower {
       const idleDef = game.assets.unit(color, this.def.unit, "idle");
       this.idle = new Sprite(idleDef);
       const atkAction =
-        type === "archer" ? "shoot" : type === "lancer" ? "attack" : type === "monastery" ? "heal" : type === "barracks" ? "guard" : "idle";
+        type === "archer" || type === "ballista"
+          ? "shoot"
+          : type === "lancer"
+            ? "attack"
+            : type === "monastery"
+              ? "heal"
+              : type === "barracks"
+                ? "guard"
+                : type === "alchemist"
+                  ? "attack1"
+                  : "idle";
       const atkDef = game.assets.unit(color, this.def.unit, atkAction);
       this.anim = new Sprite(atkDef);
       this.animDef = { action: atkAction, loop: type === "monastery" };
@@ -465,7 +517,7 @@ export class Tower {
     const mods: {
       pierce?: number; burnDps?: number; straight?: boolean; ripple?: number; armorIgnore?: number;
       ricochet?: number; cluster?: number; napalm?: number; bounce?: number;
-      slow?: number; slowDur?: number; blast?: { r: number; pct: number };
+      slow?: number; slowDur?: number; blast?: { r: number; pct: number }; bonusPierce?: number;
     } = {};
     if (this.spec === "pierce") {
       mods.pierce = this.specLvl;
@@ -492,6 +544,15 @@ export class Tower {
     } else if (this.spec === "lance") {
       mods.pierce = this.specLvl;
       mods.straight = true;
+    } else if (this.spec === "volatile") {
+      mods.cluster = [0, 3, 5, 7][this.specLvl];
+    } else if (this.spec === "ironbreaker") {
+      mods.armorIgnore = this.specLvl >= 3 ? Infinity : 2 * this.specLvl;
+    } else if (this.spec === "skewer") {
+      mods.bonusPierce = this.specLvl;
+    } else if (this.spec === "concussive") {
+      mods.slow = [0, 0.4, 0.55, 0.7][this.specLvl];
+      mods.slowDur = 1.2;
     }
     return mods;
   }
@@ -527,6 +588,22 @@ export class Tower {
       }
       game.spawnWizardBolt(ox, oy, target, s.damage, s.projSpeed, this.level, mods);
       game.sfx("shoot");
+    } else if (this.type === "alchemist") {
+      // Poison is the Alchemist's base identity (not spec-gated); Virulence
+      // and Miasma scale it further, Volatile Reagents adds shrapnel (cluster).
+      const virulence = this.spec === "virulence" ? [0, 0.6, 1.0, 1.6][this.specLvl] : 0;
+      const miasma = this.spec === "miasma" ? this.specLvl : 0;
+      game.spawnFlask(ox, oy, target.x, target.visualY, s.damage, s.splash, s.projSpeed, {
+        ...mods,
+        poison: s.damage * (0.4 + virulence),
+        poisonSpread: miasma * 12,
+        poisonDur: miasma,
+      });
+      game.sfx("cannon");
+    } else if (this.type === "ballista") {
+      game.spawnSpear(ox, oy, angle, s.damage, s.projSpeed, s.pierce + (mods.bonusPierce ?? 0), mods);
+      game.spawnSlashFx(ox, oy, angle, 1.3);
+      game.sfx("spear");
     }
   }
 

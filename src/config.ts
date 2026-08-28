@@ -41,8 +41,26 @@ export const PATH_SPEED_MULT = 2.2;
 // Tower range is in world px.
 export const TOWER_RANGE_PREVIEW = 1;
 
-// The run's climax: clearing this wave wins the run (the Siege).
+// The run's climax: clearing this wave wins the run (the Siege). Players can
+// choose to keep going past it from the victory screen ("Keep Defending") —
+// the map stops growing (stageForWave caps at 9) but waves keep coming.
 export const SIEGE_WAVE = 50;
+
+// ---------------------------------------------------------------- endless
+// Past the Siege, the composition periodically reinforces with tougher
+// "Elite" versions of existing enemies (no new content needed), and the
+// difficulty curve gains a gentle accelerating term on top of the normal
+// per-wave scale so the climb keeps steepening instead of running the
+// pre-Siege slope out forever. Single tunable knobs — needs a real
+// playtest pass to find where the eventual wall should sit.
+export const ENDLESS_ELITE_INTERVAL = 10;
+export const ENDLESS_ELITE_FRACTION = 0.4;
+export const ELITE_HP_MULT = 1.8;
+export const ELITE_DMG_MULT = 1.35;
+export const ELITE_REWARD_MULT = 2.2;
+/** Quadratic accel applied to enemy hp/damage/reward for every wave past the
+ *  Siege: `1 + (wave - SIEGE_WAVE)^2 * ENDLESS_ACCEL_RATE`. */
+export const ENDLESS_ACCEL_RATE = 0.00035;
 
 // Speed options
 export const SPEEDS = [1, 2, 3];
