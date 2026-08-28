@@ -54,6 +54,7 @@ import {
   saveProgress,
   refreshMissions,
   bumpStat,
+  setStatMax,
   achievementProgress,
   isAchievementClaimed,
   missionProgress,
@@ -935,12 +936,13 @@ export class Game {
   }
 
   private spawnEnemy(entry: SpawnEntry): void {
-    const e = new Enemy(this, entry.type, entry.color, this.wave);
+    const e = new Enemy(this, entry.type, entry.color, this.wave, !!entry.elite);
     // apply risky enemy HP buff
     e.maxHp = Math.round(e.maxHp * this.buffs.enemyHpMult);
     e.hp = e.maxHp;
     this.enemies.push(e);
     if (entry.type === "boss") this.addText(e.x, e.y - 40, "BOSS!", "#ff6a5a");
+    else if (entry.elite) this.addText(e.x, e.y - 30, "ELITE", "#ffd24a");
   }
 
   private gameOver(): void {
@@ -954,6 +956,7 @@ export class Game {
         /* ignore */
       }
     }
+    setStatMax(this.progress, "bestEndlessWave", Math.max(0, this.wave - SIEGE_WAVE));
   }
 
   // ---------------------------------------------------------------- combat
@@ -981,6 +984,13 @@ export class Game {
     this.spawnExplosionFx(e.x, e.y - 6, e.def.type === "boss" ? 1.6 : 0.7);
     this.addText(e.x, e.y - 18, `+${reward}`, "#ffd24a");
     this.sfx("die");
+    // Elite kill: a chance at a bonus Supply Crate, so the endless tail keeps
+    // feeding the meta-progression loop instead of just gold.
+    if (e.elite && this.rng.chance(0.25)) {
+      this.meta.crates += 1;
+      saveMeta(this.meta);
+      this.addText(e.x, e.y - 34, "+1 crate", "#d2a24c");
+    }
     // Acid Blob: bursts into a corrosive puddle on death, poisoning any
     // other foes still standing in it — a small bonus for killing one in a cluster.
     if (e.def.type === "acidblob") {

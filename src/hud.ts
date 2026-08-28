@@ -19,7 +19,7 @@ import {
   type UpgradeTrack,
 } from "./tower";
 import { RARITY_COLOR } from "./boons";
-import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE } from "./config";
+import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE, ENDLESS_ELITE_INTERVAL } from "./config";
 import { VICTORY_RUNES, VICTORY_CRATES, RELICS, RELIC_BRANCHES, relicLevel, relicPrereqMet, relicPrereqOf } from "./meta";
 import {
   ACHIEVEMENTS,
@@ -380,6 +380,12 @@ export class Hud {
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     ctx.fillText(`Wave ${game.wave}`, L.waveRect.x, L.waveRect.y + 8);
+    if (game.wave > SIEGE_WAVE) {
+      const waveW = this.txtW(`Wave ${game.wave}`, "700 15px 'Segoe UI', sans-serif");
+      ctx.fillStyle = "#ffd24a";
+      ctx.font = "800 10px 'Segoe UI', sans-serif";
+      ctx.fillText("ENDLESS", L.waveRect.x + waveW + 8, L.waveRect.y + 8);
+    }
     ctx.font = "600 11px 'Segoe UI', sans-serif";
     ctx.fillStyle = "#8fb8c8";
     const sub =
@@ -1313,6 +1319,11 @@ export class Hud {
     ctx.fillStyle = isBest ? "#ffd24a" : "#8fb8c8";
     ctx.font = "700 18px 'Segoe UI', sans-serif";
     ctx.fillText(`${isBest ? "★ NEW BEST!  " : ""}Best: ${game.best} waves`, CANVAS_W / 2, CANVAS_H / 2 + 50);
+    if (game.wave > SIEGE_WAVE) {
+      ctx.fillStyle = "#ffd24a";
+      ctx.font = "600 14px 'Segoe UI', sans-serif";
+      ctx.fillText(`${game.wave - SIEGE_WAVE} waves survived past the Siege`, CANVAS_W / 2, CANVAS_H / 2 + 76);
+    }
     ctx.restore();
 
     const r = this.overRects();
@@ -1371,6 +1382,17 @@ export class Hud {
     const r = this.victoryRects();
     this.button(ctx, r.again, "⚔  Keep Defending (Endless)", { bg: "#c98a2e", fg: "#1a1206", active: true });
     this.button(ctx, r.menu, "Bank Runes & Menu", { small: true });
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 13px 'Segoe UI', sans-serif";
+    ctx.fillText(
+      `No end past here — the island stops growing, but Elite reinforcements join every ${ENDLESS_ELITE_INTERVAL} waves.`,
+      CANVAS_W / 2,
+      r.menu.y + r.menu.h + 30
+    );
+    ctx.restore();
   }
 
   handleVictoryClick(game: Game, p: { x: number; y: number }): boolean {

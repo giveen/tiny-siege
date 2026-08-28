@@ -77,6 +77,15 @@ export function bumpStat(p: ProgressState, key: string, n = 1): void {
   saveProgress(p);
 }
 
+/** For "best ever" stats (e.g. deepest endless run) rather than cumulative
+ *  counters — only overwrites when the new value is higher. */
+export function setStatMax(p: ProgressState, key: string, value: number): void {
+  if (value > (p.stats[key] ?? 0)) {
+    p.stats[key] = value;
+    saveProgress(p);
+  }
+}
+
 // ---------------------------------------------------------------- dates
 function pad2(n: number): string {
   return n < 10 ? `0${n}` : String(n);
@@ -141,6 +150,7 @@ const ACHIEVEMENT_TIERS: TierSpec[] = [
   { key: "gearEquipped", name: "Quartermaster", unit: "gear pieces equipped", targets: [10, 50, 200] },
   { key: "cratesOpened", name: "Collector", unit: "Supply Crates opened", targets: [5, 25, 100] },
   { key: "goldEarned", name: "Treasurer", unit: "gold earned", targets: [5000, 50000, 500000] },
+  { key: "bestEndlessWave", name: "Endless Warlord", unit: "waves survived past the Siege", targets: [10, 30, 75] },
 ];
 
 const TIER_SUFFIX = ["I", "II", "III"];

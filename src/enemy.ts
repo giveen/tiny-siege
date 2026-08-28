@@ -1,7 +1,15 @@
 import type { Game } from "./game";
 import { Sprite, drawSprite } from "./sprite";
 import type { UnitColor, Assets } from "./assets";
-import { PATH_SPEED_MULT, ENEMY_SCALE_MULT } from "./config";
+import {
+  PATH_SPEED_MULT,
+  ENEMY_SCALE_MULT,
+  SIEGE_WAVE,
+  ENDLESS_ACCEL_RATE,
+  ELITE_HP_MULT,
+  ELITE_DMG_MULT,
+  ELITE_REWARD_MULT,
+} from "./config";
 
 export type EnemyType =
   | "pawn"
@@ -107,6 +115,8 @@ export class Enemy {
   dotShowAt = 0;
   dead = false;
   reached = false;
+  /** Endless mode: a tougher, higher-reward reinforcement (see waves.ts). */
+  elite: boolean;
   private bob = 0;
   private sprite: Sprite;
   private healTimer = 0;
@@ -116,19 +126,29 @@ export class Enemy {
     return this.y - (this.flying ? 26 : 0) + this.bob;
   }
 
-  constructor(game: Game, type: EnemyType, color: UnitColor, wave: number) {
+  constructor(game: Game, type: EnemyType, color: UnitColor, wave: number, elite = false) {
     const base = ENEMY_DEFS[type];
     this.def = base;
     this.color = color;
     this.flying = !!base.flying;
-    const hpScale = 1 + wave * 0.13 + (type === "boss" ? wave * 0.02 : 0);
-    const dmgScale = 1 + wave * 0.04;
+    this.elite = elite;
+    // Endless (past the Siege): a gentle accelerating term on top of the
+    // normal linear per-wave scale, so the climb keeps steepening the
+    // longer a run continues instead of running the pre-Siege slope out
+    // forever. Elites stack a further flat multiplier on top of that.
+    const endlessWaves = Math.max(0, wave - SIEGE_WAVE);
+    const endlessMult = 1 + endlessWaves * endlessWaves * ENDLESS_ACCEL_RATE;
+    const eliteHp = elite ? ELITE_HP_MULT : 1;
+    const eliteDmg = elite ? ELITE_DMG_MULT : 1;
+    const eliteReward = elite ? ELITE_REWARD_MULT : 1;
+    const hpScale = (1 + wave * 0.13 + (type === "boss" ? wave * 0.02 : 0)) * endlessMult * eliteHp;
+    const dmgScale = (1 + wave * 0.04) * endlessMult * eliteDmg;
     this.maxHp = Math.round(base.hp * hpScale);
     this.hp = this.maxHp;
     this.speed = base.speed * PATH_SPEED_MULT * (1 + wave * 0.008);
     this.castleDamage = Math.round(base.castleDamage * dmgScale);
-    this.reward = Math.round(base.reward * (1 + wave * 0.02));
-    this.scale = base.scale * ENEMY_SCALE_MULT;
+    this.reward = Math.round(base.reward * (1 + wave * 0.02) * endlessMult * eliteReward);
+    this.scale = base.scale * ENEMY_SCALE_MULT * (elite ? 1.15 : 1);
     this.armor = base.armor ?? 0;
     const spawn = game.world.spawnPoint();
     this.x = spawn.x;
@@ -279,6 +299,18 @@ export class Enemy {
       flipX: this.flipX,
       filter,
     });
+
+    // elite ring: a pulsing gold halo marking an endless-mode reinforcement
+    if (this.elite) {
+      ctx.save();
+      ctx.globalAlpha = 0.55 + Math.sin(game.time * 4 + this.id) * 0.15;
+      ctx.strokeStyle = "#ffd24a";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y - 14 * this.scale, 15 * this.scale, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // healer halo
     if (this.def.healer) {
