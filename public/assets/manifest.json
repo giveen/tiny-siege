@@ -3406,7 +3406,19 @@
    "barracks_cuirass": "gear/barracks_cuirass.png",
    "barracks_tunic": "gear/barracks_tunic.png",
    "barracks_signet": "gear/barracks_signet.png",
-   "barracks_loyal": "gear/barracks_loyal.png"
+   "barracks_loyal": "gear/barracks_loyal.png",
+   "alchemist_hood": "gear/alchemist_hood.png",
+   "alchemist_cowl": "gear/alchemist_cowl.png",
+   "alchemist_vest": "gear/alchemist_vest.png",
+   "alchemist_robes": "gear/alchemist_robes.png",
+   "alchemist_band": "gear/alchemist_band.png",
+   "alchemist_signet": "gear/alchemist_signet.png",
+   "ballista_sallet": "gear/ballista_sallet.png",
+   "ballista_crest": "gear/ballista_crest.png",
+   "ballista_plating": "gear/ballista_plating.png",
+   "ballista_harness": "gear/ballista_harness.png",
+   "ballista_sight": "gear/ballista_sight.png",
+   "ballista_windage": "gear/ballista_windage.png"
   }
  },
  "relic_icons": {

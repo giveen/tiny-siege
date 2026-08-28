@@ -228,6 +228,32 @@ export const BOONS: Boon[] = [
       g.unlocked.add("wizard");
     },
   },
+  {
+    id: "unlock_alchemist",
+    name: "Hire an Alchemist",
+    desc: "Unlocks the Alchemist's Hut (poison flasks that also strike fliers).",
+    icon: 23,
+    rarity: "rare",
+    maxStacks: 1,
+    weight: 1.0,
+    available: (g) => unlock("alchemist")(g) && g.wave >= 6,
+    apply: (g) => {
+      g.unlocked.add("alchemist");
+    },
+  },
+  {
+    id: "unlock_ballista",
+    name: "Raise a Ballista",
+    desc: "Unlocks the Ballista Nest (a single devastating long-range bolt).",
+    icon: 24,
+    rarity: "rare",
+    maxStacks: 1,
+    weight: 0.9,
+    available: (g) => unlock("ballista")(g) && g.wave >= 10,
+    apply: (g) => {
+      g.unlocked.add("ballista");
+    },
+  },
   // ---- Castle ----
   {
     id: "reinforce",

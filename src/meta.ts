@@ -147,8 +147,8 @@ export const RELICS: Relic[] = [
   {
     id: "recruit",
     name: "Old Guard",
-    blurb: "More tower types ready at the start — all six at max.",
-    maxLevel: 5,
+    blurb: "More tower types ready at the start — all eight at max.",
+    maxLevel: 7,
     cost: (l) => 40 + l * 30,
     effect: (l) => `Start with ${1 + l} tower type${l ? "s" : ""}`,
   },

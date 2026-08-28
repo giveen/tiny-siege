@@ -692,6 +692,20 @@ def main():
         "barracks_tunic": "tile049.png",    # white tunic
         "barracks_signet": "tile043.png",   # ring w/ red gem
         "barracks_loyal": "tile018.png",    # ring w/ pink gem
+        # alchemist
+        "alchemist_hood": "tile011.png",     # dark hood
+        "alchemist_cowl": "tile015.png",     # dark cloak hood
+        "alchemist_vest": "tile098.png",     # green ribbed vest
+        "alchemist_robes": "tile100.png",    # green ribbed vest (alt)
+        "alchemist_band": "tile012.png",     # dark gem ring
+        "alchemist_signet": "tile027.png",   # green crystal ring
+        # ballista
+        "ballista_sallet": "tile001.png",    # horned steel helm
+        "ballista_crest": "tile003.png",     # helm w/ red plume
+        "ballista_plating": "tile052.png",   # dark ribbed plate
+        "ballista_harness": "tile057.png",   # brown leather harness
+        "ballista_sight": "tile041.png",     # gold ring w/ dark gem
+        "ballista_windage": "tile042.png",   # ring w/ red+teal gems
     }
     gear_icons = {}
     for gid, tile in GEAR_TILES.items():

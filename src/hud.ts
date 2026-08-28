@@ -1981,10 +1981,11 @@ export class Hud {
         h: 74,
       } as Rect,
     }));
-    // one column per tower type, sized to fit all six inside the panel
+    // one column per tower type, sized to fit every tower inside the panel
+    // (width adapts to TOWER_ORDER.length so adding a tower never overflows)
     const towerX0 = 830;
-    const tw = 180;
     const tgap = 8;
+    const tw = Math.floor((CANVAS_W - 72 - towerX0 - (TOWER_ORDER.length - 1) * tgap) / TOWER_ORDER.length);
     const slots: { tower: TowerType; slot: GearSlot; rect: Rect }[] = [];
     TOWER_ORDER.forEach((t, i) => {
       const x = towerX0 + i * (tw + tgap);
@@ -2180,8 +2181,10 @@ export class Hud {
         ctx.save();
         ctx.textAlign = "left";
         ctx.fillStyle = "#bfe6ef";
-        ctx.font = "700 16px 'Segoe UI', sans-serif";
-        ctx.fillText(TOWER_DEFS[s.tower].name.toUpperCase(), x0, L.topY - 14);
+        const label = TOWER_DEFS[s.tower].name.toUpperCase();
+        const size = this.fitSize(label, "700", 16, 10, s.rect.w);
+        ctx.font = `700 ${size}px 'Segoe UI', sans-serif`;
+        ctx.fillText(label, x0, L.topY - 14);
         ctx.restore();
       }
       const cur = game.equippedFor(s.tower, s.slot);

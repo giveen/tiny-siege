@@ -143,7 +143,7 @@ export class Game {
   enemies: Enemy[] = [];
   soldiers: Soldier[] = [];
   /** Napalm patches: burning ground that damages grounded enemies standing in it. */
-  firePatches: { x: number; y: number; r: number; until: number; dps: number }[] = [];
+  firePatches: { x: number; y: number; r: number; until: number; dps: number; kind: "fire" | "poison" }[] = [];
   projectiles: Projectile[] = [];
   fx: Fx[] = [];
   spawnQueue: SpawnEntry[] = [];
@@ -264,12 +264,12 @@ export class Game {
     // ?buildall — place one of every tower type (verification / dev tool)
     if (params.has("buildall")) {
       this.startRun();
-      this.unlocked = new Set(["archer", "lancer", "cannon", "monastery", "barracks", "wizard"]);
+      this.unlocked = new Set(TOWER_ORDER);
       this.gold = 9999;
       const spots = [...this.world.buildSpots];
       this.rng.shuffle(spots);
-      const types: TowerType[] = ["archer", "lancer", "cannon", "monastery", "barracks", "wizard"];
-      for (let i = 0; i < 6 && i < spots.length; i++) this.buildTower(types[i], spots[i]);
+      const types: TowerType[] = [...TOWER_ORDER];
+      for (let i = 0; i < types.length && i < spots.length; i++) this.buildTower(types[i], spots[i]);
       for (let i = 0; i < 3; i++) {
         const e = new Enemy(this, "pawn", "red", 3);
         e.pathDist = 320 + i * 130;
@@ -525,11 +525,12 @@ export class Game {
     for (const s of this.soldiers) s.update(this, dt);
     this.soldiers = this.soldiers.filter((s) => !s.dead);
 
-    // napalm patches: burn grounded enemies standing in them
+    // napalm/poison patches: burn (or poison) enemies standing in them.
+    // Fire patches only reach the ground; poison clouds drift up and tick fliers too.
     if (this.firePatches.length > 0) {
       for (const f of this.firePatches) {
         for (const e of this.enemies) {
-          if (e.dead || e.flying) continue;
+          if (e.dead || (e.flying && f.kind === "fire")) continue;
           if (Math.hypot(e.x - f.x, e.y - f.y) <= f.r + 6 * e.scale) {
             this.damageEnemy(e, f.dps * dt, "burn");
           }
@@ -979,9 +980,9 @@ export class Game {
     return healed;
   }
 
-  /** Napalm: a burning ground patch (grounded enemies only). */
-  addFirePatch(x: number, y: number, r: number, dur: number, dps: number): void {
-    this.firePatches.push({ x, y, r, until: this.time + dur, dps });
+  /** A lingering ground effect: napalm (grounded foes only) or poison (also fliers). */
+  addFirePatch(x: number, y: number, r: number, dur: number, dps: number, kind: "fire" | "poison" = "fire"): void {
+    this.firePatches.push({ x, y, r, until: this.time + dur, dps, kind });
   }
 
   // ---------------------------------------------------------------- building
@@ -1104,6 +1105,12 @@ export class Game {
     const a = Math.atan2(ty - y, tx - x);
     this.projectiles.push(new Projectile("cannonball", x, y, a, speed, damage, { tx, ty, splash, mods }));
   }
+  /** Alchemist flask: arcs to a point like a cannonball, but its splash also
+   *  reaches fliers and it leaves a poison cloud rather than a napalm patch. */
+  spawnFlask(x: number, y: number, tx: number, ty: number, damage: number, splash: number, speed: number, mods: SpecMods = {}): void {
+    const a = Math.atan2(ty - y, tx - x);
+    this.projectiles.push(new Projectile("flask", x, y, a, speed, damage, { tx, ty, splash, mods }));
+  }
   /**
    * Wizard Tower bolt: an animated projectile whose sprite sheet follows the
    * tower's evolution level — 1 fireball, 2 ice shard, 3 star.
@@ -1208,6 +1215,8 @@ export class Game {
       Digit4: "monastery",
       Digit5: "barracks",
       Digit6: "wizard",
+      Digit7: "alchemist",
+      Digit8: "ballista",
     };
     for (const code in numMap) {
       const t = numMap[code];
@@ -1427,15 +1436,21 @@ export class Game {
     this.drawBuildSpots(ctx);
     this.drawCastle(ctx);
 
-    // napalm patches (on the ground, under the entities)
+    // napalm / poison patches (on the ground, under the entities)
     if (this.firePatches.length > 0) {
       for (const f of this.firePatches) {
         const a = Math.min(1, (f.until - this.time) / 0.5) * 0.55;
         ctx.save();
         const g = ctx.createRadialGradient(f.x, f.y, 2, f.x, f.y, f.r);
-        g.addColorStop(0, `rgba(255,170,60,${a})`);
-        g.addColorStop(0.7, `rgba(230,90,30,${a * 0.5})`);
-        g.addColorStop(1, "rgba(160,50,20,0)");
+        if (f.kind === "poison") {
+          g.addColorStop(0, `rgba(140,220,90,${a})`);
+          g.addColorStop(0.7, `rgba(80,160,60,${a * 0.5})`);
+          g.addColorStop(1, "rgba(40,100,40,0)");
+        } else {
+          g.addColorStop(0, `rgba(255,170,60,${a})`);
+          g.addColorStop(0.7, `rgba(230,90,30,${a * 0.5})`);
+          g.addColorStop(1, "rgba(160,50,20,0)");
+        }
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);

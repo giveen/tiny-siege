@@ -42,7 +42,19 @@ export interface GearState {
 }
 
 export function emptyGearState(): GearState {
-  return { owned: [], equipped: { archer: {}, lancer: {}, cannon: {}, monastery: {}, barracks: {}, wizard: {} } };
+  return {
+    owned: [],
+    equipped: {
+      archer: {},
+      lancer: {},
+      cannon: {},
+      monastery: {},
+      barracks: {},
+      wizard: {},
+      alchemist: {},
+      ballista: {},
+    },
+  };
 }
 
 export const GEAR_SLOTS: GearSlot[] = ["helm", "armor", "ring"];
@@ -99,6 +111,20 @@ export const GEARS: GearDef[] = [
   { id: "barracks_tunic", name: "Muster Tunic", icon: "barracks_tunic", slot: "armor", tower: "barracks", stats: two("rate", 10, "health", 8) },
   { id: "barracks_signet", name: "Vanguard Signet", icon: "barracks_signet", slot: "ring", tower: "barracks", stats: three("damage", 12, "health", 8, "rate", 6) },
   { id: "barracks_loyal", name: "Loyalist Ring", icon: "barracks_loyal", slot: "ring", tower: "barracks", stats: three("health", 10, "damage", 8, "rate", 6) },
+  // ---------------- alchemist's hut
+  { id: "alchemist_hood", name: "Poisoner's Hood", icon: "alchemist_hood", slot: "helm", tower: "alchemist", stats: two("rate", 10, "splash", 8) },
+  { id: "alchemist_cowl", name: "Tainted Cowl", icon: "alchemist_cowl", slot: "helm", tower: "alchemist", stats: two("damage", 12, "rate", 8) },
+  { id: "alchemist_vest", name: "Corrosive Vest", icon: "alchemist_vest", slot: "armor", tower: "alchemist", stats: two("splash", 14, "damage", 8) },
+  { id: "alchemist_robes", name: "Miasma Robes", icon: "alchemist_robes", slot: "armor", tower: "alchemist", stats: two("rate", 10, "splash", 8) },
+  { id: "alchemist_band", name: "Reagent Band", icon: "alchemist_band", slot: "ring", tower: "alchemist", stats: three("damage", 10, "splash", 8, "rate", 6) },
+  { id: "alchemist_signet", name: "Vial Signet", icon: "alchemist_signet", slot: "ring", tower: "alchemist", stats: three("splash", 12, "damage", 8, "rate", 6) },
+  // ---------------- ballista nest
+  { id: "ballista_sallet", name: "Marksman's Sallet", icon: "ballista_sallet", slot: "helm", tower: "ballista", stats: two("damage", 14, "rate", 8) },
+  { id: "ballista_crest", name: "Crimson Crest Helm", icon: "ballista_crest", slot: "helm", tower: "ballista", stats: two("rate", 10, "damage", 8) },
+  { id: "ballista_plating", name: "Reinforced Plating", icon: "ballista_plating", slot: "armor", tower: "ballista", stats: two("range", 10, "damage", 8) },
+  { id: "ballista_harness", name: "Loader's Harness", icon: "ballista_harness", slot: "armor", tower: "ballista", stats: two("rate", 12, "range", 8) },
+  { id: "ballista_sight", name: "Sighting Ring", icon: "ballista_sight", slot: "ring", tower: "ballista", stats: three("damage", 14, "rate", 8, "range", 6) },
+  { id: "ballista_windage", name: "Windage Band", icon: "ballista_windage", slot: "ring", tower: "ballista", stats: three("range", 12, "damage", 8, "rate", 6) },
 ];
 
 export const GEAR_BY_ID = new Map(GEARS.map((g) => [g.id, g]));
