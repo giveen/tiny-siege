@@ -144,6 +144,8 @@ export class Game {
   soldiers: Soldier[] = [];
   /** Napalm patches: burning ground that damages grounded enemies standing in it. */
   firePatches: { x: number; y: number; r: number; until: number; dps: number; kind: "fire" | "poison" }[] = [];
+  /** Drifting clouds over the map — purely atmospheric, no gameplay effect. */
+  private clouds: { img: number; x: number; y: number; vx: number; scale: number; alpha: number }[] = [];
   projectiles: Projectile[] = [];
   fx: Fx[] = [];
   spawnQueue: SpawnEntry[] = [];
@@ -486,6 +488,7 @@ export class Game {
     this.firePatches = [];
     this.projectiles = [];
     this.fx = [];
+    this.clouds = Array.from({ length: 10 }, () => this.respawnCloud(this.rng.range(-WORLD_W * 0.2, WORLD_W * 1.2)));
     this.spawnQueue = [];
     this.placing = null;
     this.movingSpot = null;
@@ -548,6 +551,7 @@ export class Game {
 
     // fx
     this.fxTick(dt, true);
+    this.cloudTick(dt);
 
     // castle ballista aura
     if (this.buffs.castleAuraDps > 0) {
@@ -621,6 +625,31 @@ export class Game {
   private fxTick(dt: number, sim: boolean): void {
     for (const f of this.fx) f.update(dt * (sim ? 1 : 1));
     this.fx = this.fx.filter((f) => !f.done);
+  }
+
+  /** A fresh drifting cloud entering from `x` — reused both to seed the run
+   *  and to recycle one that's drifted off the right edge. Sized so every
+   *  cloud reads at roughly the same on-screen scale regardless of which of
+   *  the 8 source images (88px to 495px wide) got picked. */
+  private respawnCloud(x: number): { img: number; x: number; y: number; vx: number; scale: number; alpha: number } {
+    const defs = this.assets.manifest.clouds;
+    const img = this.rng.int(0, defs.length - 1);
+    const scale = this.rng.range(220, 420) / defs[img].size[0];
+    return {
+      img,
+      x,
+      y: this.rng.range(this.world.minRow * TILE, WORLD_H),
+      vx: this.rng.range(8, 22),
+      scale,
+      alpha: this.rng.range(0.4, 0.65),
+    };
+  }
+
+  private cloudTick(dt: number): void {
+    for (const c of this.clouds) {
+      c.x += c.vx * dt;
+      if (c.x > WORLD_W + 300) Object.assign(c, this.respawnCloud(-300));
+    }
   }
 
   // ---------------------------------------------------------------- waves
@@ -1438,6 +1467,7 @@ export class Game {
       ctx.translate((this.rng.next() - 0.5) * s, (this.rng.next() - 0.5) * s);
     }
     ctx.drawImage(this.world.bg, 0, this.world.minRow * TILE);
+    this.drawClouds(ctx);
 
     this.drawBuildSpots(ctx);
     this.drawCastle(ctx);
@@ -1602,6 +1632,19 @@ export class Game {
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.restore();
+  }
+
+  private drawClouds(ctx: CanvasRenderingContext2D): void {
+    for (const c of this.clouds) {
+      const def = this.assets.manifest.clouds[c.img];
+      const img = this.assets.img(def.image);
+      const w = def.size[0] * c.scale;
+      const h = def.size[1] * c.scale;
+      ctx.save();
+      ctx.globalAlpha = c.alpha;
+      ctx.drawImage(img, c.x - w / 2, c.y - h / 2, w, h);
+      ctx.restore();
+    }
   }
 
   private drawCastle(ctx: CanvasRenderingContext2D): void {

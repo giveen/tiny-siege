@@ -348,13 +348,19 @@ def main():
         [f"Terrain/Decorations/Rocks/Rock{i}.png" for i in range(1, 5)])
     deco["duck"] = static_list("duck",
         ["Terrain/Decorations/Rubber Duck/Rubber duck.png"])
+    # Water Rocks_0X.png are each a horizontal strip of many small rock
+    # clusters (not one rock each) — slice, don't treat as single images.
+    deco["water_rock"] = slice_list("water_rock",
+        [f"Terrain/Decorations/Rocks in the Water/Water Rocks_0{i}.png" for i in range(1, 5)])
 
-    # sheep: idle/grass static, move animated
+    # sheep: idle/grass static (one representative frame — each source file is
+    # actually a multi-frame animation strip, not a single image), move animated
     for name, fn in [("sheep_idle", "Meat/Sheep/Sheep_Idle.png"),
                      ("sheep_grass", "Meat/Sheep/Sheep_Grass.png")]:
         p = os.path.join(SRC, "Terrain", "Resources", fn)
         if os.path.exists(p):
-            img = crop_to_bbox(load(p))
+            frames = slice_sheet(load(p))
+            img = crop_to_bbox(frames[0])
             rel = f"deco/{name}.png"
             save(img, rel)
             deco[name] = {"image": rel, "size": [img.width, img.height], "anchor": "bottom-center"}
@@ -372,6 +378,19 @@ def main():
         img = crop_to_bbox(load(p))
         save(img, "deco/goldstone.png")
         deco["goldstone"] = {"image": "deco/goldstone.png", "size": [img.width, img.height], "anchor": "center"}
+
+    # ---- Clouds (drifting atmosphere layer, not tied to any grid cell) ----
+    clouds = []
+    for i in range(1, 9):
+        p = os.path.join(SRC, "Terrain", "Decorations", "Clouds", f"Clouds_0{i}.png")
+        if not os.path.exists(p):
+            print(f"  ! missing cloud {i}")
+            continue
+        img = crop_to_bbox(load(p))
+        out = f"deco/cloud_{i}.png"
+        save(img, out)
+        clouds.append({"image": out, "size": [img.width, img.height], "anchor": "center"})
+    manifest["clouds"] = clouds
 
     # ---- FX (particles) --------------------------------------------------
     fx = manifest["fx"]

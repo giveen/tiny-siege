@@ -39,11 +39,14 @@ export interface Manifest {
     bush: string[];
     rock: string[];
     duck: string[];
+    water_rock: string[];
     sheep_idle: StaticDef;
     sheep_grass: StaticDef;
     sheep_move: AssetDef;
     goldstone: StaticDef;
   };
+  /** Drifting atmosphere layer — not tied to any grid cell. */
+  clouds: StaticDef[];
   fx: Record<string, AssetDef>;
   special: Record<string, AssetDef>;
   /** Audio (from the Free Fantasy SFX Pack): sfx name -> file, music key -> file. */
@@ -122,10 +125,12 @@ export class Assets {
     d.bush.forEach(add);
     d.rock.forEach(add);
     d.duck.forEach(add);
+    d.water_rock.forEach(add);
     add(d.sheep_idle.image);
     add(d.sheep_grass.image);
     d.sheep_move.frames.forEach(add);
     add(d.goldstone.image);
+    m.clouds.forEach((c) => add(c.image));
     for (const f of Object.values(m.fx)) f.frames.forEach(add);
     for (const f of Object.values(m.special)) f.frames.forEach(add);
     Object.values(m.gear?.icons ?? {}).forEach(add);

@@ -140,7 +140,7 @@ export interface Deco {
   x: number;
   y: number;
   cell: string;
-  kind: "tree" | "bush" | "rock" | "stump";
+  kind: "tree" | "bush" | "rock" | "stump" | "sheep" | "goldstone" | "water_rock" | "duck";
   idx: number;
   flip: boolean;
   scale: number;
@@ -188,6 +188,7 @@ export class World {
     this.setStagePath(stage);
     this.addSpotsForStage(stage, true);
     this.scatterDecos(this.freeCells());
+    this.scatterWaterDecos();
 
     // prerender background
     this.bg = document.createElement("canvas");
@@ -262,6 +263,7 @@ export class World {
     this.setStagePath(stage);
     this.addSpotsForStage(stage, false);
     this.scatterDecos(this.freeCells());
+    this.scatterWaterDecos();
     this.renderBackground(this.bg.getContext("2d")!);
   }
 
@@ -373,7 +375,28 @@ export class World {
         return this.rng.range(0.8, 1.1);
       case "stump":
         return this.rng.range(0.55, 0.7);
+      case "sheep":
+        return this.rng.range(0.6, 0.75);
+      case "goldstone":
+        return this.rng.range(0.4, 0.55);
+      case "water_rock":
+        return this.rng.range(0.7, 1.0);
+      case "duck":
+        return this.rng.range(0.35, 0.45);
     }
+  }
+
+  /** sheep/goldstone are single-image (StaticDef) manifest entries, not an
+   *  array of variants like the rest — this is the only variant either has. */
+  private decoCount(kind: Deco["kind"]): number {
+    if (kind === "sheep" || kind === "goldstone") return 1;
+    return this.assets.manifest.deco[kind].length;
+  }
+
+  private decoImagePath(kind: Deco["kind"], idx: number): string {
+    if (kind === "sheep") return this.assets.manifest.deco.sheep_grass.image;
+    if (kind === "goldstone") return this.assets.manifest.deco.goldstone.image;
+    return this.assets.manifest.deco[kind][idx];
   }
 
   private scatterDecos(free: Set<string>): void {
@@ -382,17 +405,52 @@ export class World {
     const occupied = new Set(this.decos.map((d) => d.cell));
     const cells = [...free].filter((k) => !occupied.has(k));
     this.rng.shuffle(cells);
-    const kinds: Deco["kind"][] = ["tree", "tree", "bush", "bush", "rock", "rock", "stump"];
+    const kinds: Deco["kind"][] = ["tree", "tree", "bush", "bush", "rock", "rock", "stump", "sheep", "goldstone"];
     const target = Math.floor(cells.length * 0.62);
     for (let i = 0; i < target; i++) {
       const k = cells[i];
       const [c, r] = k.split(",").map(Number);
       const p = cellCenter(c, r);
       const kind = this.rng.pick(kinds);
-      const count = this.assets.manifest.deco[kind].length;
+      const count = this.decoCount(kind);
       this.decos.push({
         x: p.x + this.rng.range(-14, 14),
         y: p.y + this.rng.range(-8, 12),
+        cell: k,
+        kind,
+        idx: this.rng.int(0, count - 1),
+        flip: this.rng.chance(0.5),
+        scale: this.scaleFor(kind),
+      });
+    }
+  }
+
+  /** Scatter decorative rocks (and a rare rubber duck) in the water just off
+   *  the coastline — purely cosmetic, the water is never otherwise touched. */
+  private scatterWaterDecos(): void {
+    const occupied = new Set(this.decos.map((d) => d.cell));
+    const candidates: string[] = [];
+    for (let r = this.minRow; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) {
+        if (this.isGrass(c, r)) continue;
+        const k = cellKey(c, r);
+        if (occupied.has(k)) continue;
+        let nearLand = false;
+        for (let dc = -1; dc <= 1 && !nearLand; dc++)
+          for (let dr = -1; dr <= 1 && !nearLand; dr++) if (this.isGrass(c + dc, r + dr)) nearLand = true;
+        if (nearLand) candidates.push(k);
+      }
+    this.rng.shuffle(candidates);
+    const target = Math.floor(candidates.length * 0.3);
+    for (let i = 0; i < target; i++) {
+      const k = candidates[i];
+      const [c, r] = k.split(",").map(Number);
+      const p = cellCenter(c, r);
+      const kind: Deco["kind"] = this.rng.chance(0.04) ? "duck" : "water_rock";
+      const count = this.decoCount(kind);
+      this.decos.push({
+        x: p.x + this.rng.range(-16, 16),
+        y: p.y + this.rng.range(-10, 14),
         cell: k,
         kind,
         idx: this.rng.int(0, count - 1),
@@ -484,8 +542,7 @@ export class World {
   }
 
   private drawDeco(ctx: CanvasRenderingContext2D, d: Deco): void {
-    const list = this.assets.manifest.deco[d.kind];
-    const img = this.assets.img(list[d.idx]);
+    const img = this.assets.img(this.decoImagePath(d.kind, d.idx));
     const s = d.scale;
     ctx.save();
     ctx.translate(d.x, d.y);
