@@ -1,4 +1,4 @@
-import { loadAssets, type Assets, ENEMY_COLORS, asAsset } from "./assets";
+import { loadAssets, type Assets, asAsset } from "./assets";
 import { World, stageForWave, type BuildSpot } from "./map";
 import { Input } from "./input";
 import { Audio } from "./audio";
@@ -300,7 +300,7 @@ export class Game {
       const types: TowerType[] = [...TOWER_ORDER];
       for (let i = 0; i < types.length && i < spots.length; i++) this.buildTower(types[i], spots[i]);
       for (let i = 0; i < 3; i++) {
-        const e = new Enemy(this, "pawn", "red", 3);
+        const e = new Enemy(this, "rat", 3);
         e.pathDist = 320 + i * 130;
         const p = this.world.pointAt(e.pathDist);
         e.x = p.x;
@@ -346,7 +346,7 @@ export class Game {
       this.wavePhase = "active"; // soldiers must deploy for the lineup to be met
       let d = 240;
       for (const t of types) {
-        const e = new Enemy(this, t, "red", 6);
+        const e = new Enemy(this, t, 6);
         e.pathDist = d;
         const p = this.world.pointAt(d);
         e.x = p.x;
@@ -974,7 +974,7 @@ export class Game {
   }
 
   private spawnEnemy(entry: SpawnEntry): void {
-    const e = new Enemy(this, entry.type, entry.color, this.wave, !!entry.elite);
+    const e = new Enemy(this, entry.type, this.wave, !!entry.elite);
     // apply risky enemy HP buff
     e.maxHp = Math.round(e.maxHp * this.buffs.enemyHpMult);
     e.hp = e.maxHp;
@@ -1029,9 +1029,9 @@ export class Game {
       saveMeta(this.meta);
       this.addText(e.x, e.y - 34, "+1 crate", "#d2a24c");
     }
-    // Acid Blob: bursts into a corrosive puddle on death, poisoning any
+    // Toxic Sludge & co: burst into a corrosive puddle on death, poisoning any
     // other foes still standing in it — a small bonus for killing one in a cluster.
-    if (e.def.type === "acidblob") {
+    if (e.def.puddle) {
       this.spawnSplashFx(e.x, e.y - 6);
       this.addFirePatch(e.x, e.y, 30, 2.5, 8, "poison");
     }
@@ -2039,5 +2039,4 @@ export class Game {
 // keep reference so bundlers don't tree-shake the pool (used by HUD for tooltips)
 export { BOONS };
 export const towerOrder = TOWER_ORDER;
-export const enemyColors = ENEMY_COLORS;
 export type { EnemyType };

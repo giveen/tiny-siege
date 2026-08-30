@@ -1,97 +1,105 @@
+// Wave generation: themed family unlocks across the run.
+//
+// The Mega Pack has ~100 fieldable creatures, so waves no longer unlock
+// individual types — they unlock FAMILIES (theme groups, see ENEMY_FAMILIES in
+// enemy.ts). Within an unlocked family a random member is picked per spawn,
+// so every creature in the pack shows up throughout a run.
+
 import type { RNG } from "./rng";
-import type { EnemyType } from "./enemy";
-import type { UnitColor } from "./assets";
-import { ENEMY_COLORS } from "./assets";
+import type { EnemyType, FamilyKey } from "./enemy";
+import { ENEMY_FAMILIES, FAMILY_KEYS } from "./enemy";
 import { SIEGE_WAVE, ENDLESS_ELITE_INTERVAL, ENDLESS_ELITE_FRACTION } from "./config";
 
 export interface SpawnEntry {
   type: EnemyType;
-  color: UnitColor;
   time: number; // seconds into the wave
   /** Endless mode: a tougher, higher-reward reinforcement (see enemy.ts). */
   elite?: boolean;
 }
 
-function weightedPick(rng: RNG, types: EnemyType[], weights: Record<EnemyType, number>): EnemyType {
-  let total = 0;
-  for (const t of types) total += weights[t] ?? 0;
-  let r = rng.next() * total;
-  for (const t of types) {
-    r -= weights[t] ?? 0;
-    if (r <= 0) return t;
+// ---------------------------------------------------------------------------
+// Family unlock schedule
+// ---------------------------------------------------------------------------
+
+// Row: [family, unlockWave, baseWeight, tier]
+//   tier 1 = light/early flavor, tier 2 = mid, tier 3 = heavy/late.
+// Once every family is unlocked, the tier shifts the composition toward the
+// heavy families so late waves feel meatier without new content.
+
+type Tier = 1 | 2 | 3;
+
+const FAMILY_SCHEDULE: Array<readonly [FamilyKey, number, number, Tier]> = [
+  ["scavengers", 1, 6, 1], // rats, ticks, bugs — frail speedsters
+  ["strays", 1, 5, 1], // goblin, mirrorfiend, traveler
+  ["forest", 2, 6, 1], // imps, bushling, girl, nymph
+  ["chaos", 3, 4, 2],
+  ["blobs", 3, 4, 1],
+  ["plague", 4, 5, 1],
+  ["junkyard", 5, 6, 3], // armored scrap heavies
+  ["night", 6, 3, 1],
+  ["wisp", 6, 4, 2], // first flyers
+  ["fire", 7, 4, 1],
+  ["molten", 7, 4, 2],
+  ["shell", 8, 5, 3], // armored tortoises
+  ["spectral", 9, 4, 2],
+  ["clockwork", 10, 4, 2],
+  ["undead", 11, 5, 3], // skeletons, reapers
+  ["frost", 12, 5, 3], // golems, the big gorilla
+  ["cave", 13, 3, 1],
+  ["abyss", 14, 6, 3], // the 19-strong deep pack
+  ["spiders", 15, 4, 2],
+  ["toxic", 16, 5, 2], // sludge that leaves poison patches
+  ["dust", 17, 3, 2],
+  ["volcano", 18, 4, 3], // drakling + imp
+  ["phantom", 19, 4, 3], // minotaurs
+];
+
+// The schedule must cover every family in the roster.
+{
+  const covered = new Set<FamilyKey>(FAMILY_SCHEDULE.map((r) => r[0]));
+  for (const k of FAMILY_KEYS) {
+    if (!covered.has(k)) throw new Error(`FAMILY_SCHEDULE has no unlock wave for family "${k}"`);
   }
-  return types[types.length - 1];
 }
+
+const TIER_SHIFT: Record<Tier, number> = { 1: 1, 2: 1.25, 3: 1.6 };
+/** Once every family is in, heavier families take a bigger share. */
+const TIER_SHIFT_FROM = Math.max(...FAMILY_SCHEDULE.map((r) => r[1]));
+
+function familyWeights(N: number): Array<readonly [FamilyKey, number]> {
+  const shift = N >= TIER_SHIFT_FROM;
+  return FAMILY_SCHEDULE.filter(([, at]) => N >= at).map(([k, , w, tier]) => [
+    k,
+    w * (shift ? TIER_SHIFT[tier] : 1),
+  ]);
+}
+
+function weightedPickFamily(rng: RNG, N: number): FamilyKey {
+  const items = familyWeights(N);
+  let total = 0;
+  for (const [, w] of items) total += w;
+  let r = rng.next() * total;
+  for (const [k, w] of items) {
+    r -= w;
+    if (r <= 0) return k;
+  }
+  return items[items.length - 1][0];
+}
+
+/** One enemy pick: a family by weight, then a random member of it. */
+function pickType(rng: RNG, N: number): EnemyType {
+  const family = weightedPickFamily(rng, N);
+  return rng.pick(ENEMY_FAMILIES[family]);
+}
+
+// ---------------------------------------------------------------------------
+// Wave builder
+// ---------------------------------------------------------------------------
 
 /** Build the full spawn schedule for a wave. */
 export function generateWave(N: number, rng: RNG): SpawnEntry[] {
   const entries: SpawnEntry[] = [];
   const isBoss = N % 5 === 0;
-
-  // Pacing: waves 1-4 are frail speedsters only (the starting island is
-  // small and early towers are weak). The armored heavies (warrior/beetle/
-  // lancer/skeleton) only join after an island growth, and the Minotaur
-  // itself appears solely on boss waves — the 5th, right before each growth.
-  const available: EnemyType[] = ["pawn", "maggot"];
-  if (N >= 2) available.push("archer");
-  if (N >= 3) {
-    available.push("mushroom");
-    available.push("mantis");
-  }
-  if (N >= 5) available.push("acidblob");
-  if (N >= 6) {
-    available.push("warrior");
-    available.push("fly3");
-  }
-  if (N >= 7) {
-    available.push("healer");
-    available.push("flydemon");
-  }
-  if (N >= 8) available.push("beetle");
-  if (N >= 10) available.push("lancer");
-  if (N >= 11) available.push("skeleton");
-
-  const weights: Record<EnemyType, number> = {
-    pawn: 10,
-    maggot: 7,
-    archer: 6,
-    warrior: 5,
-    lancer: 3,
-    healer: 2,
-    mushroom: 0,
-    skeleton: 0,
-    flydemon: 0,
-    mantis: 0,
-    beetle: 0,
-    acidblob: 0,
-    fly3: 0,
-    boss: 0,
-  };
-  // introduce + shift weight toward new/tougher types over time
-  // (weights only matter once the type is in `available`)
-  if (N >= 3) {
-    weights.mushroom = 5;
-    weights.mantis = 4;
-  }
-  if (N >= 5) weights.acidblob = 3;
-  if (N >= 6) {
-    weights.warrior = 6;
-    weights.fly3 = 3;
-  }
-  if (N >= 7) weights.flydemon = 4;
-  if (N >= 8) {
-    weights.beetle = 4;
-    weights.healer += 1;
-    weights.acidblob += 1;
-  }
-  if (N >= 9) weights.fly3 += 2;
-  if (N >= 10) {
-    weights.lancer = 5;
-    weights.flydemon += 1;
-    weights.mantis += 1;
-    weights.beetle += 1;
-  }
-  if (N >= 11) weights.skeleton = 5;
 
   let count = 5 + Math.floor(N * 1.35);
   if (isBoss) count = Math.max(4, Math.floor(count * 0.6));
@@ -102,35 +110,37 @@ export function generateWave(N: number, rng: RNG): SpawnEntry[] {
   const endlessWaves = N - SIEGE_WAVE;
   const eliteWave = endlessWaves > 0 && endlessWaves % ENDLESS_ELITE_INTERVAL === 0;
 
+  // Themed surge: once the whole roster is available, most waves pick one
+  // family to feature — 55% of the spawns come from it, so waves read as
+  // "the junkyard wave" or "the abyss wave" instead of an even stew.
+  const featured = N >= 25 ? weightedPickFamily(rng, N) : null;
+
   let t = 0.5;
   const squad = 3 + rng.int(0, 2);
-  let ci = 0;
   for (let i = 0; i < count; i++) {
-    const type = weightedPick(rng, available, weights);
-    const color = ENEMY_COLORS[ci % ENEMY_COLORS.length];
-    ci++;
+    const type =
+      featured && rng.chance(0.55) ? rng.pick(ENEMY_FAMILIES[featured]) : pickType(rng, N);
     const elite = eliteWave && rng.chance(ENDLESS_ELITE_FRACTION);
-    entries.push({ type, color, time: t, elite });
+    entries.push({ type, time: t, elite });
     const gap = Math.max(0.28, rng.range(0.4, 0.85) - N * 0.012);
     t += gap;
     if (i % squad === squad - 1) t += rng.range(0.5, 1.3);
   }
 
   if (isBoss) {
-    entries.push({ type: "boss", color: rng.pick(ENEMY_COLORS), time: 2.5 });
-    if (N % 15 === 0) entries.push({ type: "boss", color: rng.pick(ENEMY_COLORS), time: 9 });
+    entries.push({ type: "boss", time: 2.5 });
+    if (N % 15 === 0) entries.push({ type: "boss", time: 9 });
     // escort healers for bosses
-    if (N >= 10) entries.push({ type: "healer", color: rng.pick(ENEMY_COLORS), time: 3.5 });
+    if (N >= 10) entries.push({ type: "healer", time: 3.5 });
   }
 
-  // The Siege (final wave): a full Minotaur assault — the run's climax.
+  // The Siege (final wave): a full boss assault — the run's climax.
   if (N === SIEGE_WAVE) {
-    const bc = () => rng.pick(ENEMY_COLORS);
-    entries.push({ type: "boss", color: bc(), time: 8 });
-    entries.push({ type: "boss", color: bc(), time: 15 });
-    entries.push({ type: "healer", color: bc(), time: 5 });
-    entries.push({ type: "healer", color: bc(), time: 12 });
-    entries.push({ type: "healer", color: bc(), time: 18 });
+    entries.push({ type: "boss", time: 8 });
+    entries.push({ type: "boss", time: 15 });
+    entries.push({ type: "healer", time: 5 });
+    entries.push({ type: "healer", time: 12 });
+    entries.push({ type: "healer", time: 18 });
   }
 
   entries.sort((a, b) => a.time - b.time);

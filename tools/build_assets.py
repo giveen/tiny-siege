@@ -2,7 +2,8 @@
 """
 Asset pipeline for Tiny Siege.
 
-Reads the raw "Tiny Swords (Free Pack)" art and emits a clean, deterministic
+Reads the raw "Tiny Swords (Free Pack)" art plus the PixelFlush "Pixel
+Monsters Mega Pack" enemy sheets (enemies/) and emits a clean, deterministic
 asset tree under public/assets/ plus a manifest.json the TypeScript game loads.
 
 What it does:
@@ -498,56 +499,47 @@ def main():
     ui["paper"] = ui_static("paper", "Papers/RegularPaper.png", crop=True)
     ui["paper_special"] = ui_static("paper_special", "Papers/SpecialPaper.png", crop=True)
 
-    # ---- Special enemies (external packs in ./enemies) --------------------
-    ENEMY = os.path.join(ROOT, "enemies")
+    # ---- Special enemies (PixelFlush "Pixel Monsters Mega Pack") ----------
+    # The pack ships every creature twice: a pre-exported horizontal PNG sheet
+    # (pngs/<Name>.png) and a binary .aseprite source (aserprite/<Name>.aseprite)
+    # whose header records the frame count (u16 @6) and square cell size
+    # (u16 @8, u16 @10). We slice the PNG into exactly that many uniform frames
+    # (never content-guessing), bottom-align + center them into one common cell
+    # (feet anchoring), and save the frames under enemies/.
+    import struct
+
+    ENEMY = os.path.join(ROOT, "enemies", "PixelFlush - Pixel Monsters Mega Pack")
     special = manifest["special"] = {}
 
-    def special_anim(key, rel, fps=10, loop=True):
-        """Slice a horizontal sheet, normalize frames, save under enemies/."""
-        p = os.path.join(ENEMY, rel)
+    # Pack entries the game does not field as enemies (no usable walk loop).
+    ENEMY_SKIP = {"Forest Nymph Sitting"}
+
+    # Frames per second by frame count (1 = static idle).
+    FPS_BY_FRAMES = {1: 10, 2: 7, 3: 9, 4: 11}
+
+    def slugify(name):
+        s = "".join(c if c.isalnum() else "_" for c in name.lower())
+        return s.strip("_")
+
+    def aseprite_meta(name):
+        """(frames, cell_w, cell_h) from the pack's binary .aseprite header."""
+        p = os.path.join(ENEMY, "aserprite", name + ".aseprite")
+        with open(p, "rb") as f:
+            d = f.read(16)
+        frames, w, h = struct.unpack_from("<HHH", d, 6)
+        return frames, w, h
+
+    def special_sheet(key, name):
+        p = os.path.join(ENEMY, "pngs", name + ".png")
         if not os.path.exists(p):
-            print(f"  ! missing enemy sheet {rel}")
+            print(f"  ! missing enemy sheet {name}.png")
             return
         im = load(p)
-        frames = slice_sheet(im)
-        if len(frames) <= 1:
-            frames = [im]
-        cw, ch, cells = normalize_frames(frames)
-        rels = []
-        for i, cell in enumerate(cells):
-            r = f"enemies/{key}_{i}.png"
-            save(cell, r)
-            rels.append(r)
-        special[key] = {"frames": rels, "cell": [cw, ch],
-                        "anchor": "bottom-center", "fps": fps, "loop": loop}
-
-    def special_grid(key, rel, cols, row_count, rows=None, fps=10, loop=True):
-        """Slice a fixed COLS x ROWS grid sheet into frames (row-major order),
-        normalize, and save under enemies/. For sheets that are NOT horizontal
-        strips. The insect packs ship as 4x4 directional grids (front / left /
-        right / back walk rows); `rows` selects which row(s) to use (int or
-        list of row indexes), defaulting to all rows."""
-        p = os.path.join(ENEMY, rel)
-        if not os.path.exists(p):
-            print(f"  ! missing enemy sheet {rel}")
+        frames_n, fw, fh = aseprite_meta(name)
+        if im.size != (frames_n * fw, fh):
+            print(f"  ! {name}: sheet {im.size} != {frames_n} frames x {fw}x{fh} per aseprite header")
             return
-        im = load(p)
-        W, H = im.size
-        fw, fh = W / cols, H / row_count
-        if rows is None:
-            row_idx = list(range(row_count))
-        elif isinstance(rows, int):
-            row_idx = [rows]
-        else:
-            row_idx = list(rows)
-        frames = []
-        for r in row_idx:
-            for c in range(cols):
-                cell = im.crop((int(c * fw), int(r * fh), int((c + 1) * fw), int((r + 1) * fh)))
-                if content_bbox(cell):
-                    frames.append(cell)
-        if not frames:
-            frames = [im]
+        frames = [im.crop((i * fw, 0, (i + 1) * fw, fh)) for i in range(frames_n)]
         cw, ch, cells = normalize_frames(frames)
         rels = []
         for i, cell in enumerate(cells):
@@ -555,59 +547,18 @@ def main():
             save(cell, r)
             rels.append(r)
         special[key] = {"frames": rels, "cell": [cw, ch],
-                        "anchor": "bottom-center", "fps": fps, "loop": loop}
+                        "anchor": "bottom-center",
+                        "fps": FPS_BY_FRAMES.get(frames_n, 10), "loop": True}
 
-    def special_row_varwidth(key, sheet_rel, rows, rows_total=20, fps=10, max_frames=None):
-        """Extract one animation row whose frames are variable-width strips
-        (the Minotaur sheet is NOT a fixed grid). `rows` may be a single int or
-        a list of row indexes; frames from all listed rows are concatenated."""
-        p = os.path.join(ENEMY, sheet_rel)
-        im = load(p)
-        W, H = im.width, im.height
-        rh = H / rows_total
-        if isinstance(rows, int):
-            rows = [rows]
-        frames = []
-        for r in rows:
-            strip = im.crop((0, int(r * rh), W, int((r + 1) * rh)))
-            for x0, x1 in column_segments(strip):
-                frames.append(strip.crop((x0, 0, x1 + 1, strip.height)))
-        if max_frames:
-            frames = frames[:max_frames]
-        cw, ch, cells = normalize_frames(frames)
-        rels = []
-        for i, cell in enumerate(cells):
-            r = f"enemies/{key}_{i}.png"
-            save(cell, r)
-            rels.append(r)
-        special[key] = {"frames": rels, "cell": [cw, ch],
-                        "anchor": "bottom-center", "fps": fps, "loop": True}
+    for sheet in sorted(os.listdir(os.path.join(ENEMY, "pngs"))):
+        if not sheet.endswith(".png"):
+            continue
+        name = sheet[:-4]
+        if name in ENEMY_SKIP:
+            continue
+        special_sheet(slugify(name), name)
 
-    # Flying Demon — a hovering bat (flying enemy)
-    special_anim("flydemon", "Flying Demon 2D Pixel Art/Sprites/with_outline/FLYING.png", fps=11)
-    # Mushroom — a fast ground runner
-    special_anim("mushroom", "Forest_Monsters_FREE/Mushroom/Mushroom without VFX/Mushroom-Run.png", fps=12)
-    # Skeleton — a melee swordsman (two color variants)
-    special_anim("skeleton_white",
-        "Skeletons_Free_Pack/Skeleton_Sword/Skeleton_White/Skeleton_Without_VFX/Skeleton_01_White_Walk.png", fps=12)
-    special_anim("skeleton_yellow",
-        "Skeletons_Free_Pack/Skeleton_Sword/Skeleton_Yellow/Skeleton_Without_VFX/Skeleton_01_Yellow_Walk.png", fps=12)
-    # Minotaur — the boss. Row 1 is the clean 8-frame walk cycle (variable-width
-    # strips with a full leg stride); row 0 is a near-static idle. Slice by
-    # content, not grid.
-    special_row_varwidth("minotaur", "Minotaur - Sprite Sheet.png", rows=1, fps=11)
-    # Insects — small ground bugs. These sheets are 4x4 directional grids
-    # (front / left / right / back walk rows), NOT horizontal strips. Use the
-    # right-facing profile row (2) to match the other enemies' facing.
-    special_grid("mantis", "Animated insect enemy assets/MantisMove.png", cols=4, row_count=4, rows=2, fps=13)
-    special_grid("beetle", "Animated insect enemy assets/BeetleMove.png", cols=4, row_count=4, rows=2, fps=9)
-    # Maggot — same 4x4 directional-grid sheet format as mantis/beetle.
-    special_grid("maggot", "Animated insect enemy assets/MaggotWalk.png", cols=4, row_count=4, rows=2, fps=10)
-    # Acid Blob — a pulsing idle animation, 4 rows x 7 frames; any row works
-    # since the blob has no real facing.
-    special_grid("acidblob", "Animated insect enemy assets/AcidBlob.png", cols=7, row_count=4, rows=0, fps=8)
-    # Enemy3 — a second, smaller flying type
-    special_anim("fly3", "FlyingForestEnemies_FREE/Enemy3/Enemy3-Movement-In-Animation/Enemy3-Fly.png", fps=11)
+    print(f"  enemies: {len(special)} creatures from the PixelFlush Mega Pack")
 
     # ---- Wizard tower (animated building, 3 evolution tiers) --------------
     # "Stone Castle Evolution" pack (vendor/stone-castle): each tier is one

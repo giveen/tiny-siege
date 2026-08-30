@@ -3,7 +3,6 @@ import type { Assets, StaticDef } from "./assets";
 import { asAsset } from "./assets";
 import { drawSprite } from "./sprite";
 import { ENEMY_DEFS, enemyPreviewDef, type EnemyType } from "./enemy";
-import type { UnitColor } from "./assets";
 import {
   TOWER_DEFS,
   TOWER_ORDER,
@@ -240,27 +239,33 @@ export class Hud {
       return;
     }
 
-    // Count enemies by type (keep a representative color per type).
-    const counts: { type: EnemyType; color: UnitColor; n: number }[] = [];
-    const seen = new Map<string, number>();
+    // Count enemies by type. Waves draw from a huge roster, so show the nine
+    // most common and summarize the rest.
+    const counts: { type: EnemyType; n: number }[] = [];
+    const seen = new Map<EnemyType, number>();
     for (const e of game.nextWave) {
-      if (!seen.has(e.type)) {
+      const i = seen.get(e.type);
+      if (i === undefined) {
         seen.set(e.type, counts.length);
-        counts.push({ type: e.type, color: e.color, n: 0 });
+        counts.push({ type: e.type, n: 1 });
+      } else {
+        counts[i].n++;
       }
-      counts[seen.get(e.type)!].n++;
     }
+    counts.sort((a, b) => b.n - a.n);
+    const shown = counts.slice(0, 9);
+    const extra = counts.length - shown.length;
 
     // Chips sit below the title band; sprites anchor near the chip bottom so
     // tall foes (fliers) never reach the "NEXT WAVE" label.
     const chipW = r.w / 3;
     const rowStep = 43;
-    counts.forEach((c, i) => {
+    shown.forEach((c, i) => {
       const col = i % 3;
       const row = Math.floor(i / 3);
       const cx = r.x + col * chipW;
       const cy = r.y + 18 + row * rowStep;
-      const def = enemyPreviewDef(this.assets, c.type, c.color);
+      const def = enemyPreviewDef(this.assets, c.type);
       drawSprite(ctx, this.assets, def, 0, cx + 13, cy + 33, { scale: 0.45 });
       ctx.save();
       ctx.textAlign = "left";
@@ -275,6 +280,16 @@ export class Hud {
       }
       ctx.restore();
     });
+    if (extra > 0) {
+      const cx = r.x + (9 % 3) * chipW;
+      const cy = r.y + 18 + Math.floor(9 / 3) * rowStep;
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "rgba(220,240,255,0.7)";
+      ctx.font = "700 12px 'Segoe UI', sans-serif";
+      ctx.fillText(`+${extra} more…`, cx + 13, cy + 22);
+      ctx.restore();
+    }
   }
 
   // ------------------------------------------------------------- helpers
@@ -968,11 +983,6 @@ export class Hud {
   }
 
   private enemyTip(e: Game["enemies"][number]): Tip {
-    const NAME: Record<string, string> = {
-      mantis: "Mantis", mushroom: "Mushroom", archer: "Enemy Archer", fly3: "Fly Trio",
-      pawn: "Pawn", flydemon: "Fly Demon", healer: "Healer", beetle: "Beetle",
-      warrior: "Warrior", skeleton: "Skeleton", lancer: "Lancer", boss: "The Minotaur",
-    };
     const lines: TipLine[] = [
       { t: `HP ${Math.ceil(e.hp)} / ${e.maxHp}`, c: "#9fd8a8" },
       { t: `worth ${e.reward} gold`, c: "#e8c96a" },
@@ -981,7 +991,7 @@ export class Hud {
     if (e.def.healer) lines.push({ t: "Heals nearby foes.", c: "#ff8a8a" });
     if (e.armor > 0) lines.push({ t: `Armor ${e.armor} — each hit does less.`, c: "#8fa8bd" });
     if (e.def.type === "boss") lines.push({ t: "Boss — slow, huge, and angry.", c: "#ffce5a" });
-    return { title: NAME[e.def.type] ?? e.def.type, accent: "#ffd24a", lines };
+    return { title: e.displayName, accent: "#ffd24a", lines };
   }
 
   private tipCodex(game: Game, p: { x: number; y: number }): Tip | null {

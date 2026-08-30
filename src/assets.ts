@@ -90,7 +90,6 @@ export interface Manifest {
 
 export const UNIT_COLORS = ["blue", "red", "black", "purple", "yellow"] as const;
 export type UnitColor = (typeof UNIT_COLORS)[number];
-export const ENEMY_COLORS: UnitColor[] = ["red", "black", "purple", "yellow"];
 
 export class Assets {
   manifest: Manifest;

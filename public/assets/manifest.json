@@ -2309,45 +2309,6 @@
   "duck": [
    "deco/duck_0.png"
   ],
-  "sheep_idle": {
-   "image": "deco/sheep_idle.png",
-   "size": [
-    45,
-    44
-   ],
-   "anchor": "bottom-center"
-  },
-  "sheep_grass": {
-   "image": "deco/sheep_grass.png",
-   "size": [
-    45,
-    44
-   ],
-   "anchor": "bottom-center"
-  },
-  "sheep_move": {
-   "frames": [
-    "deco/sheep_move_0.png",
-    "deco/sheep_move_1.png",
-    "deco/sheep_move_2.png",
-    "deco/sheep_move_3.png"
-   ],
-   "cell": [
-    48,
-    47
-   ],
-   "anchor": "bottom-center",
-   "fps": 8,
-   "loop": true
-  },
-  "goldstone": {
-   "image": "deco/goldstone.png",
-   "size": [
-    32,
-    29
-   ],
-   "anchor": "center"
-  },
   "water_rock": [
    "deco/water_rock_0.png",
    "deco/water_rock_1.png",
@@ -2419,7 +2380,46 @@
    "deco/water_rock_67.png",
    "deco/water_rock_68.png",
    "deco/water_rock_69.png"
-  ]
+  ],
+  "sheep_idle": {
+   "image": "deco/sheep_idle.png",
+   "size": [
+    45,
+    44
+   ],
+   "anchor": "bottom-center"
+  },
+  "sheep_grass": {
+   "image": "deco/sheep_grass.png",
+   "size": [
+    45,
+    44
+   ],
+   "anchor": "bottom-center"
+  },
+  "sheep_move": {
+   "frames": [
+    "deco/sheep_move_0.png",
+    "deco/sheep_move_1.png",
+    "deco/sheep_move_2.png",
+    "deco/sheep_move_3.png"
+   ],
+   "cell": [
+    48,
+    47
+   ],
+   "anchor": "bottom-center",
+   "fps": 8,
+   "loop": true
+  },
+  "goldstone": {
+   "image": "deco/goldstone.png",
+   "size": [
+    32,
+    29
+   ],
+   "anchor": "center"
+  }
  },
  "fx": {
   "explosion1": {
@@ -3279,157 +3279,744 @@
    "anchor": "center"
   }
  },
+ "clouds": [
+  {
+   "image": "deco/cloud_1.png",
+   "size": [
+    495,
+    157
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_2.png",
+   "size": [
+    307,
+    110
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_3.png",
+   "size": [
+    165,
+    75
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_4.png",
+   "size": [
+    106,
+    57
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_5.png",
+   "size": [
+    416,
+    152
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_6.png",
+   "size": [
+    306,
+    99
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_7.png",
+   "size": [
+    156,
+    83
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_8.png",
+   "size": [
+    88,
+    55
+   ],
+   "anchor": "center"
+  }
+ ],
  "special": {
-  "flydemon": {
+  "abyss_bat_2": {
    "frames": [
-    "enemies/flydemon_0.png",
-    "enemies/flydemon_1.png",
-    "enemies/flydemon_2.png",
-    "enemies/flydemon_3.png"
-   ],
-   "cell": [
-    78,
-    66
-   ],
-   "anchor": "bottom-center",
-   "fps": 11,
-   "loop": true
-  },
-  "mushroom": {
-   "frames": [
-    "enemies/mushroom_0.png",
-    "enemies/mushroom_1.png",
-    "enemies/mushroom_2.png",
-    "enemies/mushroom_3.png",
-    "enemies/mushroom_4.png",
-    "enemies/mushroom_5.png",
-    "enemies/mushroom_6.png",
-    "enemies/mushroom_7.png"
-   ],
-   "cell": [
-    30,
-    35
-   ],
-   "anchor": "bottom-center",
-   "fps": 12,
-   "loop": true
-  },
-  "skeleton_white": {
-   "frames": [
-    "enemies/skeleton_white_0.png",
-    "enemies/skeleton_white_1.png",
-    "enemies/skeleton_white_2.png",
-    "enemies/skeleton_white_3.png",
-    "enemies/skeleton_white_4.png",
-    "enemies/skeleton_white_5.png",
-    "enemies/skeleton_white_6.png",
-    "enemies/skeleton_white_7.png",
-    "enemies/skeleton_white_8.png",
-    "enemies/skeleton_white_9.png"
-   ],
-   "cell": [
-    40,
-    48
-   ],
-   "anchor": "bottom-center",
-   "fps": 12,
-   "loop": true
-  },
-  "skeleton_yellow": {
-   "frames": [
-    "enemies/skeleton_yellow_0.png",
-    "enemies/skeleton_yellow_1.png",
-    "enemies/skeleton_yellow_2.png",
-    "enemies/skeleton_yellow_3.png",
-    "enemies/skeleton_yellow_4.png",
-    "enemies/skeleton_yellow_5.png",
-    "enemies/skeleton_yellow_6.png",
-    "enemies/skeleton_yellow_7.png",
-    "enemies/skeleton_yellow_8.png",
-    "enemies/skeleton_yellow_9.png"
-   ],
-   "cell": [
-    40,
-    48
-   ],
-   "anchor": "bottom-center",
-   "fps": 12,
-   "loop": true
-  },
-  "minotaur": {
-   "frames": [
-    "enemies/minotaur_0.png",
-    "enemies/minotaur_1.png",
-    "enemies/minotaur_2.png",
-    "enemies/minotaur_3.png",
-    "enemies/minotaur_4.png",
-    "enemies/minotaur_5.png",
-    "enemies/minotaur_6.png",
-    "enemies/minotaur_7.png"
-   ],
-   "cell": [
-    52,
-    44
-   ],
-   "anchor": "bottom-center",
-   "fps": 11,
-   "loop": true
-  },
-  "mantis": {
-   "frames": [
-    "enemies/mantis_0.png",
-    "enemies/mantis_1.png",
-    "enemies/mantis_2.png",
-    "enemies/mantis_3.png"
-   ],
-   "cell": [
-    32,
-    27
-   ],
-   "anchor": "bottom-center",
-   "fps": 13,
-   "loop": true
-  },
-  "beetle": {
-   "frames": [
-    "enemies/beetle_0.png",
-    "enemies/beetle_1.png",
-    "enemies/beetle_2.png",
-    "enemies/beetle_3.png"
+    "enemies/abyss_bat_2_0.png",
+    "enemies/abyss_bat_2_1.png"
    ],
    "cell": [
     32,
     18
    ],
    "anchor": "bottom-center",
-   "fps": 9,
+   "fps": 7,
    "loop": true
   },
-  "fly3": {
+  "abyss_bat": {
    "frames": [
-    "enemies/fly3_0.png",
-    "enemies/fly3_1.png",
-    "enemies/fly3_2.png",
-    "enemies/fly3_3.png",
-    "enemies/fly3_4.png",
-    "enemies/fly3_5.png",
-    "enemies/fly3_6.png",
-    "enemies/fly3_7.png"
+    "enemies/abyss_bat_0.png",
+    "enemies/abyss_bat_1.png"
    ],
    "cell": [
-    40,
-    53
+    32,
+    17
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_blueberry": {
+   "frames": [
+    "enemies/abyss_blueberry_0.png",
+    "enemies/abyss_blueberry_1.png"
+   ],
+   "cell": [
+    32,
+    10
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_cult_leader": {
+   "frames": [
+    "enemies/abyss_cult_leader_0.png",
+    "enemies/abyss_cult_leader_1.png"
+   ],
+   "cell": [
+    32,
+    25
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_drone": {
+   "frames": [
+    "enemies/abyss_drone_0.png",
+    "enemies/abyss_drone_1.png"
+   ],
+   "cell": [
+    32,
+    15
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_druid": {
+   "frames": [
+    "enemies/abyss_druid_0.png",
+    "enemies/abyss_druid_1.png"
+   ],
+   "cell": [
+    32,
+    19
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_fat_gargoyle": {
+   "frames": [
+    "enemies/abyss_fat_gargoyle_0.png",
+    "enemies/abyss_fat_gargoyle_1.png"
+   ],
+   "cell": [
+    32,
+    21
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_goblin": {
+   "frames": [
+    "enemies/abyss_goblin_0.png",
+    "enemies/abyss_goblin_1.png"
+   ],
+   "cell": [
+    32,
+    25
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_imp": {
+   "frames": [
+    "enemies/abyss_imp_0.png",
+    "enemies/abyss_imp_1.png"
+   ],
+   "cell": [
+    32,
+    12
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_lurker": {
+   "frames": [
+    "enemies/abyss_lurker_0.png",
+    "enemies/abyss_lurker_1.png"
+   ],
+   "cell": [
+    32,
+    12
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_minion": {
+   "frames": [
+    "enemies/abyss_minion_0.png",
+    "enemies/abyss_minion_1.png"
+   ],
+   "cell": [
+    32,
+    18
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_monster": {
+   "frames": [
+    "enemies/abyss_monster_0.png",
+    "enemies/abyss_monster_1.png"
+   ],
+   "cell": [
+    32,
+    15
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_reaper": {
+   "frames": [
+    "enemies/abyss_reaper_0.png",
+    "enemies/abyss_reaper_1.png"
+   ],
+   "cell": [
+    32,
+    29
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_siren_form_1": {
+   "frames": [
+    "enemies/abyss_siren_form_1_0.png",
+    "enemies/abyss_siren_form_1_1.png"
+   ],
+   "cell": [
+    32,
+    13
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_siren_form_2": {
+   "frames": [
+    "enemies/abyss_siren_form_2_0.png",
+    "enemies/abyss_siren_form_2_1.png"
+   ],
+   "cell": [
+    32,
+    21
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_siren_form_3": {
+   "frames": [
+    "enemies/abyss_siren_form_3_0.png",
+    "enemies/abyss_siren_form_3_1.png",
+    "enemies/abyss_siren_form_3_2.png",
+    "enemies/abyss_siren_form_3_3.png"
+   ],
+   "cell": [
+    64,
+    61
    ],
    "anchor": "bottom-center",
    "fps": 11,
    "loop": true
   },
-  "maggot": {
+  "abyss_slug": {
    "frames": [
-    "enemies/maggot_0.png",
-    "enemies/maggot_1.png",
-    "enemies/maggot_2.png",
-    "enemies/maggot_3.png"
+    "enemies/abyss_slug_0.png",
+    "enemies/abyss_slug_1.png",
+    "enemies/abyss_slug_2.png",
+    "enemies/abyss_slug_3.png"
+   ],
+   "cell": [
+    32,
+    11
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "abyss_squid": {
+   "frames": [
+    "enemies/abyss_squid_0.png",
+    "enemies/abyss_squid_1.png"
+   ],
+   "cell": [
+    32,
+    28
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "abyss_tiny_slug": {
+   "frames": [
+    "enemies/abyss_tiny_slug_0.png",
+    "enemies/abyss_tiny_slug_1.png",
+    "enemies/abyss_tiny_slug_2.png",
+    "enemies/abyss_tiny_slug_3.png"
+   ],
+   "cell": [
+    32,
+    8
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "cave_healing_troll": {
+   "frames": [
+    "enemies/cave_healing_troll_0.png",
+    "enemies/cave_healing_troll_1.png"
+   ],
+   "cell": [
+    32,
+    22
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "cave_tiny_troll": {
+   "frames": [
+    "enemies/cave_tiny_troll_0.png",
+    "enemies/cave_tiny_troll_1.png"
+   ],
+   "cell": [
+    32,
+    22
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "cave_troll_boss": {
+   "frames": [
+    "enemies/cave_troll_boss_0.png",
+    "enemies/cave_troll_boss_1.png",
+    "enemies/cave_troll_boss_2.png",
+    "enemies/cave_troll_boss_3.png"
+   ],
+   "cell": [
+    64,
+    58
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "chaos_druid": {
+   "frames": [
+    "enemies/chaos_druid_0.png",
+    "enemies/chaos_druid_1.png",
+    "enemies/chaos_druid_2.png",
+    "enemies/chaos_druid_3.png"
+   ],
+   "cell": [
+    48,
+    47
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "chaos_imp": {
+   "frames": [
+    "enemies/chaos_imp_0.png",
+    "enemies/chaos_imp_1.png",
+    "enemies/chaos_imp_2.png"
+   ],
+   "cell": [
+    32,
+    14
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "chaos_weaver": {
+   "frames": [
+    "enemies/chaos_weaver_0.png",
+    "enemies/chaos_weaver_1.png",
+    "enemies/chaos_weaver_2.png"
+   ],
+   "cell": [
+    32,
+    27
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "clockwork_behemoth": {
+   "frames": [
+    "enemies/clockwork_behemoth_0.png",
+    "enemies/clockwork_behemoth_1.png"
+   ],
+   "cell": [
+    48,
+    38
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "clockwork_imp": {
+   "frames": [
+    "enemies/clockwork_imp_0.png",
+    "enemies/clockwork_imp_1.png"
+   ],
+   "cell": [
+    32,
+    27
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "clockwork_soldier": {
+   "frames": [
+    "enemies/clockwork_soldier_0.png",
+    "enemies/clockwork_soldier_1.png"
+   ],
+   "cell": [
+    32,
+    31
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "dust_elemental_boss": {
+   "frames": [
+    "enemies/dust_elemental_boss_0.png",
+    "enemies/dust_elemental_boss_1.png",
+    "enemies/dust_elemental_boss_2.png",
+    "enemies/dust_elemental_boss_3.png"
+   ],
+   "cell": [
+    64,
+    40
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "dust_elemental": {
+   "frames": [
+    "enemies/dust_elemental_0.png",
+    "enemies/dust_elemental_1.png",
+    "enemies/dust_elemental_2.png"
+   ],
+   "cell": [
+    32,
+    20
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "dust_explosioniate": {
+   "frames": [
+    "enemies/dust_explosioniate_0.png",
+    "enemies/dust_explosioniate_1.png",
+    "enemies/dust_explosioniate_2.png",
+    "enemies/dust_explosioniate_3.png"
+   ],
+   "cell": [
+    32,
+    26
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "fire_elemental": {
+   "frames": [
+    "enemies/fire_elemental_0.png",
+    "enemies/fire_elemental_1.png",
+    "enemies/fire_elemental_2.png",
+    "enemies/fire_elemental_3.png"
+   ],
+   "cell": [
+    32,
+    22
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "fire_imp": {
+   "frames": [
+    "enemies/fire_imp_0.png",
+    "enemies/fire_imp_1.png",
+    "enemies/fire_imp_2.png"
+   ],
+   "cell": [
+    32,
+    20
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "forest_boss_imp": {
+   "frames": [
+    "enemies/forest_boss_imp_0.png",
+    "enemies/forest_boss_imp_1.png",
+    "enemies/forest_boss_imp_2.png"
+   ],
+   "cell": [
+    48,
+    46
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "forest_bushling": {
+   "frames": [
+    "enemies/forest_bushling_0.png",
+    "enemies/forest_bushling_1.png",
+    "enemies/forest_bushling_2.png",
+    "enemies/forest_bushling_3.png"
+   ],
+   "cell": [
+    32,
+    19
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "forest_girl": {
+   "frames": [
+    "enemies/forest_girl_0.png",
+    "enemies/forest_girl_1.png",
+    "enemies/forest_girl_2.png"
+   ],
+   "cell": [
+    32,
+    28
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "forest_healing_imp": {
+   "frames": [
+    "enemies/forest_healing_imp_0.png",
+    "enemies/forest_healing_imp_1.png"
+   ],
+   "cell": [
+    32,
+    17
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "forest_imp": {
+   "frames": [
+    "enemies/forest_imp_0.png",
+    "enemies/forest_imp_1.png"
+   ],
+   "cell": [
+    32,
+    21
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "forest_nymph": {
+   "frames": [
+    "enemies/forest_nymph_0.png",
+    "enemies/forest_nymph_1.png",
+    "enemies/forest_nymph_2.png",
+    "enemies/forest_nymph_3.png"
+   ],
+   "cell": [
+    64,
+    50
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "forest_spider": {
+   "frames": [
+    "enemies/forest_spider_0.png",
+    "enemies/forest_spider_1.png"
+   ],
+   "cell": [
+    32,
+    16
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "frost_boss_yeti": {
+   "frames": [
+    "enemies/frost_boss_yeti_0.png",
+    "enemies/frost_boss_yeti_1.png",
+    "enemies/frost_boss_yeti_2.png",
+    "enemies/frost_boss_yeti_3.png"
+   ],
+   "cell": [
+    64,
+    56
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "frost_golem": {
+   "frames": [
+    "enemies/frost_golem_0.png",
+    "enemies/frost_golem_1.png",
+    "enemies/frost_golem_2.png"
+   ],
+   "cell": [
+    48,
+    37
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "frost_gorilla": {
+   "frames": [
+    "enemies/frost_gorilla_0.png",
+    "enemies/frost_gorilla_1.png"
+   ],
+   "cell": [
+    32,
+    31
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "frost_ice_buff": {
+   "frames": [
+    "enemies/frost_ice_buff_0.png",
+    "enemies/frost_ice_buff_1.png"
+   ],
+   "cell": [
+    32,
+    30
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "frost_yetling": {
+   "frames": [
+    "enemies/frost_yetling_0.png",
+    "enemies/frost_yetling_1.png"
+   ],
+   "cell": [
+    32,
+    21
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "giant_spider": {
+   "frames": [
+    "enemies/giant_spider_0.png",
+    "enemies/giant_spider_1.png",
+    "enemies/giant_spider_2.png",
+    "enemies/giant_spider_3.png"
+   ],
+   "cell": [
+    64,
+    59
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "giant_turtle": {
+   "frames": [
+    "enemies/giant_turtle_0.png",
+    "enemies/giant_turtle_1.png"
+   ],
+   "cell": [
+    32,
+    16
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "goblin_cutthroat": {
+   "frames": [
+    "enemies/goblin_cutthroat_0.png",
+    "enemies/goblin_cutthroat_1.png"
+   ],
+   "cell": [
+    32,
+    24
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "graveyard_guardian": {
+   "frames": [
+    "enemies/graveyard_guardian_0.png",
+    "enemies/graveyard_guardian_1.png"
+   ],
+   "cell": [
+    32,
+    25
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "green_blob_form_1": {
+   "frames": [
+    "enemies/green_blob_form_1_0.png"
    ],
    "cell": [
     32,
@@ -3439,22 +4026,809 @@
    "fps": 10,
    "loop": true
   },
-  "acidblob": {
+  "happy_blob": {
    "frames": [
-    "enemies/acidblob_0.png",
-    "enemies/acidblob_1.png",
-    "enemies/acidblob_2.png",
-    "enemies/acidblob_3.png",
-    "enemies/acidblob_4.png",
-    "enemies/acidblob_5.png",
-    "enemies/acidblob_6.png"
+    "enemies/happy_blob_0.png",
+    "enemies/happy_blob_1.png",
+    "enemies/happy_blob_2.png",
+    "enemies/happy_blob_3.png"
+   ],
+   "cell": [
+    64,
+    33
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "junkyard_boxer": {
+   "frames": [
+    "enemies/junkyard_boxer_0.png",
+    "enemies/junkyard_boxer_1.png"
+   ],
+   "cell": [
+    32,
+    16
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "junkyard_brute": {
+   "frames": [
+    "enemies/junkyard_brute_0.png",
+    "enemies/junkyard_brute_1.png"
+   ],
+   "cell": [
+    32,
+    25
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "junkyard_buffed_titan": {
+   "frames": [
+    "enemies/junkyard_buffed_titan_0.png",
+    "enemies/junkyard_buffed_titan_1.png",
+    "enemies/junkyard_buffed_titan_2.png"
+   ],
+   "cell": [
+    48,
+    35
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "junkyard_goblin": {
+   "frames": [
+    "enemies/junkyard_goblin_0.png",
+    "enemies/junkyard_goblin_1.png"
+   ],
+   "cell": [
+    32,
+    22
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "junkyard_golem": {
+   "frames": [
+    "enemies/junkyard_golem_0.png",
+    "enemies/junkyard_golem_1.png"
+   ],
+   "cell": [
+    32,
+    19
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "junkyard_goliath": {
+   "frames": [
+    "enemies/junkyard_goliath_0.png",
+    "enemies/junkyard_goliath_1.png",
+    "enemies/junkyard_goliath_2.png"
+   ],
+   "cell": [
+    48,
+    36
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "junkyard_tiny_boxer": {
+   "frames": [
+    "enemies/junkyard_tiny_boxer_0.png",
+    "enemies/junkyard_tiny_boxer_1.png"
+   ],
+   "cell": [
+    32,
+    11
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "junkyard_titan": {
+   "frames": [
+    "enemies/junkyard_titan_0.png",
+    "enemies/junkyard_titan_1.png",
+    "enemies/junkyard_titan_2.png"
+   ],
+   "cell": [
+    48,
+    40
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "junkyard_skeleton": {
+   "frames": [
+    "enemies/junkyard_skeleton_0.png",
+    "enemies/junkyard_skeleton_1.png"
    ],
    "cell": [
     32,
     21
    ],
    "anchor": "bottom-center",
-   "fps": 8,
+   "fps": 7,
+   "loop": true
+  },
+  "mirrorfiend": {
+   "frames": [
+    "enemies/mirrorfiend_0.png",
+    "enemies/mirrorfiend_1.png"
+   ],
+   "cell": [
+    32,
+    18
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "molten_golem_2": {
+   "frames": [
+    "enemies/molten_golem_2_0.png",
+    "enemies/molten_golem_2_1.png"
+   ],
+   "cell": [
+    48,
+    31
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "molten_golem": {
+   "frames": [
+    "enemies/molten_golem_0.png",
+    "enemies/molten_golem_1.png"
+   ],
+   "cell": [
+    32,
+    30
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "night_healing_imp": {
+   "frames": [
+    "enemies/night_healing_imp_0.png",
+    "enemies/night_healing_imp_1.png"
+   ],
+   "cell": [
+    32,
+    18
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "night_imp": {
+   "frames": [
+    "enemies/night_imp_0.png",
+    "enemies/night_imp_1.png"
+   ],
+   "cell": [
+    32,
+    24
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "phantom_buffed_minotaur": {
+   "frames": [
+    "enemies/phantom_buffed_minotaur_0.png",
+    "enemies/phantom_buffed_minotaur_1.png",
+    "enemies/phantom_buffed_minotaur_2.png"
+   ],
+   "cell": [
+    48,
+    46
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "phantom_bull": {
+   "frames": [
+    "enemies/phantom_bull_0.png",
+    "enemies/phantom_bull_1.png"
+   ],
+   "cell": [
+    32,
+    27
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "phantom_mediumtaur": {
+   "frames": [
+    "enemies/phantom_mediumtaur_0.png",
+    "enemies/phantom_mediumtaur_1.png"
+   ],
+   "cell": [
+    32,
+    31
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "phantom_minitaur": {
+   "frames": [
+    "enemies/phantom_minitaur_0.png",
+    "enemies/phantom_minitaur_1.png"
+   ],
+   "cell": [
+    32,
+    22
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "phantom_minotaur": {
+   "frames": [
+    "enemies/phantom_minotaur_0.png",
+    "enemies/phantom_minotaur_1.png",
+    "enemies/phantom_minotaur_2.png"
+   ],
+   "cell": [
+    48,
+    35
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "plaguebearer_dog": {
+   "frames": [
+    "enemies/plaguebearer_dog_0.png",
+    "enemies/plaguebearer_dog_1.png"
+   ],
+   "cell": [
+    32,
+    18
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "plaguebearer_handless_imp": {
+   "frames": [
+    "enemies/plaguebearer_handless_imp_0.png",
+    "enemies/plaguebearer_handless_imp_1.png"
+   ],
+   "cell": [
+    32,
+    19
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "plaguebearer_imp": {
+   "frames": [
+    "enemies/plaguebearer_imp_0.png",
+    "enemies/plaguebearer_imp_1.png"
+   ],
+   "cell": [
+    32,
+    29
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "plaguebearer_mono_imp": {
+   "frames": [
+    "enemies/plaguebearer_mono_imp_0.png",
+    "enemies/plaguebearer_mono_imp_1.png"
+   ],
+   "cell": [
+    32,
+    22
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "rat": {
+   "frames": [
+    "enemies/rat_0.png",
+    "enemies/rat_1.png"
+   ],
+   "cell": [
+    32,
+    17
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "reaper": {
+   "frames": [
+    "enemies/reaper_0.png",
+    "enemies/reaper_1.png"
+   ],
+   "cell": [
+    32,
+    22
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "sandworm": {
+   "frames": [
+    "enemies/sandworm_0.png"
+   ],
+   "cell": [
+    64,
+    61
+   ],
+   "anchor": "bottom-center",
+   "fps": 10,
+   "loop": true
+  },
+  "shadow_man": {
+   "frames": [
+    "enemies/shadow_man_0.png",
+    "enemies/shadow_man_1.png"
+   ],
+   "cell": [
+    32,
+    17
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "shell_tortoise_form_2": {
+   "frames": [
+    "enemies/shell_tortoise_form_2_0.png",
+    "enemies/shell_tortoise_form_2_1.png"
+   ],
+   "cell": [
+    32,
+    22
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "shell_tortoise_form_3": {
+   "frames": [
+    "enemies/shell_tortoise_form_3_0.png",
+    "enemies/shell_tortoise_form_3_1.png",
+    "enemies/shell_tortoise_form_3_2.png",
+    "enemies/shell_tortoise_form_3_3.png"
+   ],
+   "cell": [
+    64,
+    28
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "shell_tortoise": {
+   "frames": [
+    "enemies/shell_tortoise_0.png",
+    "enemies/shell_tortoise_1.png"
+   ],
+   "cell": [
+    32,
+    18
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "skeletal_rat_boss": {
+   "frames": [
+    "enemies/skeletal_rat_boss_0.png",
+    "enemies/skeletal_rat_boss_1.png",
+    "enemies/skeletal_rat_boss_2.png",
+    "enemies/skeletal_rat_boss_3.png"
+   ],
+   "cell": [
+    64,
+    56
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "skeletal_rat": {
+   "frames": [
+    "enemies/skeletal_rat_0.png",
+    "enemies/skeletal_rat_1.png",
+    "enemies/skeletal_rat_2.png",
+    "enemies/skeletal_rat_3.png"
+   ],
+   "cell": [
+    48,
+    32
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "skeleton_spearman": {
+   "frames": [
+    "enemies/skeleton_spearman_0.png",
+    "enemies/skeleton_spearman_1.png",
+    "enemies/skeleton_spearman_2.png"
+   ],
+   "cell": [
+    32,
+    30
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "skeleton_warrior": {
+   "frames": [
+    "enemies/skeleton_warrior_0.png",
+    "enemies/skeleton_warrior_1.png",
+    "enemies/skeleton_warrior_2.png"
+   ],
+   "cell": [
+    32,
+    28
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "skeleton": {
+   "frames": [
+    "enemies/skeleton_0.png",
+    "enemies/skeleton_1.png",
+    "enemies/skeleton_2.png"
+   ],
+   "cell": [
+    32,
+    25
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "spectral_harvester_1": {
+   "frames": [
+    "enemies/spectral_harvester_1_0.png",
+    "enemies/spectral_harvester_1_1.png"
+   ],
+   "cell": [
+    48,
+    31
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "spectral_hound_2": {
+   "frames": [
+    "enemies/spectral_hound_2_0.png",
+    "enemies/spectral_hound_2_1.png"
+   ],
+   "cell": [
+    32,
+    23
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "spectral_hound": {
+   "frames": [
+    "enemies/spectral_hound_0.png",
+    "enemies/spectral_hound_1.png"
+   ],
+   "cell": [
+    32,
+    26
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "spiderling_swarm_leader": {
+   "frames": [
+    "enemies/spiderling_swarm_leader_0.png",
+    "enemies/spiderling_swarm_leader_1.png",
+    "enemies/spiderling_swarm_leader_2.png",
+    "enemies/spiderling_swarm_leader_3.png"
+   ],
+   "cell": [
+    32,
+    18
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "stone_slug_1": {
+   "frames": [
+    "enemies/stone_slug_1_0.png",
+    "enemies/stone_slug_1_1.png",
+    "enemies/stone_slug_1_2.png"
+   ],
+   "cell": [
+    32,
+    8
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "suspicious_blob": {
+   "frames": [
+    "enemies/suspicious_blob_0.png",
+    "enemies/suspicious_blob_1.png",
+    "enemies/suspicious_blob_2.png",
+    "enemies/suspicious_blob_3.png"
+   ],
+   "cell": [
+    32,
+    15
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "toxic_sludge_pile": {
+   "frames": [
+    "enemies/toxic_sludge_pile_0.png",
+    "enemies/toxic_sludge_pile_1.png",
+    "enemies/toxic_sludge_pile_2.png"
+   ],
+   "cell": [
+    48,
+    39
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "toxic_sludge_skeleton": {
+   "frames": [
+    "enemies/toxic_sludge_skeleton_0.png",
+    "enemies/toxic_sludge_skeleton_1.png",
+    "enemies/toxic_sludge_skeleton_2.png"
+   ],
+   "cell": [
+    48,
+    28
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "toxic_sludge_slime": {
+   "frames": [
+    "enemies/toxic_sludge_slime_0.png",
+    "enemies/toxic_sludge_slime_1.png"
+   ],
+   "cell": [
+    32,
+    12
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "toxic_sludge_small_pile": {
+   "frames": [
+    "enemies/toxic_sludge_small_pile_0.png",
+    "enemies/toxic_sludge_small_pile_1.png"
+   ],
+   "cell": [
+    32,
+    21
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "toxic_sludge_wisp": {
+   "frames": [
+    "enemies/toxic_sludge_wisp_0.png",
+    "enemies/toxic_sludge_wisp_1.png"
+   ],
+   "cell": [
+    32,
+    14
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "volcano_drake_boss": {
+   "frames": [
+    "enemies/volcano_drake_boss_0.png",
+    "enemies/volcano_drake_boss_1.png",
+    "enemies/volcano_drake_boss_2.png",
+    "enemies/volcano_drake_boss_3.png"
+   ],
+   "cell": [
+    84,
+    75
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "volcano_drakling": {
+   "frames": [
+    "enemies/volcano_drakling_0.png",
+    "enemies/volcano_drakling_1.png",
+    "enemies/volcano_drakling_2.png",
+    "enemies/volcano_drakling_3.png"
+   ],
+   "cell": [
+    64,
+    35
+   ],
+   "anchor": "bottom-center",
+   "fps": 11,
+   "loop": true
+  },
+  "volcano_imp": {
+   "frames": [
+    "enemies/volcano_imp_0.png",
+    "enemies/volcano_imp_1.png"
+   ],
+   "cell": [
+    32,
+    10
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "wierd_traveler": {
+   "frames": [
+    "enemies/wierd_traveler_0.png",
+    "enemies/wierd_traveler_1.png"
+   ],
+   "cell": [
+    32,
+    17
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "wisp_wraith_1": {
+   "frames": [
+    "enemies/wisp_wraith_1_0.png",
+    "enemies/wisp_wraith_1_1.png"
+   ],
+   "cell": [
+    32,
+    30
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "wisp_wraith_2": {
+   "frames": [
+    "enemies/wisp_wraith_2_0.png",
+    "enemies/wisp_wraith_2_1.png"
+   ],
+   "cell": [
+    32,
+    30
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "wisp_wraith_3": {
+   "frames": [
+    "enemies/wisp_wraith_3_0.png",
+    "enemies/wisp_wraith_3_1.png"
+   ],
+   "cell": [
+    48,
+    25
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "wisp_wraith_4": {
+   "frames": [
+    "enemies/wisp_wraith_4_0.png",
+    "enemies/wisp_wraith_4_1.png"
+   ],
+   "cell": [
+    32,
+    17
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "large_snake": {
+   "frames": [
+    "enemies/large_snake_0.png",
+    "enemies/large_snake_1.png"
+   ],
+   "cell": [
+    32,
+    23
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
+   "loop": true
+  },
+  "lime": {
+   "frames": [
+    "enemies/lime_0.png",
+    "enemies/lime_1.png",
+    "enemies/lime_2.png"
+   ],
+   "cell": [
+    32,
+    11
+   ],
+   "anchor": "bottom-center",
+   "fps": 9,
+   "loop": true
+  },
+  "shadowfiend": {
+   "frames": [
+    "enemies/shadowfiend_0.png"
+   ],
+   "cell": [
+    24,
+    10
+   ],
+   "anchor": "bottom-center",
+   "fps": 10,
+   "loop": true
+  },
+  "tick": {
+   "frames": [
+    "enemies/tick_0.png"
+   ],
+   "cell": [
+    32,
+    14
+   ],
+   "anchor": "bottom-center",
+   "fps": 10,
+   "loop": true
+  },
+  "tiny_spider": {
+   "frames": [
+    "enemies/tiny_spider_0.png",
+    "enemies/tiny_spider_1.png"
+   ],
+   "cell": [
+    32,
+    7
+   ],
+   "anchor": "bottom-center",
+   "fps": 7,
    "loop": true
   }
  },
@@ -3537,71 +4911,5 @@
   "lookouts": "ui/relic_lookouts.png",
   "drums": "ui/relic_drums.png",
   "fortune": "ui/relic_fortune.png"
- },
- "clouds": [
-  {
-   "image": "deco/cloud_1.png",
-   "size": [
-    495,
-    157
-   ],
-   "anchor": "center"
-  },
-  {
-   "image": "deco/cloud_2.png",
-   "size": [
-    307,
-    110
-   ],
-   "anchor": "center"
-  },
-  {
-   "image": "deco/cloud_3.png",
-   "size": [
-    165,
-    75
-   ],
-   "anchor": "center"
-  },
-  {
-   "image": "deco/cloud_4.png",
-   "size": [
-    106,
-    57
-   ],
-   "anchor": "center"
-  },
-  {
-   "image": "deco/cloud_5.png",
-   "size": [
-    416,
-    152
-   ],
-   "anchor": "center"
-  },
-  {
-   "image": "deco/cloud_6.png",
-   "size": [
-    306,
-    99
-   ],
-   "anchor": "center"
-  },
-  {
-   "image": "deco/cloud_7.png",
-   "size": [
-    156,
-    83
-   ],
-   "anchor": "center"
-  },
-  {
-   "image": "deco/cloud_8.png",
-   "size": [
-    88,
-    55
-   ],
-   "anchor": "center"
-  }
- ]
+ }
 }
