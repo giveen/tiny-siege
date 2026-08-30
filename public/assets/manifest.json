@@ -2312,7 +2312,7 @@
   "sheep_idle": {
    "image": "deco/sheep_idle.png",
    "size": [
-    685,
+    45,
     44
    ],
    "anchor": "bottom-center"
@@ -2320,7 +2320,7 @@
   "sheep_grass": {
    "image": "deco/sheep_grass.png",
    "size": [
-    1453,
+    45,
     44
    ],
    "anchor": "bottom-center"
@@ -2347,7 +2347,79 @@
     29
    ],
    "anchor": "center"
-  }
+  },
+  "water_rock": [
+   "deco/water_rock_0.png",
+   "deco/water_rock_1.png",
+   "deco/water_rock_2.png",
+   "deco/water_rock_3.png",
+   "deco/water_rock_4.png",
+   "deco/water_rock_5.png",
+   "deco/water_rock_6.png",
+   "deco/water_rock_7.png",
+   "deco/water_rock_8.png",
+   "deco/water_rock_9.png",
+   "deco/water_rock_10.png",
+   "deco/water_rock_11.png",
+   "deco/water_rock_12.png",
+   "deco/water_rock_13.png",
+   "deco/water_rock_14.png",
+   "deco/water_rock_15.png",
+   "deco/water_rock_16.png",
+   "deco/water_rock_17.png",
+   "deco/water_rock_18.png",
+   "deco/water_rock_19.png",
+   "deco/water_rock_20.png",
+   "deco/water_rock_21.png",
+   "deco/water_rock_22.png",
+   "deco/water_rock_23.png",
+   "deco/water_rock_24.png",
+   "deco/water_rock_25.png",
+   "deco/water_rock_26.png",
+   "deco/water_rock_27.png",
+   "deco/water_rock_28.png",
+   "deco/water_rock_29.png",
+   "deco/water_rock_30.png",
+   "deco/water_rock_31.png",
+   "deco/water_rock_32.png",
+   "deco/water_rock_33.png",
+   "deco/water_rock_34.png",
+   "deco/water_rock_35.png",
+   "deco/water_rock_36.png",
+   "deco/water_rock_37.png",
+   "deco/water_rock_38.png",
+   "deco/water_rock_39.png",
+   "deco/water_rock_40.png",
+   "deco/water_rock_41.png",
+   "deco/water_rock_42.png",
+   "deco/water_rock_43.png",
+   "deco/water_rock_44.png",
+   "deco/water_rock_45.png",
+   "deco/water_rock_46.png",
+   "deco/water_rock_47.png",
+   "deco/water_rock_48.png",
+   "deco/water_rock_49.png",
+   "deco/water_rock_50.png",
+   "deco/water_rock_51.png",
+   "deco/water_rock_52.png",
+   "deco/water_rock_53.png",
+   "deco/water_rock_54.png",
+   "deco/water_rock_55.png",
+   "deco/water_rock_56.png",
+   "deco/water_rock_57.png",
+   "deco/water_rock_58.png",
+   "deco/water_rock_59.png",
+   "deco/water_rock_60.png",
+   "deco/water_rock_61.png",
+   "deco/water_rock_62.png",
+   "deco/water_rock_63.png",
+   "deco/water_rock_64.png",
+   "deco/water_rock_65.png",
+   "deco/water_rock_66.png",
+   "deco/water_rock_67.png",
+   "deco/water_rock_68.png",
+   "deco/water_rock_69.png"
+  ]
  },
  "fx": {
   "explosion1": {
@@ -3351,6 +3423,39 @@
    "anchor": "bottom-center",
    "fps": 11,
    "loop": true
+  },
+  "maggot": {
+   "frames": [
+    "enemies/maggot_0.png",
+    "enemies/maggot_1.png",
+    "enemies/maggot_2.png",
+    "enemies/maggot_3.png"
+   ],
+   "cell": [
+    32,
+    12
+   ],
+   "anchor": "bottom-center",
+   "fps": 10,
+   "loop": true
+  },
+  "acidblob": {
+   "frames": [
+    "enemies/acidblob_0.png",
+    "enemies/acidblob_1.png",
+    "enemies/acidblob_2.png",
+    "enemies/acidblob_3.png",
+    "enemies/acidblob_4.png",
+    "enemies/acidblob_5.png",
+    "enemies/acidblob_6.png"
+   ],
+   "cell": [
+    32,
+    21
+   ],
+   "anchor": "bottom-center",
+   "fps": 8,
+   "loop": true
   }
  },
  "sound": {
@@ -3406,7 +3511,19 @@
    "barracks_cuirass": "gear/barracks_cuirass.png",
    "barracks_tunic": "gear/barracks_tunic.png",
    "barracks_signet": "gear/barracks_signet.png",
-   "barracks_loyal": "gear/barracks_loyal.png"
+   "barracks_loyal": "gear/barracks_loyal.png",
+   "alchemist_hood": "gear/alchemist_hood.png",
+   "alchemist_cowl": "gear/alchemist_cowl.png",
+   "alchemist_vest": "gear/alchemist_vest.png",
+   "alchemist_robes": "gear/alchemist_robes.png",
+   "alchemist_band": "gear/alchemist_band.png",
+   "alchemist_signet": "gear/alchemist_signet.png",
+   "ballista_sallet": "gear/ballista_sallet.png",
+   "ballista_crest": "gear/ballista_crest.png",
+   "ballista_plating": "gear/ballista_plating.png",
+   "ballista_harness": "gear/ballista_harness.png",
+   "ballista_sight": "gear/ballista_sight.png",
+   "ballista_windage": "gear/ballista_windage.png"
   }
  },
  "relic_icons": {
@@ -3420,5 +3537,71 @@
   "lookouts": "ui/relic_lookouts.png",
   "drums": "ui/relic_drums.png",
   "fortune": "ui/relic_fortune.png"
- }
+ },
+ "clouds": [
+  {
+   "image": "deco/cloud_1.png",
+   "size": [
+    495,
+    157
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_2.png",
+   "size": [
+    307,
+    110
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_3.png",
+   "size": [
+    165,
+    75
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_4.png",
+   "size": [
+    106,
+    57
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_5.png",
+   "size": [
+    416,
+    152
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_6.png",
+   "size": [
+    306,
+    99
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_7.png",
+   "size": [
+    156,
+    83
+   ],
+   "anchor": "center"
+  },
+  {
+   "image": "deco/cloud_8.png",
+   "size": [
+    88,
+    55
+   ],
+   "anchor": "center"
+  }
+ ]
 }

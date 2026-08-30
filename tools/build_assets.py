@@ -348,13 +348,19 @@ def main():
         [f"Terrain/Decorations/Rocks/Rock{i}.png" for i in range(1, 5)])
     deco["duck"] = static_list("duck",
         ["Terrain/Decorations/Rubber Duck/Rubber duck.png"])
+    # Water Rocks_0X.png are each a horizontal strip of many small rock
+    # clusters (not one rock each) — slice, don't treat as single images.
+    deco["water_rock"] = slice_list("water_rock",
+        [f"Terrain/Decorations/Rocks in the Water/Water Rocks_0{i}.png" for i in range(1, 5)])
 
-    # sheep: idle/grass static, move animated
+    # sheep: idle/grass static (one representative frame — each source file is
+    # actually a multi-frame animation strip, not a single image), move animated
     for name, fn in [("sheep_idle", "Meat/Sheep/Sheep_Idle.png"),
                      ("sheep_grass", "Meat/Sheep/Sheep_Grass.png")]:
         p = os.path.join(SRC, "Terrain", "Resources", fn)
         if os.path.exists(p):
-            img = crop_to_bbox(load(p))
+            frames = slice_sheet(load(p))
+            img = crop_to_bbox(frames[0])
             rel = f"deco/{name}.png"
             save(img, rel)
             deco[name] = {"image": rel, "size": [img.width, img.height], "anchor": "bottom-center"}
@@ -372,6 +378,19 @@ def main():
         img = crop_to_bbox(load(p))
         save(img, "deco/goldstone.png")
         deco["goldstone"] = {"image": "deco/goldstone.png", "size": [img.width, img.height], "anchor": "center"}
+
+    # ---- Clouds (drifting atmosphere layer, not tied to any grid cell) ----
+    clouds = []
+    for i in range(1, 9):
+        p = os.path.join(SRC, "Terrain", "Decorations", "Clouds", f"Clouds_0{i}.png")
+        if not os.path.exists(p):
+            print(f"  ! missing cloud {i}")
+            continue
+        img = crop_to_bbox(load(p))
+        out = f"deco/cloud_{i}.png"
+        save(img, out)
+        clouds.append({"image": out, "size": [img.width, img.height], "anchor": "center"})
+    manifest["clouds"] = clouds
 
     # ---- FX (particles) --------------------------------------------------
     fx = manifest["fx"]
@@ -582,6 +601,11 @@ def main():
     # right-facing profile row (2) to match the other enemies' facing.
     special_grid("mantis", "Animated insect enemy assets/MantisMove.png", cols=4, row_count=4, rows=2, fps=13)
     special_grid("beetle", "Animated insect enemy assets/BeetleMove.png", cols=4, row_count=4, rows=2, fps=9)
+    # Maggot — same 4x4 directional-grid sheet format as mantis/beetle.
+    special_grid("maggot", "Animated insect enemy assets/MaggotWalk.png", cols=4, row_count=4, rows=2, fps=10)
+    # Acid Blob — a pulsing idle animation, 4 rows x 7 frames; any row works
+    # since the blob has no real facing.
+    special_grid("acidblob", "Animated insect enemy assets/AcidBlob.png", cols=7, row_count=4, rows=0, fps=8)
     # Enemy3 — a second, smaller flying type
     special_anim("fly3", "FlyingForestEnemies_FREE/Enemy3/Enemy3-Movement-In-Animation/Enemy3-Fly.png", fps=11)
 
@@ -692,6 +716,20 @@ def main():
         "barracks_tunic": "tile049.png",    # white tunic
         "barracks_signet": "tile043.png",   # ring w/ red gem
         "barracks_loyal": "tile018.png",    # ring w/ pink gem
+        # alchemist
+        "alchemist_hood": "tile011.png",     # dark hood
+        "alchemist_cowl": "tile015.png",     # dark cloak hood
+        "alchemist_vest": "tile098.png",     # green ribbed vest
+        "alchemist_robes": "tile100.png",    # green ribbed vest (alt)
+        "alchemist_band": "tile012.png",     # dark gem ring
+        "alchemist_signet": "tile027.png",   # green crystal ring
+        # ballista
+        "ballista_sallet": "tile001.png",    # horned steel helm
+        "ballista_crest": "tile003.png",     # helm w/ red plume
+        "ballista_plating": "tile052.png",   # dark ribbed plate
+        "ballista_harness": "tile057.png",   # brown leather harness
+        "ballista_sight": "tile041.png",     # gold ring w/ dark gem
+        "ballista_windage": "tile042.png",   # ring w/ red+teal gems
     }
     gear_icons = {}
     for gid, tile in GEAR_TILES.items():

@@ -1,10 +1,10 @@
 import type { Game } from "./game";
 import type { Enemy } from "./enemy";
 import type { TowerStats } from "./types";
-import { WORLD_W, WORLD_H } from "./config";
+import { WORLD_W, WORLD_H, TILE } from "./config";
 import { drawSprite } from "./sprite";
 
-type ProjKind = "arrow" | "spear" | "cannonball" | "bolt";
+type ProjKind = "arrow" | "spear" | "cannonball" | "bolt" | "flask";
 
 /** Specialization modifiers a tower attaches to its projectiles. */
 export interface SpecMods {
@@ -30,6 +30,14 @@ export interface SpecMods {
   slowDur?: number;
   /** Wizard: burst for pct damage within r of the struck foe. */
   blast?: { r: number; pct: number };
+  /** Ballista: extra foes the bolt skewers on top of its base pierce. */
+  bonusPierce?: number;
+  /** Alchemist flask: poison dps left behind in the splash zone. */
+  poison?: number;
+  /** Alchemist flask: extra radius (px) added to the base poison cloud. */
+  poisonSpread?: number;
+  /** Alchemist flask: extra duration (s) added to the base poison cloud. */
+  poisonDur?: number;
 }
 
 let pid = 1;
@@ -108,7 +116,7 @@ export class Projectile {
     this.bounces = this.mods.bounce ?? 0;
     this.vx = Math.cos(angle) * speed;
     this.vy = Math.sin(angle) * speed;
-    this.maxTravel = kind === "spear" ? 280 : kind === "cannonball" ? 900 : 700;
+    this.maxTravel = kind === "spear" ? 280 : kind === "cannonball" || kind === "flask" ? 900 : 700;
   }
 
   update(game: Game, dt: number): void {
@@ -134,8 +142,13 @@ export class Projectile {
     this.y += this.vy * dt;
     this.travel += this.speed * dt;
 
-    if (this.travel > this.maxTravel || this.x < -40 || this.x > WORLD_W + 40 || this.y < -40 || this.y > WORLD_H + 40) {
-      if (this.kind === "cannonball") this.explode(game);
+    // The island only grows upward, so the top edge a stray shot should
+    // despawn past tracks the world's current (possibly very negative) top
+    // row rather than a fixed -40 — otherwise anything fired in newly grown
+    // territory would instantly "fly off the edge".
+    const topY = game.world.minRow * TILE - 40;
+    if (this.travel > this.maxTravel || this.x < -40 || this.x > WORLD_W + 40 || this.y < topY || this.y > WORLD_H + 40) {
+      if (this.kind === "cannonball" || this.kind === "flask") this.explode(game);
       else if (!this.tryRicochet(game)) this.dead = true;
       return;
     }
@@ -173,7 +186,7 @@ export class Projectile {
           }
         }
       }
-    } else if (this.kind === "cannonball") {
+    } else if (this.kind === "cannonball" || this.kind === "flask") {
       if (Math.hypot(this.tx - this.x, this.ty - this.y) < 8) {
         this.explode(game);
         this.dead = true;
@@ -220,6 +233,12 @@ export class Projectile {
       return;
     }
     game.spawnHitFx(e.x, e.visualY - 10);
+    // Any physical hit can carry a stagger (Ballista's Concussive Bolt);
+    // wizard bolts apply their own slow above and return before here.
+    if (this.mods.slow) {
+      e.slowUntil = game.time + (this.mods.slowDur ?? 1.2);
+      e.slowFactor = 1 - this.mods.slow;
+    }
     if (this.kind === "arrow") {
       if (game.buffs.arrowSlow > 0) {
         e.slowUntil = game.time + 1.0;
@@ -299,7 +318,12 @@ export class Projectile {
     }
     // Napalm: a burning patch where the shell landed (fliers pass over).
     if (this.mods.napalm) {
-      game.addFirePatch(this.x, this.y, 34, 3, this.mods.napalm);
+      game.addFirePatch(this.x, this.y, 34, 3, this.mods.napalm, "fire");
+    }
+    // Alchemist flask: a lingering poison cloud (unlike napalm, this also
+    // ticks flying foes that drift back through it — see damage loop in game.ts).
+    if (this.mods.poison) {
+      game.addFirePatch(this.x, this.y, 34 + (this.mods.poisonSpread ?? 0), 3 + (this.mods.poisonDur ?? 0), this.mods.poison, "poison");
     }
     // Bouncing Shell: relaunch at the nearest grounded foe.
     if (this.bounces > 0) {
@@ -376,6 +400,24 @@ export class Projectile {
       ctx.lineTo(8, 4);
       ctx.closePath();
       ctx.fill();
+    } else if (this.kind === "flask") {
+      // a small thrown vial, tumbling as it arcs
+      ctx.rotate(this.t * 6);
+      ctx.fillStyle = "#5a8f3c";
+      ctx.beginPath();
+      ctx.moveTo(-3, -5);
+      ctx.lineTo(3, -5);
+      ctx.lineTo(4, 4);
+      ctx.quadraticCurveTo(4, 6, 0, 6);
+      ctx.quadraticCurveTo(-4, 6, -4, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#8fd76a";
+      ctx.beginPath();
+      ctx.arc(0, 1, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#c9a876";
+      ctx.fillRect(-2, -7, 4, 3);
     } else {
       // cannonball
       ctx.fillStyle = "#2a2f36";
