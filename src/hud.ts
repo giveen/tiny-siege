@@ -989,7 +989,8 @@ export class Hud {
     ];
     if (e.flying) lines.push({ t: "Flies — cannons can't hit it.", c: "#8fa8bd" });
     if (e.def.healer) lines.push({ t: "Heals nearby foes.", c: "#ff8a8a" });
-    if (e.armor > 0) lines.push({ t: `Armor ${e.armor} — each hit does less.`, c: "#8fa8bd" });
+    if (e.armorMax > 0)
+      lines.push({ t: `Armor ${Math.ceil(e.armor)} / ${e.armorMax} — must be stripped before HP.`, c: "#9fb6c9" });
     if (e.def.type === "boss") lines.push({ t: "Boss — slow, huge, and angry.", c: "#ffce5a" });
     return { title: e.displayName, accent: "#ffd24a", lines };
   }
@@ -1412,7 +1413,7 @@ export class Hud {
     ctx.fillText("THE SIEGE IS BROKEN!", CANVAS_W / 2, CANVAS_H / 2 - 90);
     ctx.fillStyle = "#eaf6ff";
     ctx.font = "700 22px 'Segoe UI', sans-serif";
-    ctx.fillText("The Minotaur assault is repelled.", CANVAS_W / 2, CANVAS_H / 2 - 42);
+    ctx.fillText("The full boss assault is repelled.", CANVAS_W / 2, CANVAS_H / 2 - 42);
     ctx.fillStyle = "#bfe6ef";
     ctx.font = "600 18px 'Segoe UI', sans-serif";
     ctx.fillText(`${game.kills} enemies slain  ·  +${VICTORY_RUNES} ◆  ·  +${VICTORY_CRATES} crates banked`, CANVAS_W / 2, CANVAS_H / 2);

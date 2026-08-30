@@ -1,8 +1,13 @@
 // Enemies, built on the PixelFlush "Pixel Monsters Mega Pack"
 // (enemies/PixelFlush - Pixel Monsters Mega Pack). Every creature in the pack
-// is its own enemy type; the six big "Boss" monsters (plus the visually
-// strong Forest Boss Imp) roll under the shared `boss` type via `variants`,
-// and the four healing monsters roll under the shared `healer` type.
+// is its own enemy type; a pool of the pack's fifteen biggest monsters rolls
+// under the shared `boss` type via `variants`, and the four healing monsters
+// roll under the shared `healer` type.
+//
+// Every spawned enemy rolls its OWN base stats around the roster base
+// (±ENEMY_BASE_VARIANCE). Armored enemies carry a shatter pool of armor
+// points (tier * ARMOR_POINT_VALUE) that must be stripped to zero before any
+// of their HP can be dealt.
 //
 // The roster below is the single source of truth: it drives the EnemyType
 // union, ENEMY_DEFS, and the family tables waves.ts unlocks over the run.
@@ -18,6 +23,8 @@ import {
   ELITE_HP_MULT,
   ELITE_DMG_MULT,
   ELITE_REWARD_MULT,
+  ENEMY_BASE_VARIANCE,
+  ARMOR_POINT_VALUE,
 } from "./config";
 
 // ---------------------------------------------------------------------------
@@ -29,7 +36,8 @@ import {
 //   family  theme family used by waves.ts for unlocks and composition
 //   flags   f = flying (cannons can't hit it)
 //           h = healer (mends nearby enemies over time)
-//           aN = armor N (flat physical soak per hit)
+//           aN = armor tier N (shatter pool of N * ARMOR_POINT_VALUE points;
+//                must be stripped before HP can be dealt)
 //           p = death leaves a toxic fire patch on the path
 
 const ROSTER = [
@@ -162,15 +170,26 @@ const ROSTER = [
   ["wisp_wraith_4", "Wisp Wraith IV", "wisp", 24, 76, 4, 3, 1.2, "f"],
 ] as const;
 
-// The six monsters that exist ONLY as boss rolls (never regular spawns).
+// The fifteen biggest monsters in the pack, rolled under the `boss` type.
+// The first six exist ONLY as boss rolls (never regular spawns); the rest are
+// also regular roster members — a Giant Spider can stomp through as a normal
+// wave spawn one run and front the 5th wave the next.
 export const BOSS_VARIANTS = [
+  "volcano_drake_boss", // 84px — the largest sheet in the pack
   "cave_troll_boss",
-  "dust_elemental_boss",
   "frost_boss_yeti",
-  "phantom_buffed_minotaur",
   "skeletal_rat_boss",
-  "volcano_drake_boss",
-  "forest_boss_imp", // strong forest member; also rolls as a lesser boss
+  "dust_elemental_boss",
+  "phantom_buffed_minotaur",
+  "giant_spider",
+  "abyss_siren_form_3",
+  "sandworm",
+  "forest_nymph",
+  "shell_tortoise_form_3",
+  "volcano_drakling",
+  "happy_blob",
+  "forest_boss_imp",
+  "clockwork_behemoth",
 ] as const;
 
 // The four healing monsters, rolled for healer escorts.
@@ -216,7 +235,7 @@ export interface EnemyDef {
   scale: number;
   /** Mends nearby enemies over time. */
   healer?: boolean;
-  /** Flat physical damage soaked per hit. */
+  /** Armor TIER (not points); the shatter pool is tier * ARMOR_POINT_VALUE. */
   armor?: number;
   /** Death leaves a toxic fire patch on the path. */
   puddle?: boolean;
@@ -258,7 +277,7 @@ function buildDefs(): Record<EnemyType, EnemyDef> {
     castleDamage: 60,
     reward: 100,
     scale: 2.3,
-    armor: 3,
+    armor: 5,
   };
   d.healer = {
     type: "healer",
@@ -289,7 +308,7 @@ export const ENEMY_FAMILIES: Record<FamilyKey, EnemyType[]> = (() => {
   return f;
 })();
 
-/** Display names of the boss-pool monsters (they have no roster rows of their own). */
+/** Display names of the boss-only monsters (they have no roster rows of their own). */
 export const SPECIAL_NAMES: Record<string, string> = {
   cave_troll_boss: "Cave Troll Boss",
   dust_elemental_boss: "Dust Elemental Boss",
@@ -298,6 +317,13 @@ export const SPECIAL_NAMES: Record<string, string> = {
   skeletal_rat_boss: "Skeletal Rat Boss",
   volcano_drake_boss: "Volcano Drake Boss",
 };
+
+/** key -> display name for every special key (roster rows + boss-only names). */
+export const KEY_NAMES: Record<string, string> = (() => {
+  const n: Record<string, string> = { ...SPECIAL_NAMES };
+  for (const r of ROSTER) n[r[0] as string] = r[1];
+  return n;
+})();
 
 /** The sprite AssetDef for a type (first variant for pools) — wave previews. */
 export function enemyPreviewDef(assets: Assets, type: EnemyType): AssetDef {
@@ -325,7 +351,10 @@ export class Enemy {
   castleDamage: number;
   reward: number;
   scale: number;
+  /** Current shatter-pool armor points (starts at armorMax). */
   armor: number;
+  /** Full armor pool for this enemy; 0 = unarmored. */
+  armorMax: number;
   flying: boolean;
   specialKey: string;
   angle = 0;
@@ -370,13 +399,19 @@ export class Enemy {
     const eliteReward = elite ? ELITE_REWARD_MULT : 1;
     const hpScale = (1 + wave * 0.13 + (type === "boss" ? wave * 0.02 : 0)) * endlessMult * eliteHp;
     const dmgScale = (1 + wave * 0.04) * endlessMult * eliteDmg;
-    this.maxHp = Math.round(base.hp * hpScale);
+    // This enemy's OWN base: an individual roll around the roster base, so
+    // every spawn is a slightly different creature.
+    const roll = 1 + (game.rng.next() * 2 - 1) * ENEMY_BASE_VARIANCE;
+    this.maxHp = Math.round(base.hp * hpScale * roll);
     this.hp = this.maxHp;
     this.speed = base.speed * PATH_SPEED_MULT * (1 + wave * 0.008);
     this.castleDamage = Math.round(base.castleDamage * dmgScale);
     this.reward = Math.round(base.reward * (1 + wave * 0.02) * endlessMult * eliteReward);
     this.scale = base.scale * ENEMY_SCALE_MULT * (elite ? 1.15 : 1);
-    this.armor = base.armor ?? 0;
+    // Shatter pool: armor tier -> points, scaled like HP and rolled like it.
+    const armorTier = base.armor ?? 0;
+    this.armorMax = armorTier > 0 ? Math.round(armorTier * ARMOR_POINT_VALUE * hpScale * roll) : 0;
+    this.armor = this.armorMax;
     const spawn = game.world.spawnPoint();
     this.x = spawn.x;
     this.y = spawn.y;
@@ -393,7 +428,7 @@ export class Enemy {
 
   /** Display name; pools resolve to the actually-rolled variant. */
   get displayName(): string {
-    return this.def.variants?.length ? SPECIAL_NAMES[this.specialKey] ?? this.def.name : this.def.name;
+    return KEY_NAMES[this.specialKey] ?? this.def.name;
   }
 
   get pos() {
@@ -487,22 +522,37 @@ export class Enemy {
     return best;
   }
 
-  takeDamage(game: Game, amount: number, kind: "physical" | "burn" | "magic", armorIgnore = 0): void {
-    if (this.dead) return;
-    // Armor soaks flat physical damage per hit; burn and magic ignore it.
-    // Sunder-style armorIgnore soaks part of the armor first.
-    let dmg = amount;
+  /**
+   * Apply damage. Physical damage first chews through the armor shatter
+   * pool; `armorIgnore` is per-hit armor PIERCE (armor points the hit
+   * bypasses; Infinity = full bypass). Burn and magic skip armor entirely.
+   * Returns the HP actually lost and whether this hit shattered the pool.
+   */
+  takeDamage(
+    game: Game,
+    amount: number,
+    kind: "physical" | "burn" | "magic",
+    armorIgnore = 0
+  ): { hpLost: number; shattered: boolean } {
+    if (this.dead) return { hpLost: 0, shattered: false };
+    let hpLost = amount;
+    let shattered = false;
     if (kind === "physical" && this.armor > 0) {
-      const soak = Math.max(0, this.armor - (armorIgnore ?? 0));
-      dmg = Math.max(1, dmg - soak);
+      const pierce = Math.min(amount, Math.max(0, armorIgnore ?? 0));
+      const rest = amount - pierce;
+      const absorb = Math.min(this.armor, rest);
+      this.armor -= absorb;
+      hpLost = pierce + (rest - absorb);
+      shattered = this.armor <= 0;
     }
-    this.hp -= dmg;
+    this.hp -= hpLost;
     this.hitFlash = 0.12;
     if (kind !== "burn") game.sfx("hit");
     if (this.hp <= 0) {
       this.dead = true;
       game.killEnemy(this);
     }
+    return { hpLost, shattered };
   }
 
   draw(ctx: CanvasRenderingContext2D, game: Game): void {
@@ -565,39 +615,33 @@ export class Enemy {
       ctx.restore();
     }
 
-    // status pips just above the hp bar: armor shield (gray) and slow (blue)
-    const slowed = game.time < this.slowUntil;
-    if (this.armor > 0 || slowed) {
+    // Armor bar: the shatter pool (steel), stacked just above the hp bar.
+    // Shows once the pool has taken a chip, so a fully-armored foe reads as
+    // "armored" via its unbroken HP and the tooltip until first contact.
+    if (this.armorMax > 0 && this.armor < this.armorMax) {
+      const w = 22 * this.scale;
+      const x = this.x - w / 2;
+      const y = this.y - 39 * this.scale;
       ctx.save();
-      const baseY = this.y - 37 * this.scale;
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(x - 1, y - 1, w + 2, 5);
+      ctx.fillStyle = "#a8c4dc";
+      ctx.fillRect(x, y, w * Math.max(0, this.armor / this.armorMax), 3);
+      ctx.restore();
+    }
+
+    // status pip above the bars: slow (blue)
+    if (game.time < this.slowUntil) {
+      ctx.save();
+      const baseY = this.y - 44 * this.scale;
       const s = 5.2 * Math.min(1.15, this.scale);
-      let ix = this.x - (this.armor > 0 && slowed ? s : 0); // center a pair
-      if (this.armor > 0) {
-        // shield
-        ctx.fillStyle = "rgba(172,192,214,0.95)";
-        ctx.strokeStyle = "rgba(20,30,45,0.85)";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(ix - s, baseY);
-        ctx.lineTo(ix + s, baseY);
-        ctx.lineTo(ix + s, baseY + s);
-        ctx.lineTo(ix, baseY + s * 2);
-        ctx.lineTo(ix - s, baseY + s);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ix += s * 2.6;
-      }
-      if (slowed) {
-        // frost dot
-        ctx.fillStyle = "rgba(130,205,255,0.95)";
-        ctx.strokeStyle = "rgba(20,30,45,0.8)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(ix, baseY + s * 0.7, s * 0.85, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
+      ctx.fillStyle = "rgba(130,205,255,0.95)";
+      ctx.strokeStyle = "rgba(20,30,45,0.8)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(this.x, baseY + s * 0.7, s * 0.85, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
       ctx.restore();
     }
   }

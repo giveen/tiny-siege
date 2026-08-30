@@ -180,7 +180,7 @@ export const SPECS: Record<TowerType, SpecDef[]> = {
   ],
   lancer: [
     { id: "charge", name: "Horned Charge", color: "#ff8a3c", blurb: "Each spear hit waves 50% splash damage to nearby foes (r 18 / 30 / 46)." },
-    { id: "sunder", name: "Sunder", color: "#c58bff", blurb: "Spears ignore 2 / 4 / all enemy armor." },
+    { id: "sunder", name: "Sunder", color: "#c58bff", blurb: "Spears pierce 2 / 4 / all enemy armor per hit." },
     { id: "ricochet", name: "Ricochet", color: "#ffd24a", blurb: "When a spear is spent it ricochets to 1 / 2 / 3 more foes at 70% damage." },
   ],
   cannon: [
@@ -209,7 +209,7 @@ export const SPECS: Record<TowerType, SpecDef[]> = {
     { id: "volatile", name: "Volatile Reagents", color: "#ff8a3c", blurb: "The flask shatters into 3 / 5 / 7 corrosive shards, each a small blast for 35% damage." },
   ],
   ballista: [
-    { id: "ironbreaker", name: "Ironbreaker", color: "#6fb7ff", blurb: "The bolt ignores 2 / 4 / all enemy armor." },
+    { id: "ironbreaker", name: "Ironbreaker", color: "#6fb7ff", blurb: "The bolt pierces 2 / 4 / all enemy armor per hit." },
     { id: "skewer", name: "Skewer", color: "#ffd24a", blurb: "The bolt skewers 1 / 2 / 3 extra foes in its path." },
     { id: "concussive", name: "Concussive Bolt", color: "#ff6a5a", blurb: "The impact staggers the foe: 40% / 55% / 70% slower for 1.2s." },
   ],

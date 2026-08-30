@@ -31,14 +31,23 @@ New towers unlock through boons as you get deeper.
 
 ### Enemies
 
-- **Pawns, Archers, Warriors, Lancers, Healers** — the classic Tiny Swords units, in four enemy colors.
-- **Mushroom** — a fast little runner (from wave 3).
-- **Mantis** — a speedy bug that darts down the path (from wave 3).
-- **Beetle** — a slow, sturdy bug (from wave 4).
-- **Skeleton** — a melee swordsman, in white or yellow (from wave 5).
-- **Forest Sprite** — a small hopping floater (from wave 6).
-- **Flying Demon** — a hovering bat that weaves over your defenses (from wave 7).
-- **Minotaur** — the **boss**, every 5th wave (double every 15th, with healer escorts).
+Over **100 distinct creatures** from the *PixelFlush — Pixel Monsters Mega Pack*, grouped into
+themed **families** (scavengers, forest, abyss, junkyard, frost, undead, volcano, phantom, …).
+Waves unlock a new family every couple of rounds, and within an unlocked family a random member is
+picked per spawn — so every monster in the pack shows up across a run.
+
+- **Bosses** — one every 5th wave (double every 15th, with healer escorts), each a random pick
+  from a pool of fifteen of the pack's biggest monsters: Volcano Drake, Cave Troll, Frost Yeti,
+  Skeletal Rat and Dust Elemental bosses, Giant Spider, Abyss Siren, Sandworm, Forest Nymph,
+  Shell Tortoise, Volcano Drakling, Happy Blob, Forest Imp and Clockwork Behemoth. The Siege at
+  wave 50 is a full boss assault.
+- **Healers** — a rotating pool of menders that keep nearby foes topped up.
+- **Per-enemy stats and shatter armor** — every spawn rolls its own base HP (and armor) around
+  the type's base, so no two identical creatures are quite alike. Armored foes carry a shatter
+  pool of armor points (the blue bar) that must be stripped to zero before any of their HP can
+  be dealt; Sunder and Ironbreaker bolts pierce it.
+- **Flyers and poison puddlers** — some creatures fly, and the toxic sludge bursts into a
+  corrosive puddle that poisons other foes on death.
 
 The map is a large island with a long winding path and **marked stone pads** — towers can only be
 built on those pads.
@@ -111,6 +120,5 @@ Enable **Settings → Pages → Source: GitHub Actions** and push to `main`.
 ## Credits
 
 - **Tiny Swords (Free Pack)** — Silverhaws (the base units, buildings, tiles, UI, and FX).
-- Added enemy packs: *Skeletons Free Pack*, *Forest Monsters (Mushroom)*, *Flying Demon 2D
-  Pixel Art*, and the *Minotaur* sprite sheet.
+- Enemy monsters: *PixelFlush — Pixel Monsters Mega Pack* (PixelFlush, Sep 2023).
 - Built with [Vite](https://vitejs.dev/) + TypeScript and a hand-rolled Canvas 2D engine.

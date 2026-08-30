@@ -1000,14 +1000,25 @@ export class Game {
   // ---------------------------------------------------------------- combat
   damageEnemy(e: Enemy, amount: number, kind: "physical" | "burn" | "magic", armorIgnore = 0): void {
     if (e.dead) return;
-    e.takeDamage(this, amount, kind, armorIgnore);
+    const { hpLost, shattered } = e.takeDamage(this, amount, kind, armorIgnore);
     if (kind === "burn") {
       // DoT ticks accumulate; Enemy.update shows the burn total every 0.5s.
-      e.dotAccum += amount;
+      e.dotAccum += hpLost;
       return;
     }
-    const col = kind === "magic" ? "#c58bff" : "#ffffff";
-    this.addText(e.x + (this.rng.next() - 0.5) * 16, e.y - 24, String(Math.round(amount)), col);
+    const x = e.x + (this.rng.next() - 0.5) * 16;
+    if (hpLost <= 0) {
+      // The whole hit was stripped from the armor pool: show the points
+      // absorbed in steel so the player can see the pool working.
+      this.addText(x, e.y - 24, String(Math.round(amount)), "#9fb6c9");
+    } else {
+      const col = kind === "magic" ? "#c58bff" : "#ffffff";
+      this.addText(x, e.y - 24, String(Math.max(1, Math.round(hpLost))), col);
+    }
+    if (shattered) {
+      this.addText(e.x, e.y - 34, "SHATTER", "#dcecfb");
+      this.sfx("spear");
+    }
   }
 
   killEnemy(e: Enemy): void {

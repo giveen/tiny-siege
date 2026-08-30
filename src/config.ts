@@ -62,6 +62,14 @@ export const ELITE_REWARD_MULT = 2.2;
  *  Siege: `1 + (wave - SIEGE_WAVE)^2 * ENDLESS_ACCEL_RATE`. */
 export const ENDLESS_ACCEL_RATE = 0.00035;
 
+// Per-enemy stats: every spawned enemy rolls its OWN base around the roster
+// base (±ENEMY_BASE_VARIANCE) before wave scaling, so no two identical types
+// are ever quite the same. Armored enemies carry a shatter pool of
+// `armor tier * ARMOR_POINT_VALUE` points that must be stripped to zero
+// before any of their HP can be touched.
+export const ENEMY_BASE_VARIANCE = 0.2;
+export const ARMOR_POINT_VALUE = 18;
+
 // Speed options
 export const SPEEDS = [1, 2, 3];
 
