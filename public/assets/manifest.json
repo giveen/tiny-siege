@@ -3418,6 +3418,7 @@
   "recruit": "ui/relic_recruit.png",
   "quartermaster": "ui/relic_quartermaster.png",
   "lookouts": "ui/relic_lookouts.png",
-  "drums": "ui/relic_drums.png"
+  "drums": "ui/relic_drums.png",
+  "fortune": "ui/relic_fortune.png"
  }
 }

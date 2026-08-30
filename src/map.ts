@@ -6,6 +6,11 @@ import { type Vec, v, dist, clamp } from "./util";
 const cellCenter = (c: number, r: number): Vec => v(c * TILE + TILE / 2, r * TILE + TILE / 2);
 export const cellKey = (c: number, r: number) => `${c},${r}`;
 
+/** Minimum clearance (px) between a deco sprite and the road centerline.
+ *  The dirt trail is drawn 40px wide (20px half-width); the extra margin
+ *  keeps canopy/grass blades visibly off the road's edge. */
+const ROAD_CLEAR = 30;
+
 // ---------------------------------------------------------------------------
 // The growing island
 //
@@ -125,6 +130,7 @@ export class World {
   castlePos: Vec;
   castleCells = new Set<string>();
   decos: Deco[] = [];
+  private roadSamples: Vec[] | null = null;
   bg: HTMLCanvasElement;
 
   constructor(assets: Assets, rng: RNG, stage = 0) {
@@ -287,7 +293,10 @@ export class World {
   /** Grass cells carrying no route / pad / castle — deco candidates.
    *  ANY stage's route is excluded so a tree never sits under a future road.
    *  The 3x3 ring around every pad is excluded too, because deco sprites
-   *  (rocks, tree canopies) spill past their cell and would cover the slab. */
+   *  (rocks, tree canopies) spill past their cell and would cover the slab.
+   *  (This is a cheap cell-level prefilter; scatterDecos additionally
+   *  rejects any placement whose sprite would spill onto the dirt trail —
+   *  see decoRoadClear.) */
   private freeCells(): Set<string> {
     const padRing = new Set<string>();
     for (const s of this.buildSpots)
@@ -323,6 +332,47 @@ export class World {
     }
   }
 
+  /** Centerline samples (every 16px) along every stage's route. The dirt
+   *  trail is stroked through these points, so keeping a sprite out of
+   *  ROAD_CLEAR of every sample keeps it off the road — including routes
+   *  that only appear in later stages. */
+  private roadSamplePoints(): Vec[] {
+    if (!this.roadSamples) {
+      const pts: Vec[] = [];
+      for (const cells of STAGE_PATH_CELLS) {
+        const path = cells.filter(([, r]) => r >= 0).map(([c, r]) => cellCenter(c, r));
+        for (let i = 1; i < path.length; i++) {
+          const a = path[i - 1];
+          const b = path[i];
+          const n = Math.max(1, Math.round(dist(a, b) / 16));
+          for (let j = 1; j <= n; j++) {
+            const t = j / n;
+            pts.push(v(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t));
+          }
+        }
+      }
+      this.roadSamples = pts;
+    }
+    return this.roadSamples;
+  }
+
+  /** True if a sprite box (anchored at bottom-center x,y; w×h) stays out of
+   *  the dirt trail's footprint for EVERY stage's route. */
+  private decoRoadClear(x: number, y: number, w: number, h: number): boolean {
+    const x0 = x - w / 2;
+    const x1 = x + w / 2;
+    const y0 = y - h;
+    const y1 = y;
+    for (const p of this.roadSamplePoints()) {
+      if (p.x < x0 - ROAD_CLEAR || p.x > x1 + ROAD_CLEAR) continue;
+      if (p.y < y0 - ROAD_CLEAR || p.y > y1 + ROAD_CLEAR) continue;
+      const dx = p.x < x0 ? x0 - p.x : p.x > x1 ? p.x - x1 : 0;
+      const dy = p.y < y0 ? y0 - p.y : p.y > y1 ? p.y - y1 : 0;
+      if (dx * dx + dy * dy < ROAD_CLEAR * ROAD_CLEAR) return false;
+    }
+    return true;
+  }
+
   private scatterDecos(free: Set<string>): void {
     // Only decorate cells that don't already carry a deco, so growth adds
     // fresh scatter on the new land instead of duplicating the old.
@@ -336,16 +386,17 @@ export class World {
       const [c, r] = k.split(",").map(Number);
       const p = cellCenter(c, r);
       const kind = this.rng.pick(kinds);
-      const count = this.assets.manifest.deco[kind].length;
-      this.decos.push({
-        x: p.x + this.rng.range(-14, 14),
-        y: p.y + this.rng.range(-8, 12),
-        cell: k,
-        kind,
-        idx: this.rng.int(0, count - 1),
-        flip: this.rng.chance(0.5),
-        scale: this.scaleFor(kind),
-      });
+      const list = this.assets.manifest.deco[kind];
+      const idx = this.rng.int(0, list.length - 1);
+      const scale = this.scaleFor(kind);
+      const img = this.assets.img(list[idx]);
+      const x = p.x + this.rng.range(-14, 14);
+      const y = p.y + this.rng.range(-8, 12);
+      // Keep the WHOLE sprite off the road: a tuft or canopy may hover over
+      // adjacent land, but if any part of it would sit on the dirt trail the
+      // road looks blocked and units/attacks on it read as hidden.
+      if (!this.decoRoadClear(x, y, img.width * scale, img.height * scale)) continue;
+      this.decos.push({ x, y, cell: k, kind, idx, flip: this.rng.chance(0.5), scale });
     }
   }
 

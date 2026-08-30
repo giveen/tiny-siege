@@ -172,6 +172,11 @@ export class Assets {
     return this.imgs.get(path)!;
   }
 
+  /** True once the image for this manifest path has finished loading. */
+  has(path: string): boolean {
+    return this.imgs.has(path);
+  }
+
   // Convenience accessors ------------------------------------------------
   unit(color: string, unit: string, action: string): AssetDef {
     return this.manifest.units[color][unit][action];
@@ -199,10 +204,23 @@ export function asAsset(def: StaticDef): AssetDef {
   return { frames: [def.image], cell: def.size, anchor: def.anchor };
 }
 
-export async function loadAssets(base = "assets/"): Promise<Assets> {
+export interface LoadHooks {
+  /**
+   * Fired once manifest.json has been parsed, before the first image resolves.
+   * Receives the (partially populated) Assets so the caller can draw manifest
+   * data / images that land early — the loading screen uses it to swap from
+   * its vector placeholder to the real castle sprite as soon as it arrives.
+   */
+  onManifest?: (assets: Assets) => void;
+  /** Fired after each image finishes loading. */
+  onProgress?: (done: number, total: number) => void;
+}
+
+export async function loadAssets(base = "assets/", hooks: LoadHooks = {}): Promise<Assets> {
   const res = await fetch(base + "manifest.json");
   const manifest = (await res.json()) as Manifest;
   const assets = new Assets(manifest, base);
-  await assets.load();
+  hooks.onManifest?.(assets);
+  await assets.load(hooks.onProgress);
   return assets;
 }

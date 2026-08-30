@@ -27,15 +27,27 @@ if (!canvas) {
   const game = new Game(canvas);
   // dev handle for verification tools (stripped from production builds)
   if (import.meta.env.DEV) (window as any).__game = game;
+  // The canvas now draws its own loading screen immediately (the loop starts
+  // in the Game constructor), so retire the pre-JS splash — it would sit on
+  // top of the canvas and double the title.
+  if (fallback) fallback.remove();
   game
     .init()
-    .then(() => {
-      if (fallback) fallback.remove();
-    })
     .catch((err) => {
       console.error(err);
-      if (fallback)
-        fallback.textContent = "Failed to load game assets.\n" + (err as Error).message;
+      if (!fallback) return;
+      // Re-show the splash and turn it into a failure card.
+      fallback.innerHTML = "";
+      const title = document.createElement("div");
+      title.className = "fb-title";
+      title.textContent = "TINY SIEGE";
+      const msg = document.createElement("div");
+      msg.className = "fb-loading";
+      msg.style.animation = "none";
+      msg.style.color = "#e0a5a5";
+      msg.textContent = "Failed to load game assets.\n" + (err as Error).message;
+      fallback.append(title, msg);
+      document.body.appendChild(fallback);
     });
 
   window.addEventListener("beforeunload", () => game.destroy());

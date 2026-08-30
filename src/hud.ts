@@ -1,4 +1,4 @@
-import type { Game } from "./game";
+import { Game } from "./game";
 import type { Assets, StaticDef } from "./assets";
 import { asAsset } from "./assets";
 import { drawSprite } from "./sprite";
@@ -20,7 +20,7 @@ import {
 } from "./tower";
 import { RARITY_COLOR } from "./boons";
 import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE } from "./config";
-import { VICTORY_RUNES, VICTORY_CRATES, RELICS, relicLevel } from "./meta";
+import { VICTORY_RUNES, VICTORY_CRATES, RELICS, relicLevel, fmtDuration } from "./meta";
 import {
   GEAR_BY_ID,
   GEAR_SLOTS,
@@ -28,7 +28,7 @@ import {
   TIER_COLORS,
   TIER_MAX,
   LOOTBOX_COST,
-  LOOTBOX_TIER_WEIGHTS,
+  lootboxOddsText,
   gearBonusText,
   gearUpgradeCost,
   scrapValue,
@@ -81,7 +81,7 @@ export class Hud {
   private computeLayout(game: Game) {
     // Right-margin info panel (off the map): castle HP, gold, wave, start-wave,
     // the telegraphed next-wave preview, and controls.
-    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 528 };
+    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 568 };
     const ix = rp.x + 12;
     const iw = rp.w - 24;
     const castleHp = { x: ix, y: rp.y + 12, w: iw, h: 18 };
@@ -93,6 +93,10 @@ export class Hud {
     const pause = { x: ix, y: speed.y + 48, w: iw, h: 40 };
     const mute = { x: ix, y: pause.y + 48, w: iw, h: 40 };
     const menu = { x: ix, y: mute.y + 48, w: iw, h: 40 };
+    // touch-friendly zoom step buttons (no wheel needed), split across the row
+    const zw = (iw - 8) / 2;
+    const zoomOut = { x: ix, y: menu.y + 48, w: zw, h: 40 };
+    const zoomIn = { x: ix + zw + 8, y: menu.y + 48, w: zw, h: 40 };
 
     // bottom-margin palette (off the map), aligned to the map width
     const palH = 88;
@@ -176,7 +180,7 @@ export class Hud {
       cards = [0, 1, 2].map((i) => ({ x: x0 + i * (cw + gapC), y: y0, w: cw, h: ch }));
     }
 
-    return { rp, castleHp, goldRect, waveRect, startWave, previewRect, speed, pause, mute, menu, palette, sel, cards };
+    return { rp, castleHp, goldRect, waveRect, startWave, previewRect, speed, pause, mute, menu, zoomOut, zoomIn, palette, sel, cards };
   }
 
   private layout(game: Game) {
@@ -396,6 +400,8 @@ export class Hud {
     this.button(ctx, L.pause, game.paused ? "▶  Resume" : "❚❚  Pause", { small: true });
     this.button(ctx, L.mute, game.audioEnabled ? "♪  Sound" : "∅  Muted", { small: true });
     this.button(ctx, L.menu, "⌂  Menu", { small: true });
+    this.button(ctx, L.zoomOut, "−  Zoom Out", { small: true, disabled: game.cam.zoom <= Game.CAM_ZOOM_MIN + 1e-3 });
+    this.button(ctx, L.zoomIn, "＋  Zoom In", { small: true, disabled: game.cam.zoom >= Game.CAM_ZOOM_MAX - 1e-3 });
 
     // palette
     for (const t of TOWER_ORDER) {
@@ -662,6 +668,14 @@ export class Hud {
         game.toggleMute();
         return true;
       }
+      if (inRect(p, L.zoomIn)) {
+        game.zoomStep(1);
+        return true;
+      }
+      if (inRect(p, L.zoomOut)) {
+        game.zoomStep(-1);
+        return true;
+      }
       if (game.wavePhase === "build" && inRect(p, L.startWave)) {
         game.startWave();
         return true;
@@ -767,6 +781,10 @@ export class Hud {
       return { title: "Menu", lines: [{ t: "Leave to the main menu — this run ends.", c: "#e08a8a" }] };
     if (inRect(p, L.speed)) return { title: "Speed", lines: [{ t: `Cycle game speed — now ${game.speedIdx + 1}×.` }] };
     if (inRect(p, L.mute)) return { title: "Sound", lines: [{ t: "Toggle sound effects." }] };
+    if (inRect(p, L.zoomIn))
+      return { title: "Zoom in", lines: [{ t: "Step the camera closer (＋ key too). The diorama blur deepens as you zoom." }] };
+    if (inRect(p, L.zoomOut))
+      return { title: "Zoom out", lines: [{ t: "Step the camera back (− key too). At 1× the whole island stays in focus." }] };
     if (game.wavePhase === "build" && inRect(p, L.startWave))
       return {
         title: `Send wave ${game.wave + 1}`,
@@ -943,13 +961,21 @@ export class Hud {
       if (!inRect(p, row.rect)) continue;
       const def = RELICS.find((r) => r.id === row.id)!;
       const lvl = relicLevel(game.meta, row.id);
+      const job = game.meta.research;
       const lines: TipLine[] = [{ t: def.blurb, c: "#8fa8bd" }];
       if (lvl > 0) lines.push({ t: `Now: ${def.effect(lvl)}`, c: "#9fd8a8", b: true });
-      if (lvl < def.maxLevel) {
-        const cost = def.cost(lvl + 1);
+      if (job && job.id === def.id) {
+        const rem = Math.max(0, job.completesAt - Date.now());
+        lines.push({ t: `Researching level ${job.level}: ${def.effect(job.level)}`, c: "#cfe3f5" });
+        lines.push({ t: `Finishes in ${fmtDuration(rem)} — it applies automatically, even while you're away.`, c: "#e8c96a" });
+      } else if (job) {
+        lines.push({ t: "Wait — another research is still in progress (one at a time).", c: "#e08a8a" });
+      } else if (lvl < def.maxLevel) {
+        const cost = def.cost(lvl);
         const afford = game.meta.runes >= cost;
         lines.push({ t: `Next: ${def.effect(lvl + 1)}`, c: "#cfe3f5" });
-        lines.push({ t: afford ? `Cost: ${cost} runes` : `Cost: ${cost} runes — not enough`, c: afford ? "#e8c96a" : "#e08a8a" });
+        const dur = def.research ? ` · ${fmtDuration(def.research(lvl))} of research` : "";
+        lines.push({ t: afford ? `Cost: ${cost} runes${dur}` : `Cost: ${cost} runes${dur} — not enough`, c: afford ? "#e8c96a" : "#e08a8a" });
       } else lines.push({ t: "Fully upgraded.", c: "#9fd8a8" });
       return { title: def.name, accent: "#dceeff", lines };
     }
@@ -962,16 +988,22 @@ export class Hud {
 
     // Supply Crate purchase (both tabs)
     if (inRect(p, L.crateBtn)) {
-      const w = (t: number) => LOOTBOX_TIER_WEIGHTS[t];
-      return {
-        title: "Supply Crate",
-        accent: "#d2a24c",
-        lines: [
-          { t: `One random gear piece for ${LOOTBOX_COST} crates.`, c: "#cfe3f5" },
-          { t: `Tier odds: T1 ${w(1)}% · T2 ${w(2)}% · T3 ${w(3)}% · T4 ${w(4)}% · T5 ${w(5)}%.`, c: "#8fa8bd" },
-          { t: "Earn crates by clearing waves — they bank between runs.", c: "#8fa8bd" },
-        ],
-      };
+      const fortune = relicLevel(game.meta, "fortune");
+      const fortuneMax = RELICS.find((r) => r.id === "fortune")!.maxLevel;
+      const job = game.meta.research;
+      const lines: TipLine[] = [
+        { t: `One random gear piece for ${LOOTBOX_COST} crates.`, c: "#cfe3f5" },
+        { t: `Tier odds: ${lootboxOddsText(fortune)}.`, c: "#8fa8bd" },
+      ];
+      if (job && job.id === "fortune") {
+        lines.push({ t: `Level ${job.level} research finishes in ${fmtDuration(Math.max(0, job.completesAt - Date.now()))} — the odds improve then.`, c: "#e8c96a" });
+      } else if (fortune < fortuneMax) {
+        lines.push({ t: `Raise the higher-tier odds with Crate Fortune (lvl ${fortune}/${fortuneMax}) in the Codex — research takes real time.`, c: "#8fa8bd" });
+      } else {
+        lines.push({ t: "Crate Fortune is fully upgraded — the best odds you'll ever roll.", c: "#8fa8bd" });
+      }
+      lines.push({ t: "Earn crates by clearing waves — they bank between runs.", c: "#8fa8bd" });
+      return { title: "Supply Crate", accent: "#d2a24c", lines };
     }
 
     // vault tab: banked pieces
@@ -1176,10 +1208,10 @@ export class Hud {
       "• Barracks muster soldiers who march the road and hold it against ground foes.",
       "• Unlock new towers and stack powers to go deeper.",
       "• Every cleared wave banks ◆ runes and supply crates (a lost run keeps them; winning pays +40 ◆ / +20 crates).",
-      "• Spend runes in The Codex on relics — and open Supply Crates in the Armory to win gear (T1–T5 by the odds).",
+      "• Spend runes in The Codex on relics (Crate Fortune research shifts Supply Crate odds — each level takes real time) — and open crates in the Armory for gear.",
       "",
-      "Keys: 1-6 build · Space start wave · P pause · F speed · M mute · Esc cancel",
-      "Mouse: drag the map to slide around · wheel to zoom in and out",
+      "Keys: 1-6 build · Space start wave · P pause · F speed · M mute · ＋/− zoom · Esc cancel",
+      "Mouse: drag the map to slide around · wheel or the side-panel ＋/− buttons to zoom",
       "",
       "Click anywhere to close.",
     ];
@@ -1461,7 +1493,7 @@ export class Hud {
     ctx.fillText(`◆ ${game.meta.runes}  runes`, CANVAS_W / 2, L.header.y + 106);
     ctx.fillStyle = "#5a4632";
     ctx.font = "600 14px 'Segoe UI', sans-serif";
-    ctx.fillText("Spend runes on relics that carry over between sieges.", CANVAS_W / 2, L.header.y + 140);
+    ctx.fillText("Spend runes on relics that carry over between sieges — research takes real time.", CANVAS_W / 2, L.header.y + 140);
     ctx.restore();
 
     for (const row of L.rows) {
@@ -1469,7 +1501,9 @@ export class Hud {
       const lvl = relicLevel(game.meta, relic.id);
       const maxed = lvl >= relic.maxLevel;
       const cost = relic.cost(lvl);
-      const canBuy = !maxed && game.meta.runes >= cost;
+      const job = game.meta.research;
+      const researching = !!job && job.id === relic.id;
+      const canBuy = !maxed && !job && game.meta.runes >= cost;
       const r = row.rect;
 
       // row — clean parchment fill (cropped center tile) + ink border
@@ -1493,13 +1527,30 @@ export class Hud {
       const ns = this.fitSize(relic.name, "700", 18, 14, r.w - 72 - 156);
       ctx.font = `700 ${ns}px 'Segoe UI', sans-serif`;
       ctx.fillText(relic.name, r.x + 72, r.y + 34);
-      ctx.fillStyle = "#5a4632";
-      ctx.font = "600 13px 'Segoe UI', sans-serif";
-      ctx.fillText(relic.blurb, r.x + 72, r.y + 56);
-      // current effect
-      ctx.fillStyle = lvl > 0 ? "#8a5a10" : "rgba(58,42,24,0.45)";
+      // blurb (ellipsized to the row width; the tooltip has the full text)
+      {
+        const font = "600 13px 'Segoe UI', sans-serif";
+        const maxW = r.w - 72 - 12;
+        let blurb = relic.blurb;
+        if (this.txtW(blurb, font) > maxW) {
+          while (blurb.length > 1 && this.txtW(blurb + "…", font) > maxW) blurb = blurb.slice(0, -1);
+          blurb += "…";
+        }
+        ctx.fillStyle = "#5a4632";
+        ctx.font = font;
+        ctx.fillText(blurb, r.x + 72, r.y + 56);
+      }
+      // current effect (or live research status)
+      let effText = lvl > 0 ? relic.effect(lvl) : "— not yet purchased";
+      let effColor = lvl > 0 ? "#8a5a10" : "rgba(58,42,24,0.45)";
+      if (researching) {
+        const rem = Math.max(0, job!.completesAt - Date.now());
+        effText = `Researching lvl ${job!.level} — ${fmtDuration(rem)} left`;
+        effColor = "#b3541e";
+      }
+      ctx.fillStyle = effColor;
       ctx.font = "700 14px 'Segoe UI', sans-serif";
-      ctx.fillText(lvl > 0 ? relic.effect(lvl) : "— not yet purchased", r.x + 72, r.y + 80);
+      ctx.fillText(effText, r.x + 72, r.y + 80);
       ctx.restore();
 
       // level pips (right-anchored on the effect line)
@@ -1520,7 +1571,14 @@ export class Hud {
       ctx.textAlign = "center";
       ctx.fillStyle = "#0f2a33";
       ctx.font = "800 15px 'Segoe UI', sans-serif";
-      ctx.fillText(maxed ? "MAX" : `Buy ${cost} ◆`, row.buy.x + row.buy.w / 2, row.buy.y + row.buy.h / 2 + 5);
+      const btnText = maxed
+        ? "MAX"
+        : researching
+          ? `${fmtDuration(Math.max(0, job!.completesAt - Date.now()))} left`
+          : relic.research
+            ? `Buy ${cost} ◆ · ${fmtDuration(relic.research(lvl))}`
+            : `Buy ${cost} ◆`;
+      ctx.fillText(btnText, row.buy.x + row.buy.w / 2, row.buy.y + row.buy.h / 2 + 5);
       ctx.restore();
     }
 

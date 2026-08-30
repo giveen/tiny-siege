@@ -40,6 +40,7 @@ import {
   metaRangeMult,
   metaRateMult,
   RELICS,
+  tickResearch,
   type MetaState,
 } from "./meta";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
@@ -97,6 +98,15 @@ export class Game {
   wavePhase: WavePhase = "build";
   paused = false;
   time = 0;
+
+  // loading screen state
+  /** "boot" = before manifest.json (pure vector art); "assets" = manifest in hand. */
+  private loadPhase: "boot" | "assets" = "boot";
+  private loadProgress = 0; // 0..1, meaningful once loadPhase === "assets"
+  /** Early reference to the partially-populated Assets (set by the manifest hook). */
+  private bootAssets: Assets | null = null;
+  /** 1 → 0 fade used when arriving on the menu (loading / toMenu). */
+  private screenFade = 0;
   speedIdx = 0;
   get speed() {
     return SPEEDS[this.speedIdx];
@@ -152,6 +162,13 @@ export class Game {
   cam = { x: 0, y: 0, zoom: 1 };
   static readonly CAM_ZOOM_MIN = 1;
   static readonly CAM_ZOOM_MAX = 3;
+
+  /** Tilt-shift: below this zoom the diorama pass is skipped (crisp at 1×). */
+  static readonly TILT_ZOOM_ON = 1.04;
+  /** Tilt-shift: max depth-of-field blur (canvas px) at CAM_ZOOM_MAX. */
+  static readonly TILT_BLUR_PX = 7;
+  /** Offscreen tilt-shift buffers (scene + masked blur), created lazily. */
+  private tilt: { scene: HTMLCanvasElement; blur: HTMLCanvasElement } | null = null;
 
   // intermission boons
   boonChoices: Boon[] = [];
@@ -210,7 +227,15 @@ export class Game {
   }
 
   async init(): Promise<void> {
-    const assets = await loadAssets("assets/");
+    const assets = await loadAssets("assets/", {
+      onManifest: (a) => {
+        this.loadPhase = "assets";
+        this.bootAssets = a;
+      },
+      onProgress: (done, total) => {
+        this.loadProgress = total > 0 ? done / total : 0;
+      },
+    });
     this.assets = assets;
     this.audio.setBase("assets/");
     this.rng = new RNG();
@@ -220,6 +245,7 @@ export class Game {
     this.castleSprite = new Sprite(asAsset(assets.building("blue", "castle")));
     this.hud = new Hud(assets);
     this.screen = "menu";
+    this.screenFade = 1; // fade in from the loading backdrop
 
     const params = new URLSearchParams(location.search);
     const seedParam = params.get("seed");
@@ -404,6 +430,9 @@ export class Game {
     if (dt > 0.05) dt = 0.05;
     if (dt < 0) dt = 0;
 
+    // Real-time research finishes on the wall clock, even while playing.
+    tickResearch(this.meta, Date.now());
+
     this.handleInput();
 
     if (this.screen === "game" && !this.paused) {
@@ -415,6 +444,8 @@ export class Game {
       this.time += dt;
       this.fxTick(dt, false);
     }
+
+    if (this.screenFade > 0) this.screenFade = Math.max(0, this.screenFade - dt * 2.5);
 
     this.render();
     this.raf = requestAnimationFrame(this.frame);
@@ -687,16 +718,23 @@ export class Game {
   }
 
   // ------------------------------------------------------------- meta
-  /** Spend runes to level up a relic. Returns true if it succeeded. */
+  /** Spend runes to level up a relic (research relics start a real-time
+   *  research instead). Returns true if it succeeded. */
   buyRelic(id: string): boolean {
     const relic = RELICS.find((r) => r.id === id);
     if (!relic) return false;
+    if (this.meta.research) return false; // one research at a time
     const lvl = relicLevel(this.meta, id);
     if (lvl >= relic.maxLevel) return false;
     const cost = relic.cost(lvl);
     if (this.meta.runes < cost) return false;
     this.meta.runes -= cost;
-    this.meta.levels[id] = lvl + 1;
+    if (relic.research) {
+      const now = Date.now();
+      this.meta.research = { id, level: lvl + 1, startedAt: now, completesAt: now + relic.research(lvl) };
+    } else {
+      this.meta.levels[id] = lvl + 1;
+    }
     saveMeta(this.meta);
     return true;
   }
@@ -776,7 +814,7 @@ export class Game {
   buyLootbox(): GearInstance | null {
     if (this.meta.crates < LOOTBOX_COST) return null;
     this.meta.crates -= LOOTBOX_COST;
-    const inst = rollLootbox(this.rng);
+    const inst = rollLootbox(this.rng, relicLevel(this.meta, "fortune"));
     this.meta.gear.owned.push(inst);
     saveMeta(this.meta);
     return inst;
@@ -1083,6 +1121,8 @@ export class Game {
     if (this.input.key("KeyP") && !this._pKey) this.togglePause();
     if (this.input.key("KeyM") && !this._mKey) this.toggleMute();
     if (this.input.key("KeyF") && !this._fKey) this.cycleSpeed();
+    if (this.input.key("Equal") && !this._ziKey) this.zoomStep(1);
+    if (this.input.key("Minus") && !this._zoKey) this.zoomStep(-1);
     if (this.input.key("Escape") && !this._eKey) this.cancelAction();
     if (this.input.key("Space") && !this._spaceKey && this.screen === "game" && !this.paused && this.wavePhase === "build")
       this.startWave();
@@ -1103,6 +1143,8 @@ export class Game {
     this._pKey = this.input.key("KeyP");
     this._mKey = this.input.key("KeyM");
     this._fKey = this.input.key("KeyF");
+    this._ziKey = this.input.key("Equal");
+    this._zoKey = this.input.key("Minus");
     this._eKey = this.input.key("Escape");
     this._spaceKey = this.input.key("Space");
 
@@ -1152,6 +1194,8 @@ export class Game {
   _fKey = false;
   _eKey = false;
   _spaceKey = false;
+  _ziKey = false;
+  _zoKey = false;
   _numKeys: Record<string, boolean> = {};
 
   private worldInteract(x: number, y: number): void {
@@ -1218,6 +1262,12 @@ export class Game {
     this.selectedTower = null;
   }
 
+  /** One-step zoom around the viewport center — HUD buttons and ＋ / − keys. */
+  zoomStep(dir: 1 | -1): void {
+    if (this.screen !== "game") return;
+    this.zoomAt(WORLD_W / 2, WORLD_H / 2, -320 * dir);
+  }
+
   /** Wheel zoom centered on the cursor (cx/cy in canvas px). */
   private zoomAt(cx: number, cy: number, deltaY: number): void {
     const z0 = this.cam.zoom;
@@ -1253,6 +1303,7 @@ export class Game {
    *  Runes already banked for cleared waves are kept (they're saved per wave). */
   toMenu(): void {
     this.screen = "menu";
+    this.screenFade = 1;
     this.placing = null;
     this.movingSpot = null;
     this.selectedTower = null;
@@ -1284,10 +1335,29 @@ export class Game {
     }
     if (this.screen === "menu") {
       this.hud.drawMenu(this, ctx);
+      if (this.screenFade > 0) {
+        ctx.fillStyle = `rgba(10,53,64,${this.screenFade})`; // #0a3540 — the menu backdrop
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      }
       return;
     }
 
-    // world
+    // world — through the tilt-shift pass when zoomed in, direct otherwise
+    if (this.cam.zoom > Game.TILT_ZOOM_ON) this.renderTiltShift(ctx);
+    else this.drawWorld(ctx);
+
+    // HUD (screen space, always crisp)
+    this.hud.draw(this, ctx);
+
+    if (this.paused) this.drawPauseOverlay(ctx);
+  }
+
+  /**
+   * Everything that lives in world space (clip + camera transform + island).
+   * Rendered straight to the main canvas at 1× zoom, or into the tilt-shift
+   * scene buffer when zoomed in.
+   */
+  private drawWorld(ctx: CanvasRenderingContext2D): void {
     ctx.save();
     // Clip to the world viewport, then apply the camera (pan + zoom).
     ctx.beginPath();
@@ -1344,11 +1414,67 @@ export class Game {
     if (this.selectedTower) this.drawSelectedRange(ctx);
 
     ctx.restore();
+  }
 
-    // HUD (screen space)
-    this.hud.draw(this, ctx);
+  /**
+   * Tilt-shift "diorama" pass: the world is rendered once into an offscreen
+   * buffer, then re-composited with a blurred copy masked to the top/bottom
+   * bands (feathered). At 1× zoom nothing is blurred; the depth of field
+   * grows with cam.zoom until it peaks at CAM_ZOOM_MAX — the island starts
+   * reading as a miniature model the more you zoom in.
+   */
+  private renderTiltShift(ctx: CanvasRenderingContext2D): void {
+    let t = this.tilt;
+    if (!t) {
+      t = { scene: document.createElement("canvas"), blur: document.createElement("canvas") };
+      for (const c of [t.scene, t.blur]) {
+        c.width = WORLD_W;
+        c.height = WORLD_H;
+      }
+      this.tilt = t;
+    }
+    const s =
+      (this.cam.zoom - Game.CAM_ZOOM_MIN) / (Game.CAM_ZOOM_MAX - Game.CAM_ZOOM_MIN);
 
-    if (this.paused) this.drawPauseOverlay(ctx);
+    // 1. world into the scene buffer (same clip + camera as the direct path)
+    const sc = t.scene.getContext("2d")!;
+    sc.clearRect(0, 0, WORLD_W, WORLD_H);
+    this.drawWorld(sc);
+
+    // 2. crisp scene as the base
+    ctx.drawImage(t.scene, 0, 0);
+    if (s <= 0.01) return;
+
+    // 3. blurred copy of the scene
+    const bc = t.blur.getContext("2d")!;
+    bc.globalCompositeOperation = "source-over";
+    bc.clearRect(0, 0, WORLD_W, WORLD_H);
+    bc.fillStyle = "#05080b"; // so the blur samples the dark frame, not transparency
+    bc.fillRect(0, 0, WORLD_W, WORLD_H);
+    bc.filter = `blur(${(Game.TILT_BLUR_PX * s).toFixed(1)}px)`;
+    bc.drawImage(t.scene, 0, 0);
+    bc.filter = "none";
+
+    // 4. feathered depth-of-field mask: blurred at top/bottom, sharp in the middle
+    const h = WORLD_H;
+    const bandHalf = h * 0.5 * (1 - 0.5 * s); // sharp band half-height: 50% → 25%
+    const feather = h * 0.14;
+    bc.globalCompositeOperation = "destination-in";
+    const g = bc.createLinearGradient(0, 0, 0, h);
+    const top = h / 2 - bandHalf;
+    const bot = h / 2 + bandHalf;
+    g.addColorStop(0, "rgba(255,255,255,1)");
+    g.addColorStop(Math.max(0, (top - feather) / h), "rgba(255,255,255,1)");
+    g.addColorStop(Math.min(1, (top + feather) / h), "rgba(255,255,255,0)");
+    g.addColorStop(Math.max(0, (bot - feather) / h), "rgba(255,255,255,0)");
+    g.addColorStop(Math.min(1, (bot + feather) / h), "rgba(255,255,255,1)");
+    g.addColorStop(1, "rgba(255,255,255,1)");
+    bc.fillStyle = g;
+    bc.fillRect(0, 0, WORLD_W, WORLD_H);
+    bc.globalCompositeOperation = "source-over";
+
+    // 5. the masked blur on top of the crisp base
+    ctx.drawImage(t.blur, 0, 0);
   }
 
   private drawBuildSpots(ctx: CanvasRenderingContext2D): void {
@@ -1517,15 +1643,190 @@ export class Game {
     ctx.restore();
   }
 
+  /** Garrison tips, cycled on the loading screen (4s each). */
+  private static readonly LOADING_TIPS = [
+    "Space starts the wave — don't sit on your gold.",
+    "The island grows every 5 waves. So does the horde.",
+    "Drag to pan · wheel to zoom — the whole island is yours.",
+    "Barracks soldiers march the road and hold it against ground foes.",
+    `Relocate an empty pad for ${SPOT_MOVE_COST}g — right-click to cancel.`,
+    "At +3 upgrades a tower can Specialize: pick a line, then level it.",
+    "Cleared waves bank ◆ runes — spend them in The Codex.",
+  ];
+
+  /**
+   * Loading screen — deliberately the menu's own backdrop (same sea, waves,
+   * title and castle position), so when the assets land the menu's castle and
+   * buttons materialize in place with no layout jump. Two phases:
+   *  - "boot":   no manifest yet — pure vector art (placeholder castle, an
+   *              indeterminate bar)
+   *  - "assets": manifest in hand — the real castle sprite as soon as its
+   *              image arrives, and a true-percentage progress bar.
+   */
   private drawLoading(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = "#06222b";
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-    ctx.fillStyle = "#bfe6ef";
-    ctx.font = "bold 28px 'Segoe UI', sans-serif";
+    const t = this.time;
+    const W = CANVAS_W;
+    const H = CANVAS_H;
+
+    // sea — identical to the menu backdrop
+    ctx.fillStyle = "#0a3540";
+    ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < 6; i++) {
+      ctx.strokeStyle = `rgba(120,190,205,${0.12 + i * 0.03})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += 8) {
+        const y = 120 + i * 70 + Math.sin(x * 0.03 + t * 1.5 + i) * 6;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // castle — real sprite once its image has loaded, vector placeholder before.
+    // Drawn UNDER the title, exactly like the menu (text frontmost).
+    const a = this.bootAssets;
+    if (a && a.has(a.manifest.buildings["blue"]["castle"].image)) {
+      const castle = asAsset(a.building("blue", "castle"));
+      drawSprite(ctx, a, castle, 0, W / 2, 258, { scale: 1.05 });
+    } else {
+      this.drawCastlePlaceholder(ctx, W / 2, 258);
+    }
+
+    // title — same placement and styling as the menu
+    ctx.save();
     ctx.textAlign = "center";
-    ctx.fillText("Tiny Siege", CANVAS_W / 2, CANVAS_H / 2 - 10);
-    ctx.font = "16px 'Segoe UI', sans-serif";
-    ctx.fillText("Loading…", CANVAS_W / 2, CANVAS_H / 2 + 24);
+    ctx.fillStyle = "#ffd24a";
+    ctx.font = "900 64px 'Segoe UI', sans-serif";
+    ctx.fillText("TINY SIEGE", W / 2, 120);
+    ctx.fillStyle = "#bfe6ef";
+    ctx.font = "600 20px 'Segoe UI', sans-serif";
+    ctx.fillText("a tower-defense roguelite", W / 2, 152);
+    ctx.restore();
+
+    this.drawLoadingBar(ctx, W / 2, 330, t);
+    this.drawLoadingTip(ctx, W / 2, H - 40, t);
+  }
+
+  /**
+   * Blocky vector stand-in for the castle, shown only until the real sprite
+   * lands. Shares the menu castle's anchor (bottom-center at the given point)
+   * and its 327×218 footprint (the 312×208 sprite at scale 1.05), with the
+   * same layering as the menu (drawn under the title), so the swap is seamless.
+   * Local coords: origin at the bottom-center, y negative up.
+   */
+  private drawCastlePlaceholder(ctx: CanvasRenderingContext2D, cx: number, baseY: number): void {
+    ctx.save();
+    ctx.translate(Math.round(cx), Math.round(baseY));
+    const blk = (x0: number, y0: number, x1: number, y1: number, c: string) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+    };
+    const STONE = "#46647f";
+    const STONE_LT = "#5d7f9e";
+    const WOOD = "#b98a4e";
+    const WOOD_DK = "#8a6234";
+    const TEAL = "#4ec9d8";
+    const GATE = "#14212e";
+
+    // stone base (bottom 40%, like the sprite) with gate
+    blk(-163, -113, 163, 0, STONE);
+    blk(-163, -113, 163, -105, STONE_LT);
+    blk(-26, -55, 26, 0, GATE);
+    blk(-18, -63, 18, -55, GATE);
+
+    // corner towers, top aligned with the crenellation band
+    for (const s of [-1, 1]) {
+      const x0 = s === -1 ? -163 : 112;
+      const x1 = s === -1 ? -112 : 163;
+      blk(x0, -200, x1, -113, STONE_LT);
+      blk(s === -1 ? -163 : 150, -200, s === -1 ? -150 : 163, -113, STONE); // outer shade
+    }
+
+    // wooden palisade between the towers, sitting on the base
+    blk(-112, -188, 112, -113, WOOD);
+    blk(-112, -125, 112, -113, WOOD_DK);
+
+    // crenellation row across the very top: stone band + merlons + teal trim
+    blk(-163, -200, 163, -192, STONE);
+    for (let i = 0; i < 12; i++) blk(-158 + i * 27, -218, -142 + i * 27, -200, STONE_LT);
+    for (let i = 0; i < 12; i++) blk(-158 + i * 27, -218, -142 + i * 27, -214, TEAL);
+    ctx.restore();
+  }
+
+  /** Progress bar under the castle: indeterminate sweep while booting, true % once assets stream in. */
+  private drawLoadingBar(ctx: CanvasRenderingContext2D, cx: number, y: number, t: number): void {
+    const w = 320;
+    const h = 20;
+    const x = cx - w / 2;
+
+    ctx.save();
+    // frame + track (button-palette gold/dark so it reads as game UI)
+    ctx.fillStyle = "#1a1206";
+    ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
+    ctx.fillStyle = "#0d2b36";
+    ctx.fillRect(x, y, w, h);
+
+    if (this.loadPhase === "assets") {
+      const p = this.loadProgress;
+      if (p > 0) {
+        const fw = Math.max(4, Math.floor(w * p));
+        ctx.fillStyle = "#c98a2e";
+        ctx.fillRect(x, y, fw, h);
+        ctx.fillStyle = "#ffd24a";
+        ctx.fillRect(x, y, fw, Math.round(h * 0.4));
+      }
+      // shimmering head on the fill
+      if (p > 0 && p < 1) {
+        const hx = x + w * p;
+        const g = 0.5 + 0.5 * Math.sin(t * 8);
+        ctx.fillStyle = `rgba(255,235,170,${0.25 + 0.45 * g})`;
+        ctx.fillRect(hx - 3, y, 6, h);
+      }
+    } else {
+      // indeterminate: a gold segment sweeps left→right, wrapping
+      const seg = 90;
+      const k = (t * 0.5) % 1;
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      ctx.clip();
+      const sx = x - seg + k * (w + seg);
+      ctx.fillStyle = "#c98a2e";
+      ctx.fillRect(sx, y, seg, h);
+      ctx.fillStyle = "#ffd24a";
+      ctx.fillRect(sx, y, seg, Math.round(h * 0.4));
+    }
+    ctx.restore();
+
+    // caption
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "600 14px 'Segoe UI', sans-serif";
+    const label =
+      this.loadPhase === "assets"
+        ? `Stocking the armory… ${Math.floor(this.loadProgress * 100)}%`
+        : "Raising the banners…";
+    ctx.fillText(label, cx, y + h + 24);
+    ctx.restore();
+  }
+
+  /** Rotating garrison tip, fading in/out at each 4s boundary. */
+  private drawLoadingTip(ctx: CanvasRenderingContext2D, cx: number, y: number, t: number): void {
+    const tips = Game.LOADING_TIPS;
+    const idx = Math.floor(t / 4) % tips.length;
+    const inTip = (t % 4) / 4;
+    const a = Math.max(0, Math.min(1, inTip / 0.125, (1 - inTip) / 0.125));
+    ctx.save();
+    ctx.globalAlpha = a * 0.9;
+    ctx.fillStyle = "#8fb8c8";
+    ctx.font = "500 15px 'Segoe UI', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(tips[idx], cx, y);
+    ctx.restore();
   }
 
   destroy(): void {

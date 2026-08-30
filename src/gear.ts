@@ -137,16 +137,43 @@ export function makeGearDrop(tier: number, rng: RNG): GearInstance {
 // ---------------------------------------------------------------- supply crates (gacha)
 /** Crate currency cost to open one Supply Crate (one random gear piece). */
 export const LOOTBOX_COST = 10;
-/** Tier odds per pull, 1-based (index 0 unused): T1 .. T5. */
-export const LOOTBOX_TIER_WEIGHTS = [0, 45, 27, 18, 8, 2];
 
-/** Roll one gear piece from a Supply Crate: weighted tier, then a random piece. */
-export function rollLootbox(rng: RNG): GearInstance {
-  const total = LOOTBOX_TIER_WEIGHTS.reduce((a, b) => a + b, 0);
+/**
+ * Fortune ladder: [T1..T5] tier odds per pull at Crate Fortune level l (0..5).
+ * Base (level 0) is T1 80% / T2 20% — no chance of higher tiers. Each relic
+ * level shifts 10% of the odds off T1, into T3 (lvl 1), then T4 (lvl 2),
+ * then straight into T5 (lvl 3+).
+ */
+export const LOOTBOX_FORTUNE_MAX = 5;
+export const LOOTBOX_FORTUNE_WEIGHTS: number[][] = [
+  [80, 20, 0, 0, 0],
+  [70, 20, 10, 0, 0],
+  [60, 20, 10, 10, 0],
+  [50, 20, 10, 10, 10],
+  [40, 20, 10, 10, 20],
+  [30, 20, 10, 10, 30],
+];
+
+/** Tier odds per pull at a given Fortune level, 1-based (index 0 unused). */
+export function lootboxTierWeights(fortuneLevel: number): number[] {
+  const l = Math.min(LOOTBOX_FORTUNE_MAX, Math.max(0, Math.floor(fortuneLevel)));
+  return [0, ...LOOTBOX_FORTUNE_WEIGHTS[l]];
+}
+
+/** One line of tier odds for UI: "T1 80% · T2 20% · T3 0% · T4 0% · T5 0%". */
+export function lootboxOddsText(fortuneLevel: number): string {
+  const w = lootboxTierWeights(fortuneLevel);
+  return `T1 ${w[1]}% · T2 ${w[2]}% · T3 ${w[3]}% · T4 ${w[4]}% · T5 ${w[5]}%`;
+}
+
+/** Roll one gear piece from a Supply Crate at a given Fortune level. */
+export function rollLootbox(rng: RNG, fortuneLevel = 0): GearInstance {
+  const weights = lootboxTierWeights(fortuneLevel);
+  const total = weights.reduce((a, b) => a + b, 0);
   let r = rng.next() * total;
   let tier = TIER_MAX;
   for (let t = 1; t <= TIER_MAX; t++) {
-    r -= LOOTBOX_TIER_WEIGHTS[t];
+    r -= weights[t];
     if (r <= 0) {
       tier = t;
       break;

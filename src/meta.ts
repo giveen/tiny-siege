@@ -3,9 +3,19 @@
 // gear vault. A lost (or won) run still banks runes + crates, so every
 // attempt moves you closer to the build you're chasing. Stored in localStorage.
 
-import { emptyGearState, type GearState } from "./gear";
+import { emptyGearState, LOOTBOX_FORTUNE_MAX, lootboxOddsText, type GearState } from "./gear";
 
 export const META_KEY = "tinysiege.meta.v1";
+
+/** A real-time research in progress (persisted, completes while away). */
+export interface ResearchJob {
+  /** Relic id being researched. */
+  id: string;
+  /** Level applied once completesAt has passed. */
+  level: number;
+  startedAt: number;
+  completesAt: number;
+}
 
 export interface MetaState {
   runes: number;
@@ -15,6 +25,8 @@ export interface MetaState {
   scrap: number;
   /** Supply Crate currency banked from cleared waves; spent on gacha lootboxes. */
   crates: number;
+  /** At most one research at a time (null = idle). */
+  research: ResearchJob | null;
 }
 
 export interface Relic {
@@ -26,7 +38,13 @@ export interface Relic {
   cost: (level: number) => number;
   /** Human-readable effect at a given level. */
   effect: (level: number) => string;
+  /** If present, levels are researched in real time instead of applying
+   *  instantly: ms it takes to research from `level` to `level+1`. */
+  research?: (level: number) => number;
 }
+
+/** One hour in ms (research durations). */
+const HOUR = 3_600_000;
 
 export const RELICS: Relic[] = [
   {
@@ -101,10 +119,24 @@ export const RELICS: Relic[] = [
     cost: (l) => 16 + l * 12,
     effect: (l) => `+${l * 8}% tower fire rate`,
   },
+  {
+    id: "fortune",
+    name: "Crate Fortune",
+    blurb: "Supply Crates lean rarer — each level shifts 10% of the odds off T1.",
+    maxLevel: LOOTBOX_FORTUNE_MAX,
+    cost: (l) => 80 * 2 ** l,
+    effect: (l) => lootboxOddsText(l),
+    research: (l) => HOUR * 2 ** l, // 1h, 2h, 4h, 8h, 16h
+  },
 ];
 
+/** A fresh MetaState with no storage access (tests / seeding). */
+export function emptyMetaState(): MetaState {
+  return { runes: 0, levels: {}, gear: emptyGearState(), scrap: 0, crates: 0, research: null };
+}
+
 export function loadMeta(): MetaState {
-  const state = { runes: 0, levels: {} as Record<string, number>, gear: emptyGearState(), scrap: 0, crates: 0 };
+  const state = { runes: 0, levels: {} as Record<string, number>, gear: emptyGearState(), scrap: 0, crates: 0, research: null as ResearchJob | null };
   try {
     const raw = localStorage.getItem(META_KEY);
     if (raw) {
@@ -119,10 +151,17 @@ export function loadMeta(): MetaState {
       if (g && typeof g === "object" && Array.isArray(g.owned) && g.equipped && typeof g.equipped === "object") {
         state.gear = { owned: g.owned, equipped: g.equipped };
       }
+      // Migrate pre-research saves: absent field means no research in flight.
+      const r = p.research;
+      if (r && typeof r === "object" && typeof r.id === "string" && typeof r.level === "number" && typeof r.completesAt === "number") {
+        state.research = { id: r.id, level: r.level, startedAt: typeof r.startedAt === "number" ? r.startedAt : r.completesAt, completesAt: r.completesAt };
+      }
     }
   } catch {
     /* ignore */
   }
+  // A research that finished while the game was closed applies now.
+  tickResearch(state, Date.now());
   return state;
 }
 
@@ -136,6 +175,28 @@ export function saveMeta(m: MetaState): void {
 
 export function relicLevel(m: MetaState, id: string): number {
   return m.levels[id] ?? 0;
+}
+
+/**
+ * Apply the in-flight research's level once its completion time has passed
+ * (wall-clock — it finishes while the game is closed too). Returns true if
+ * a research just completed.
+ */
+export function tickResearch(m: MetaState, now: number): boolean {
+  const r = m.research;
+  if (!r || now < r.completesAt) return false;
+  m.levels[r.id] = r.level;
+  m.research = null;
+  saveMeta(m);
+  return true;
+}
+
+/** Human duration: "45m", "1h", "1h 20m". */
+export function fmtDuration(ms: number): string {
+  const m = Math.max(1, Math.round(ms / 60000));
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return h > 0 ? (r > 0 ? `${h}h ${r}m` : `${h}h`) : `${r}m`;
 }
 
 /** Runes granted for clearing a wave (banked immediately, so a loss still counts). */

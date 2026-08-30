@@ -35,22 +35,55 @@
         border-radius: 6px;
         cursor: default;
       }
+      /* Pre-JS splash: visible until the bundle runs (the canvas then draws
+         its own loading screen and this node is removed). Rebuilt on failure. */
       #fallback {
         position: fixed;
         inset: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 8px;
+        background: #0a3540;
         color: #bfe6ef;
         font-size: 18px;
         text-align: center;
         padding: 24px;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #fallback .fb-title {
+        color: #ffd24a;
+        font-weight: 900;
+        font-size: 56px;
+        letter-spacing: 1px;
+        line-height: 1;
+      }
+      #fallback .fb-sub {
+        color: #bfe6ef;
+        font-weight: 600;
+        font-size: 18px;
+      }
+      #fallback .fb-loading {
+        margin-top: 32px;
+        font-size: 16px;
+        white-space: pre-line;
+        animation: fbPulse 1.6s ease-in-out infinite;
+      }
+      @keyframes fbPulse {
+        0%, 100% { opacity: 0.35; }
+        50% { opacity: 1; }
       }
     </style>
   </head>
   <body>
     <div id="app"><canvas id="game"></canvas></div>
-    <div id="fallback">Loading Tiny Siege…</div>
+    <div id="fallback">
+      <div class="fb-title">TINY SIEGE</div>
+      <div class="fb-sub">a tower-defense roguelite</div>
+      <div class="fb-loading">Loading Tiny Siege…</div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
