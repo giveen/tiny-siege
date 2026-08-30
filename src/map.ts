@@ -20,11 +20,17 @@ const ROAD_CLEAR = 30;
 // The map starts as a compact corridor around a short route to the castle
 // (about ten build pads) and physically grows every 5 waves: the island
 // gets taller — new land and a longer enemy route appear ABOVE the current
-// top edge — and a few more pads are carved out. The castle never moves, so
-// as the map grows the world becomes taller than the camera viewport and the
-// player must drag (pan) upward to see the new territory; the default view
-// on entering a run shows the bottom of the island (the castle) exactly as
+// top edge — and a few more pads are carved out. The castle never moves —
+// it always anchors the route at the bottom of the island — so as the map
+// grows the world becomes taller than the camera viewport and the player
+// must drag (pan) upward to see the new territory; the default view on
+// entering a run shows the bottom of the island (the castle) exactly as
 // before.
+//
+// The layout is RANDOM per run: generateRoutePlan() draws all ten stage
+// routes (and the build-pad placement) from the run's seeded RNG, so no two
+// runs look alike, while a given seed always reproduces the same island
+// (which keeps the ?seed= / demo-mode attract runs deterministic).
 //
 // The stage routes form a CUMULATIVE chain: every route still traverses the
 // previous stage's walk in full (only a new band is prepended above it), so
@@ -47,12 +53,20 @@ const ROAD_CLEAR = 30;
  * visually spill onto the road), and a path row that size sweeps edge to
  * edge, so anything closer than 2 rows from it is still within that margin.
  * A 3-row gap leaves its middle row untouched by either sweep, which is
- * where build pads and scatter actually land.
+ * where build pads and scatter actually land. `startFar` picks which edge
+ * the first sweep runs to, so the same spawn column can produce two
+ * different-looking bands.
  */
-function combBand(topRow: number, colMin: number, colMax: number, spawnCol: number, exitCol: number): [number, number][] {
-  const farSide = colMax - spawnCol >= spawnCol - colMin;
-  const edgeA = farSide ? colMax : colMin;
-  const edgeB = farSide ? colMin : colMax;
+function combBand(
+  topRow: number,
+  colMin: number,
+  colMax: number,
+  spawnCol: number,
+  exitCol: number,
+  startFar: boolean,
+): [number, number][] {
+  const edgeA = startFar ? colMax : colMin;
+  const edgeB = startFar ? colMin : colMax;
   return [
     [spawnCol, topRow - 1],
     [spawnCol, topRow],
@@ -65,33 +79,101 @@ function combBand(topRow: number, colMin: number, colMax: number, spawnCol: numb
   ];
 }
 
-// Each growth stage's entrance column, alternating sides of the island so
-// consecutive bands read differently.
-const GROWTH_SPAWN_COLS = [22, 6, 20, 8, 18, 10, 16, 12, 24];
 const GROWTH_BAND_ROWS = 6;
 const GROWTH_COL_MARGIN = 1;
+/** Minimum column distance between consecutive stages' band entrances, so
+ *  consecutive bands read as alternating sides of the island. */
+const GROWTH_SPAWN_SPREAD = 6;
 
-const STAGE_WAYPOINTS: [number, number][][] = [
-  // Stage 0 (waves 1-5): a compact S — the opening island around the castle.
-  [
-    [12, -1],
-    [12, 2],
-    [16, 2],
-    [16, 8],
-    [14, 8],
-    [14, 14],
-  ],
-];
-for (let s = 1; s <= 9; s++) {
-  const prev = STAGE_WAYPOINTS[s - 1];
-  const [exitCol, exitRow] = prev[0]; // the previous stage's own spawn point
-  const topRow = exitRow - GROWTH_BAND_ROWS;
-  const spawnCol = GROWTH_SPAWN_COLS[s - 1];
-  const band = combBand(topRow, GROWTH_COL_MARGIN, COLS - 1 - GROWTH_COL_MARGIN, spawnCol, exitCol);
-  STAGE_WAYPOINTS.push([...band, ...prev.slice(1)]);
+/** Everything one run needs to know about its road network. */
+export interface RoutePlan {
+  /** Waypoint lists per stage; stage s's walk includes every earlier one. */
+  waypoints: [number, number][][];
+  /** The same routes expanded to every cell they pass through. */
+  pathCells: [number, number][][];
+  /** Cells of ANY stage's route — build spots are never placed here, so a
+   *  later growth can never cut through the player's towers. */
+  reservedCells: Set<string>;
+  /** reservedCells plus a 1-cell buffer all around — deco sprites (tree
+   *  canopies, rocks) spill well beyond their own cell, so keeping only the
+   *  exact path cells clear isn't enough: a deco anchored in a cell right
+   *  beside the path visually overlaps it. Build spots still use the
+   *  tighter reservedCells (they're deliberately placed hugging the route). */
+  reservedRing: Set<string>;
+  /** Per-run offset for the pad checkerboard, so the diagonal the build
+   *  pads land on differs from run to run. */
+  padParity: number;
 }
 
-/** Which island stage a given (1-based) wave belongs to. */
+/** A column at least `minDist` away from every column in `avoid`. */
+function pickColAway(rng: RNG, avoid: readonly number[], minDist: number): number {
+  const cands: number[] = [];
+  for (let c = 2; c <= COLS - 3; c++) if (avoid.every((a) => Math.abs(a - c) >= minDist)) cands.push(c);
+  return rng.pick(cands);
+}
+
+/** Entrance column for a growth band: well away from the previous stage's
+ *  entrance so consecutive bands visibly alternate sides, and not hugging
+ *  the one before that so the run doesn't read as one repeating pattern. */
+function pickBandSpawnCol(rng: RNG, spawnCols: readonly number[]): number {
+  const cands: number[] = [];
+  const lo = GROWTH_COL_MARGIN + 3;
+  const hi = COLS - 1 - GROWTH_COL_MARGIN - 3;
+  for (let c = lo; c <= hi; c++) {
+    if (Math.abs(c - spawnCols[spawnCols.length - 1]) < GROWTH_SPAWN_SPREAD) continue;
+    const before = spawnCols[spawnCols.length - 2];
+    if (before !== undefined && Math.abs(c - before) < 3) continue;
+    cands.push(c);
+  }
+  return rng.pick(cands);
+}
+
+/**
+ * Draw this run's island. Stage 0 is a compact random S from an off-grid
+ * spawn down to the castle — the castle never moves, it always anchors the
+ * route at the bottom; stages 1-9 are random comb bands spliced above the
+ * previous stage's spawn point, preserving the cumulative chain. Uses a
+ * fixed number of RNG draws, so a given seed always yields the same plan.
+ */
+export function generateRoutePlan(rng: RNG): RoutePlan {
+  const castle = CASTLE_CELL;
+  const waypoints: [number, number][][] = [];
+  const spawnCols: number[] = [];
+
+  // Stage 0 (waves 1-5): down, sweep, drop, sweep onto the castle's
+  // column, final drop — the opening island around the castle.
+  const spawnCol = rng.int(GROWTH_COL_MARGIN + 3, COLS - 1 - GROWTH_COL_MARGIN - 3);
+  const colA = pickColAway(rng, [spawnCol, castle.c], 4);
+  const r1 = rng.int(1, 3);
+  const r2 = rng.int(r1 + 4, Math.min(r1 + 7, castle.r - 3));
+  waypoints.push([
+    [spawnCol, -1],
+    [spawnCol, r1],
+    [colA, r1],
+    [colA, r2],
+    [castle.c, r2],
+    [castle.c, castle.r],
+  ]);
+  spawnCols.push(spawnCol);
+
+  for (let s = 1; s <= 9; s++) {
+    const prev = waypoints[s - 1];
+    const [exitCol, exitRow] = prev[0]; // the previous stage's own spawn point
+    const topRow = exitRow - GROWTH_BAND_ROWS;
+    const col = pickBandSpawnCol(rng, spawnCols);
+    const band = combBand(topRow, GROWTH_COL_MARGIN, COLS - 1 - GROWTH_COL_MARGIN, col, exitCol, rng.chance(0.5));
+    waypoints.push([...band, ...prev.slice(1)]);
+    spawnCols.push(col);
+  }
+
+  const pathCells = waypoints.map(expandPath);
+  const reservedCells = new Set(pathCells.flat().map(([c, r]) => cellKey(c, r)));
+  const reservedRing = new Set<string>();
+  for (const [c, r] of pathCells.flat())
+    for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) reservedRing.add(cellKey(c + dc, r + dr));
+
+  return { waypoints, pathCells, reservedCells, reservedRing, padParity: rng.int(0, 3) };
+}
 
 /** Which island stage a given (1-based) wave belongs to. One stage per 5
  *  waves; the campaign climax (wave 50) plays on the final stage. */
@@ -118,22 +200,6 @@ function expandPath(wps: [number, number][]): [number, number][] {
   return out;
 }
 
-const STAGE_PATH_CELLS: [number, number][][] = STAGE_WAYPOINTS.map(expandPath);
-
-/** Cells of any stage's route — build spots are never placed here. */
-const RESERVED_CELLS = new Set(STAGE_PATH_CELLS.flat().map(([c, r]) => cellKey(c, r)));
-
-/** RESERVED_CELLS plus a 1-cell buffer all around — decoration sprites
- *  (tree canopies, rocks) spill well beyond their own cell, so keeping only
- *  the exact path cells clear isn't enough: a deco anchored in a cell right
- *  beside the path visually overlaps it. Build spots still use the tighter
- *  RESERVED_CELLS (they're deliberately placed hugging the route). */
-const RESERVED_RING = new Set<string>();
-for (const [c, r] of STAGE_PATH_CELLS.flat()) {
-  for (let dc = -1; dc <= 1; dc++)
-    for (let dr = -1; dr <= 1; dr++) RESERVED_RING.add(cellKey(c + dc, r + dr));
-}
-
 export interface BuildSpot {
   c: number;
   r: number;
@@ -154,6 +220,10 @@ export interface Deco {
 export class World {
   assets: Assets;
   rng: RNG;
+  /** This run's road network — drawn from the seeded RNG, so the layout
+   *  (path + build pads) differs from run to run while the castle stays
+   *  anchored at the bottom. */
+  plan: RoutePlan;
   stage = 0;
   /** Grass cells as "c,r" keys — a Set (not a fixed array) because growth
    *  extends the island to negative rows (upward), which a row-major typed
@@ -177,6 +247,7 @@ export class World {
   constructor(assets: Assets, rng: RNG, stage = 0) {
     this.assets = assets;
     this.rng = rng;
+    this.plan = generateRoutePlan(rng);
     this.castlePos = cellCenter(CASTLE_CELL.c, CASTLE_CELL.r);
 
     this.minRow = this.landRowFloor(stage);
@@ -209,10 +280,10 @@ export class World {
   /** (Re)compute the enemy route for a stage. */
   private setStagePath(stage: number): void {
     this.stage = stage;
-    this.path = STAGE_PATH_CELLS[stage].map(([c, r]) => cellCenter(c, r));
+    this.path = this.plan.pathCells[stage].map(([c, r]) => cellCenter(c, r));
     // The route's first cell is always the off-grid spawn marker (sitting in
     // water, one row above the island); every other cell is real land.
-    this.pathCells = new Set(STAGE_PATH_CELLS[stage].slice(1).map(([c, r]) => cellKey(c, r)));
+    this.pathCells = new Set(this.plan.pathCells[stage].slice(1).map(([c, r]) => cellKey(c, r)));
     this.cum = [0];
     for (let i = 1; i < this.path.length; i++) {
       this.cum.push(this.cum[i - 1] + dist(this.path[i - 1], this.path[i]));
@@ -225,7 +296,7 @@ export class World {
    *  marker — land is never generated at or above the marker's own row). */
   private landRowFloor(stage: number): number {
     let m = Infinity;
-    for (let s = 0; s <= stage; s++) for (const [, r] of STAGE_PATH_CELLS[s]) if (r < m) m = r;
+    for (let s = 0; s <= stage; s++) for (const [, r] of this.plan.pathCells[s]) if (r < m) m = r;
     return m + 1;
   }
 
@@ -239,7 +310,7 @@ export class World {
     const m = new Set<string>();
     const floor = this.landRowFloor(stage);
     for (let s = 0; s <= stage; s++) {
-      const cells = STAGE_PATH_CELLS[s];
+      const cells = this.plan.pathCells[s];
       for (let r = floor; r < ROWS; r++)
         for (let c = 0; c < COLS; c++) {
           const k = cellKey(c, r);
@@ -263,7 +334,7 @@ export class World {
 
   /** Grow the island to a later stage: new land, longer route, new pads. */
   growToStage(stage: number): void {
-    if (stage <= this.stage || stage >= STAGE_PATH_CELLS.length) return;
+    if (stage <= this.stage || stage >= this.plan.pathCells.length) return;
     this.minRow = this.landRowFloor(stage);
     this.grass = this.islandFor(stage);
     this.setStagePath(stage);
@@ -280,7 +351,7 @@ export class World {
    */
   private addSpotsForStage(stage: number, initial: boolean): void {
     const nearPath = new Set<string>();
-    for (const [c, r] of STAGE_PATH_CELLS[stage]) {
+    for (const [c, r] of this.plan.pathCells[stage]) {
       for (let dc = -1; dc <= 1; dc++)
         for (let dr = -1; dr <= 1; dr++) {
           if (dc === 0 && dr === 0) continue;
@@ -290,9 +361,9 @@ export class World {
     const added: BuildSpot[] = [];
     for (let r = this.minRow; r < ROWS; r++)
       for (let c = 0; c < COLS; c++) {
-        if (!this.isGrass(c, r) || (c + r) % 4 !== 0) continue;
+        if (!this.isGrass(c, r) || (c + r + this.plan.padParity) % 4 !== 0) continue;
         const k = cellKey(c, r);
-        if (!nearPath.has(k) || RESERVED_CELLS.has(k) || this.castleCells.has(k)) continue;
+        if (!nearPath.has(k) || this.plan.reservedCells.has(k) || this.castleCells.has(k)) continue;
         if (!initial && this.buildSpotByCell.has(k)) continue;
         const p = cellCenter(c, r);
         const spot = { c, r, x: p.x, y: p.y };
@@ -318,7 +389,7 @@ export class World {
   canRelocateTo(c: number, r: number): boolean {
     if (!this.isGrass(c, r)) return false;
     const k = cellKey(c, r);
-    if (RESERVED_CELLS.has(k)) return false;
+    if (this.plan.reservedCells.has(k)) return false;
     if (this.castleCells.has(k)) return false;
     if (this.buildSpotByCell.has(k)) return false;
     return true;
@@ -364,7 +435,7 @@ export class World {
         if (
           this.isGrass(c, r) &&
           !this.pathCells.has(k) &&
-          !RESERVED_RING.has(k) &&
+          !this.plan.reservedRing.has(k) &&
           !this.buildSpotByCell.has(k) &&
           !padRing.has(k) &&
           !this.castleCells.has(k)
@@ -402,7 +473,7 @@ export class World {
   private roadSamplePoints(): Vec[] {
     if (!this.roadSamples) {
       const pts: Vec[] = [];
-      for (const cells of STAGE_PATH_CELLS) {
+      for (const cells of this.plan.pathCells) {
         const path = cells.filter(([, r]) => r >= 0).map(([c, r]) => cellCenter(c, r));
         for (let i = 1; i < path.length; i++) {
           const a = path[i - 1];
