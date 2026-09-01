@@ -155,21 +155,36 @@ export class Assets {
   async load(onProgress?: (done: number, total: number) => void): Promise<void> {
     const paths = [...this.collect()];
     let done = 0;
-    await Promise.all(
-      paths.map((p) =>
-        new Promise<void>((resolve, reject) => {
+    // Bounded concurrency + retries. Firing every image at once (the old
+    // behavior, ~1700 requests in one burst) trips GitHub Pages' edge
+    // throttling and produces sporadic 503s; a single transient failure
+    // used to reject the entire load. Load in small batches and retry each
+    // image with backoff so one throttled request can't kill boot.
+    const BATCH = 32;
+    const MAX_ATTEMPTS = 4;
+    const loadImage = (p: string) =>
+      new Promise<HTMLImageElement>((resolve, reject) => {
+        const attempt = (n: number) => {
           const img = new Image();
-          img.onload = () => {
-            this.imgs.set(p, img);
-            done++;
-            onProgress?.(done, paths.length);
-            resolve();
+          img.onload = () => resolve(img);
+          img.onerror = () => {
+            if (n >= MAX_ATTEMPTS) reject(new Error("Failed to load " + p));
+            else setTimeout(() => attempt(n + 1), 250 * 2 ** (n - 1));
           };
-          img.onerror = () => reject(new Error("Failed to load " + p));
           img.src = this.base + p;
+        };
+        attempt(1);
+      });
+    for (let i = 0; i < paths.length; i += BATCH) {
+      const batch = paths.slice(i, i + BATCH);
+      await Promise.all(
+        batch.map(async (p) => {
+          this.imgs.set(p, await loadImage(p));
+          done++;
+          onProgress?.(done, paths.length);
         })
-      )
-    );
+      );
+    }
   }
 
   img(path: string): HTMLImageElement {
