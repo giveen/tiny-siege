@@ -3,4 +3,11 @@ dist/
 *.log
 .DS_Store
 .vite/
+
+# Raw asset packs: build-time sources for tools/build_assets.py only.
+# The game itself loads exclusively from public/assets/, which is committed.
+# These packs are kept locally (untracked) so assets can be regenerated.
 Free Fantasy SFX Pack By TomMusic/
+Tiny Swords (Free Pack)/
+enemies/PixelFlush - Pixel Monsters Mega Pack/
+FREE RPG Icon Pack - 100+ Accessories and Armor - Clockwork Raven Studios/
