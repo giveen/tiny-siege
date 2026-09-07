@@ -7,7 +7,9 @@
 // Every spawned enemy rolls its OWN base stats around the roster base
 // (±ENEMY_BASE_VARIANCE). Armored enemies carry a shatter pool of armor
 // points (tier * ARMOR_POINT_VALUE) that must be stripped to zero before any
-// of their HP can be dealt.
+// of their HP can be dealt. Armor does not exist before ARMOR_UNLOCK_WAVE;
+// after that, the share of armored types that roll their pool climbs each
+// wave until it is universal.
 //
 // The roster below is the single source of truth: it drives the EnemyType
 // union, ENEMY_DEFS, and the family tables waves.ts unlocks over the run.
@@ -25,6 +27,9 @@ import {
   ELITE_REWARD_MULT,
   ENEMY_BASE_VARIANCE,
   ARMOR_POINT_VALUE,
+  ARMOR_UNLOCK_WAVE,
+  ARMOR_UNLOCK_CHANCE,
+  ARMOR_RAMP_PER_WAVE,
 } from "./config";
 
 // ---------------------------------------------------------------------------
@@ -42,7 +47,7 @@ import {
 
 const ROSTER = [
   // -- abyss -------------------------------------------------------------
-  ["abyss_bat", "Abyss Bat", "abyss", 28, 70, 4, 3, 1.2, "f"],
+  ["abyss_bat", "Abyss Bat", "abyss", 28, 70, 4, 3, 1.2, "f"] as const,
   ["abyss_bat_2", "Abyss Bat II", "abyss", 36, 66, 5, 3, 1.3, "f"],
   ["abyss_blueberry", "Abyss Blueberry", "abyss", 18, 74, 3, 2, 1.05, ""],
   ["abyss_cult_leader", "Abyss Cult Leader", "abyss", 70, 46, 8, 5, 1.5, ""],
@@ -304,7 +309,7 @@ for (const t of ENEMY_TYPES) {
 export const ENEMY_FAMILIES: Record<FamilyKey, EnemyType[]> = (() => {
   const f = {} as Record<FamilyKey, EnemyType[]>;
   for (const k of FAMILY_KEYS) f[k] = [];
-  for (const r of ROSTER) f[r[2] as FamilyKey].push(r[0] as EnemyType);
+  for (const r of ROSTER) f[r[2] as FamilyKey].push(r[0]);
   return f;
 })();
 
@@ -409,8 +414,17 @@ export class Enemy {
     this.reward = Math.round(base.reward * (1 + wave * 0.02) * endlessMult * eliteReward);
     this.scale = base.scale * ENEMY_SCALE_MULT * (elite ? 1.15 : 1);
     // Shatter pool: armor tier -> points, scaled like HP and rolled like it.
+    // Armor is a late-game layer: no one carries it before ARMOR_UNLOCK_WAVE,
+    // and after that the chance an armored type rolls its pool climbs each
+    // wave until every armored enemy is armored. Bosses and elites from the
+    // unlock wave on always keep their full pool.
     const armorTier = base.armor ?? 0;
-    this.armorMax = armorTier > 0 ? Math.round(armorTier * ARMOR_POINT_VALUE * hpScale * roll) : 0;
+    const armorUnlocked = wave >= ARMOR_UNLOCK_WAVE;
+    const armorRoll =
+      ARMOR_UNLOCK_CHANCE + (wave - ARMOR_UNLOCK_WAVE) * ARMOR_RAMP_PER_WAVE;
+    const armorOn =
+      armorTier > 0 && armorUnlocked && (elite || type === "boss" || game.rng.next() < armorRoll);
+    this.armorMax = armorOn ? Math.round(armorTier * ARMOR_POINT_VALUE * hpScale * roll) : 0;
     this.armor = this.armorMax;
     const spawn = game.world.spawnPoint();
     this.x = spawn.x;
@@ -537,17 +551,31 @@ export class Enemy {
     if (this.dead) return { hpLost: 0, shattered: false };
     let hpLost = amount;
     let shattered = false;
+    let absorbed = 0;
     if (kind === "physical" && this.armor > 0) {
       const pierce = Math.min(amount, Math.max(0, armorIgnore ?? 0));
       const rest = amount - pierce;
       const absorb = Math.min(this.armor, rest);
       this.armor -= absorb;
+      absorbed = absorb;
       hpLost = pierce + (rest - absorb);
       shattered = this.armor <= 0;
     }
     this.hp -= hpLost;
     this.hitFlash = 0.12;
-    if (kind !== "burn") game.sfx("hit");
+    // Armor feedback: a plate clank when the pool eats a whole blow, and a
+    // breaking crack + sparks when the entire pool shatters at once.
+    if (kind !== "burn") {
+      if (absorbed > 0 && hpLost <= 0) {
+        game.sfx("shatter"); // fully absorbed — clank, not a flesh hit
+      } else {
+        game.sfx("hit");
+      }
+      if (shattered) {
+        game.sfx("shatter_break");
+        game.spawnShatterFx(this.x, this.y - 6);
+      }
+    }
     if (this.hp <= 0) {
       this.dead = true;
       game.killEnemy(this);
