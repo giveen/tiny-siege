@@ -1,0 +1,3488 @@
+{
+  "args": {
+    "seeds": 50,
+    "seedBase": 7,
+    "capSeconds": 1800,
+    "maxWave": 120,
+    "json": "balance-sim-baseline.json",
+    "diagnose": false,
+    "meta": 0
+  },
+  "deterministic": true,
+  "results": [
+    {
+      "seed": 7,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 382.9666666667557,
+      "kills": 101,
+      "boonsChosen": 9,
+      "towersAtEnd": 7,
+      "castleHpPctAtEnd": -0.32571428571428573,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.66,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.7217391304347827,
+          "gold": 16,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.6212121212121212,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.21710526315789475,
+          "gold": 13,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.33714285714285713,
+          "gold": 2,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.33714285714285713,
+          "gold": 2,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.33714285714285713,
+          "gold": 9,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.15428571428571428,
+          "gold": 1,
+          "towers": 7
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 8,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 499.43333333351507,
+      "kills": 106,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.43,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.06,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.06,
+          "gold": 18,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.06,
+          "gold": 5,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.41,
+          "gold": 12,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.41,
+          "gold": 6,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 9,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 594.3333333334501,
+      "kills": 108,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.21,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.63,
+          "gold": 6,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.63,
+          "gold": 6,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.63,
+          "gold": 20,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.63,
+          "gold": 10,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 10,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 522.3000000001823,
+      "kills": 106,
+      "boonsChosen": 9,
+      "towersAtEnd": 7,
+      "castleHpPctAtEnd": -0.030303030303030304,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.8,
+          "gold": 10,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.8,
+          "gold": 12,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.21739130434782608,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.5217391304347826,
+          "gold": 1,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.5217391304347826,
+          "gold": 2,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.6060606060606061,
+          "gold": 3,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.6060606060606061,
+          "gold": 17,
+          "towers": 7
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 11,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 451.1333333334766,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.81,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 11,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.28,
+          "gold": 22,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.28,
+          "gold": 5,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.28,
+          "gold": 4,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.28,
+          "gold": 13,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 12,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 114.99999999999604,
+      "kills": 35,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.34,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.8,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.38,
+          "gold": 0,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 13,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 118.59999999999583,
+      "kills": 34,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.4172,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.41,
+          "gold": 11,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.41,
+          "gold": 8,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 14,
+      "finalWave": 6,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 154.36666666666048,
+      "kills": 49,
+      "boonsChosen": 5,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.15,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 16,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.79,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.07,
+          "gold": 9,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 15,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 519.9666666668511,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.2878787878787879,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.81,
+          "gold": 13,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.09,
+          "gold": 22,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.09,
+          "gold": 18,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.22608695652173913,
+          "gold": 4,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.3484848484848485,
+          "gold": 18,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.3484848484848485,
+          "gold": 5,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 16,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 515.0333333335223,
+      "kills": 106,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.47,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.74,
+          "gold": 16,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.02,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.02,
+          "gold": 2,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.37,
+          "gold": 0,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.37,
+          "gold": 15,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.37,
+          "gold": 0,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 17,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 464.96666666682097,
+      "kills": 105,
+      "boonsChosen": 9,
+      "towersAtEnd": 7,
+      "castleHpPctAtEnd": -0.68,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 13,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.63,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.63,
+          "gold": 13,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.4,
+          "gold": 17,
+          "towers": 5
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.16,
+          "gold": 2,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.16,
+          "gold": 0,
+          "towers": 7
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 18,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 499.4666666668484,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.2,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 22,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.81,
+          "gold": 15,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.44,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.5304347826086957,
+          "gold": 1,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.5304347826086957,
+          "gold": 7,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.5304347826086957,
+          "gold": 18,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.5304347826086957,
+          "gold": 20,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 19,
+      "finalWave": 13,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 708.1666666666799,
+      "kills": 159,
+      "boonsChosen": 12,
+      "towersAtEnd": 11,
+      "castleHpPctAtEnd": -0.10636363636363634,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 16,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 15,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.46643478260869564,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.6024347826086957,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.6024347826086957,
+          "gold": 7,
+          "towers": 5
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.9067826086956522,
+          "gold": 4,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.768,
+          "gold": 0,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.336969696969697,
+          "gold": 24,
+          "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.04909090909090911,
+          "gold": 7,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.04909090909090911,
+          "gold": 35,
+          "towers": 11
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 20,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 565.6000000001429,
+      "kills": 103,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.007575757575757576,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.8,
+          "gold": 10,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.8,
+          "gold": 17,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.43,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.23,
+          "gold": 10,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.34782608695652173,
+          "gold": 3,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.36363636363636365,
+          "gold": 21,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.6287878787878788,
+          "gold": 4,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 21,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 472.4000000001602,
+      "kills": 105,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.47,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 16,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.74,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.02,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.37,
+          "gold": 7,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.37,
+          "gold": 6,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.37,
+          "gold": 7,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.37,
+          "gold": 26,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 22,
+      "finalWave": 15,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 1132.566666666294,
+      "kills": 206,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.4945454545454547,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.95,
+          "gold": 17,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.58,
+          "gold": 13,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.58,
+          "gold": 5,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.93,
+          "gold": 5,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.93,
+          "gold": 17,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.93,
+          "gold": 7,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.29159999999999997,
+          "gold": 14,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.6416,
+          "gold": 0,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.7057391304347825,
+          "gold": 34,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.610909090909091,
+          "gold": 23,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.610909090909091,
+          "gold": 34,
+          "towers": 13
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 23,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 94.73333333333052,
+      "kills": 36,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.11,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.61,
+          "gold": 11,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.61,
+          "gold": 5,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 24,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 544.2000000001624,
+      "kills": 106,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.7043478260869566,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 10,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 22,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.81,
+          "gold": 15,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.22608695652173913,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.22608695652173913,
+          "gold": 22,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.02608695652173913,
+          "gold": 1,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.02608695652173913,
+          "gold": 11,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.02608695652173913,
+          "gold": 2,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 25,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 109.39999999999635,
+      "kills": 35,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.1,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 16,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 12,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 26,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 107.9666666666631,
+      "kills": 36,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.1,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.62,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.62,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.62,
+          "gold": 11,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 27,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 137.36666666666144,
+      "kills": 35,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.13043478260869565,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.4,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.4956521739130435,
+          "gold": 9,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 28,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 488.9333333335067,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 7,
+      "castleHpPctAtEnd": -0.2,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 22,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.81,
+          "gold": 7,
+          "towers": 5
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.09,
+          "gold": 10,
+          "towers": 5
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.22608695652173913,
+          "gold": 6,
+          "towers": 6
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.22608695652173913,
+          "gold": 5,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.5304347826086957,
+          "gold": 8,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.5304347826086957,
+          "gold": 1,
+          "towers": 7
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 29,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 447.96666666680744,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.08695652173913043,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.94,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.94,
+          "gold": 15,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.3391304347826087,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.3391304347826087,
+          "gold": 1,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.3391304347826087,
+          "gold": 3,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.3391304347826087,
+          "gold": 14,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.6434782608695652,
+          "gold": 1,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 30,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 556.4333333334846,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.67,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 16,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.28,
+          "gold": 5,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.28,
+          "gold": 1,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.17,
+          "gold": 5,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.17,
+          "gold": 17,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 31,
+      "finalWave": 7,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 260.59999999999167,
+      "kills": 59,
+      "boonsChosen": 6,
+      "towersAtEnd": 5,
+      "castleHpPctAtEnd": -0.023304347826086924,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.8240000000000001,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.6392,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.15269565217391307,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.15269565217391307,
+          "gold": 17,
+          "towers": 5
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 32,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 440.80000000013507,
+      "kills": 108,
+      "boonsChosen": 9,
+      "towersAtEnd": 7,
+      "castleHpPctAtEnd": -0.034782608695652174,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.63,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 22,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 22,
+          "towers": 5
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 7,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 4,
+          "towers": 7
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 33,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 111.73333333332955,
+      "kills": 32,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.14760000000000006,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.62,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.62,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.48599999999999993,
+          "gold": 0,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 34,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 421.5333333334531,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.23478260869565218,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 15,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.28,
+          "gold": 20,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.4,
+          "gold": 16,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.4,
+          "gold": 5,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.4956521739130435,
+          "gold": 4,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 35,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 460.50000000015075,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 7,
+      "castleHpPctAtEnd": -0.42,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.79,
+          "gold": 20,
+          "towers": 5
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.07,
+          "gold": 4,
+          "towers": 6
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.07,
+          "gold": 11,
+          "towers": 7
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.42,
+          "gold": 9,
+          "towers": 7
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.42,
+          "gold": 7,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.42,
+          "gold": 9,
+          "towers": 7
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 36,
+      "finalWave": 7,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 191.66666666665836,
+      "kills": 63,
+      "boonsChosen": 6,
+      "towersAtEnd": 5,
+      "castleHpPctAtEnd": 0,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 22,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.391304347826087,
+          "gold": 19,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.2,
+          "gold": 1,
+          "towers": 5
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 37,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 132.5333333333284,
+      "kills": 34,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.26,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.46,
+          "gold": 14,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 38,
+      "finalWave": 11,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 603.233333333442,
+      "kills": 124,
+      "boonsChosen": 10,
+      "towersAtEnd": 9,
+      "castleHpPctAtEnd": -0.1,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 12,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.41,
+          "gold": 22,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.41,
+          "gold": 17,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.76,
+          "gold": 16,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 1,
+          "gold": 9,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 1,
+          "gold": 1,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.16,
+          "gold": 3,
+          "towers": 9
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 39,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 595.0000000001162,
+      "kills": 108,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.034782608695652174,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 21,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 19,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.63,
+          "gold": 22,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.63,
+          "gold": 4,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 3,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 9,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 40,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 413.90000000011366,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 7,
+      "castleHpPctAtEnd": -0.4568000000000001,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.8151999999999999,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.18159999999999996,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.18159999999999996,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.18159999999999996,
+          "gold": 21,
+          "towers": 5
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.18159999999999996,
+          "gold": 11,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.18159999999999996,
+          "gold": 4,
+          "towers": 7
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 41,
+      "finalWave": 6,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 199.46666666665791,
+      "kills": 47,
+      "boonsChosen": 5,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.1439999999999999,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.8240000000000001,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.8240000000000001,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.19040000000000007,
+          "gold": 2,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 42,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 416.73333333344925,
+      "kills": 108,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.56,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.28,
+          "gold": 22,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.28,
+          "gold": 0,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.28,
+          "gold": 2,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.28,
+          "gold": 7,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 43,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 464.83333333348753,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.5130434782608696,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 9,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.8,
+          "gold": 12,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.8,
+          "gold": 11,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.21739130434782608,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.21739130434782608,
+          "gold": 1,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.21739130434782608,
+          "gold": 5,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.21739130434782608,
+          "gold": 8,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.21739130434782608,
+          "gold": 6,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 44,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 145.03333333332768,
+      "kills": 33,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.61,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.74,
+          "gold": 13,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.11,
+          "gold": 0,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 45,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 533.4000000001722,
+      "kills": 105,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.83,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 12,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 22,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.95,
+          "gold": 15,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.23,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.01,
+          "gold": 0,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.01,
+          "gold": 20,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.01,
+          "gold": 3,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.01,
+          "gold": 20,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 46,
+      "finalWave": 15,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 1101.1999999996558,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 11,
+      "castleHpPctAtEnd": -0.44242424242424244,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 15,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.63,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.63,
+          "gold": 19,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 2,
+          "towers": 5
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 16,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.6956521739130435,
+          "gold": 6,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.05286956521739129,
+          "gold": 15,
+          "towers": 7
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.05286956521739129,
+          "gold": 3,
+          "towers": 8
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.19757575757575757,
+          "gold": 5,
+          "towers": 9
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.19757575757575757,
+          "gold": 1,
+          "towers": 10
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.19757575757575757,
+          "gold": 20,
+          "towers": 11
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 47,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 457.10000000014804,
+      "kills": 108,
+      "boonsChosen": 9,
+      "towersAtEnd": 9,
+      "castleHpPctAtEnd": -0.21,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 19,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 11,
+          "towers": 5
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 9,
+          "towers": 5
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.28,
+          "gold": 21,
+          "towers": 6
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.63,
+          "gold": 21,
+          "towers": 7
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.63,
+          "gold": 22,
+          "towers": 8
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.63,
+          "gold": 2,
+          "towers": 9
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 48,
+      "finalWave": 4,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 94.69999999999719,
+      "kills": 26,
+      "boonsChosen": 3,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.12,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.51,
+          "gold": 5,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 49,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 426.5000000001237,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.09,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 13,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.63,
+          "gold": 0,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.75,
+          "gold": 3,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.75,
+          "gold": 1,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.75,
+          "gold": 5,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 50,
+      "finalWave": 15,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 1051.833333333034,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 10,
+      "castleHpPctAtEnd": -0.376969696969697,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 10,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.3664,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.7164,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.7164,
+          "gold": 21,
+          "towers": 5
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.7164,
+          "gold": 1,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.7707826086956522,
+          "gold": 8,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.128,
+          "gold": 7,
+          "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.128,
+          "gold": 5,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.128,
+          "gold": 6,
+          "towers": 10
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.128,
+          "gold": 1,
+          "towers": 10
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.263030303030303,
+          "gold": 6,
+          "towers": 10
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 51,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 418.1666666667837,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 9,
+      "castleHpPctAtEnd": -0.2992,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 19,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.81,
+          "gold": 21,
+          "towers": 5
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.09,
+          "gold": 20,
+          "towers": 5
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.09,
+          "gold": 0,
+          "towers": 6
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.44,
+          "gold": 3,
+          "towers": 7
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.44,
+          "gold": 5,
+          "towers": 8
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.44,
+          "gold": 3,
+          "towers": 9
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 52,
+      "finalWave": 15,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 1251.0999999995195,
+      "kills": 210,
+      "boonsChosen": 14,
+      "towersAtEnd": 11,
+      "castleHpPctAtEnd": -0.4888000000000001,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 19,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.63,
+          "gold": 0,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.63,
+          "gold": 20,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.98,
+          "gold": 9,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.98,
+          "gold": 10,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.2408,
+          "gold": 37,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.2408,
+          "gold": 32,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.2408,
+          "gold": 22,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.2408,
+          "gold": 2,
+          "towers": 11
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.2408,
+          "gold": 8,
+          "towers": 11
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 53,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 579.7000000001301,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.2878787878787879,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 0.81,
+          "gold": 11,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 0.81,
+          "gold": 18,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.81,
+          "gold": 17,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.22608695652173913,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.3484848484848485,
+          "gold": 3,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.3484848484848485,
+          "gold": 1,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.3484848484848485,
+          "gold": 16,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.3484848484848485,
+          "gold": 3,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 54,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 499.1666666668482,
+      "kills": 105,
+      "boonsChosen": 9,
+      "towersAtEnd": 7,
+      "castleHpPctAtEnd": -0.73,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.79,
+          "gold": 1,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.42,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.42,
+          "gold": 2,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.42,
+          "gold": 8,
+          "towers": 5
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.11,
+          "gold": 19,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.11,
+          "gold": 5,
+          "towers": 7
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 55,
+      "finalWave": 5,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 129.29999999999524,
+      "kills": 36,
+      "boonsChosen": 4,
+      "towersAtEnd": 4,
+      "castleHpPctAtEnd": -0.02,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 10,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.7,
+          "gold": 1,
+          "towers": 4
+        }
+      ],
+      "restartMs": 4000
+    },
+    {
+      "seed": 56,
+      "finalWave": 10,
+      "ended": "died",
+      "reachedSiege": false,
+      "endlessDepth": 0,
+      "simSeconds": 522.6666666668486,
+      "kills": 107,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.5304347826086957,
+      "samples": [
+        {
+          "wave": 1,
+          "castleHpPct": 1,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 2,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 3,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 4,
+          "castleHpPct": 1,
+          "gold": 7,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.28,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.06,
+          "gold": 4,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.06,
+          "gold": 4,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.06,
+          "gold": 6,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.2,
+          "gold": 17,
+          "towers": 8
+        }
+      ],
+      "restartMs": 4000
+    }
+  ]
+}

@@ -46,3 +46,32 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Balance harness: plays seeded runs headlessly through the in-game demo
+  # bot (npm run sim) and reports where the difficulty wall sits. Runs
+  # alongside the deploy (never blocks it); the JSON is kept as an artifact
+  # so balance changes can be diffed run-over-run.
+  balance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Balance sim (base curve, 10 seeds)
+        run: npm run sim:ci
+      - name: Balance sim (meta curve, 10 seeds)
+        run: node scripts/sim_build.mjs --seeds 10 --cap-seconds 1200 --max-wave 90 --meta 3 --json balance-sim-meta3.json
+      - name: Upload sim results
+        uses: actions/upload-artifact@v4
+        with:
+          name: balance-sim
+          path: |
+            balance-sim.json
+            balance-sim-meta3.json
+          if-no-files-found: warn

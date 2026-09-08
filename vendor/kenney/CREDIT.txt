@@ -1,0 +1,17 @@
+Curated picks from "Kenney Game Assets All-in-1" v3.7.0 (www.kenney.nl).
+
+License: CC0 1.0 Universal (public domain). Free to use in personal, educational
+and commercial projects; no permission required; credit is voluntary.
+Credit: Kenney (www.kenney.nl)
+
+Files in this folder are a curated subset of the purchased library, kept in the
+repo as the build-time source for tools/build_assets.py (which copies them into
+public/assets/). Layout:
+  sfx/       Interface Sounds (click, confirmation, error) + Impact Sounds
+             (plate/glass/wood/punch heavy) — one-shot combat & UI SFX
+  jingles/   Music Jingles (Retro) — wave-clear stinger
+  music/     Music Loops — defeat track
+  fx/        Pixel Explosion frames + Particle Pack (spark/magic/smoke/star)
+             — white or pre-tinted one-shot FX sheets (individual frames)
+  icons/     Game Icons white 1x sheet + libGDX-style XML atlas, plus three
+             individual icons from Game Icons Expansion (cloud, coin, flag)

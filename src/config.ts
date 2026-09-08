@@ -27,8 +27,9 @@ export const CASTLE_CELL = { c: 14, r: 14 };
 // Gold rewards scale with enemy.reward.
 
 // Global multiplier on every enemy's sprite scale. The island is large, so the
-// (small) source sprites are shrunk to read correctly against the map.
-export const ENEMY_SCALE_MULT = 0.8;
+// (small) source sprites are shrunk to read correctly against the map — but
+// the smallest creatures need a visible presence, so the floor is 0.9.
+export const ENEMY_SCALE_MULT = 0.9;
 
 // Wave / economy tuning
 export const WAVE_CLEAR_GOLD = (wave: number) => 20 + wave * 6;
@@ -51,8 +52,9 @@ export const SIEGE_WAVE = 50;
 // "Elite" versions of existing enemies (no new content needed), and the
 // difficulty curve gains a gentle accelerating term on top of the normal
 // per-wave scale so the climb keeps steepening instead of running the
-// pre-Siege slope out forever. Single tunable knobs — needs a real
-// playtest pass to find where the eventual wall should sit.
+// pre-Siege slope out forever. Single tunable knobs — tuned with the
+// headless balance sim (`npm run sim`; see README), which plays seeded
+// runs through the demo bot and reports where the wall sits.
 export const ENDLESS_ELITE_INTERVAL = 10;
 export const ENDLESS_ELITE_FRACTION = 0.4;
 export const ELITE_HP_MULT = 1.8;
@@ -68,6 +70,13 @@ export const ENDLESS_ACCEL_RATE = 0.00035;
 // `armor tier * ARMOR_POINT_VALUE` points that must be stripped to zero
 // before any of their HP can be touched.
 export const ENEMY_BASE_VARIANCE = 0.2;
+/** No enemy carries a shatter-armor pool before this wave. From then on,
+ *  the chance an armored type rolls its pool starts at ARMOR_UNLOCK_CHANCE
+ *  and gains ARMOR_RAMP_PER_WAVE per wave, capping at 100%. Bosses (and
+ *  elites) from this wave on always carry their full pool. */
+export const ARMOR_UNLOCK_WAVE = 10;
+export const ARMOR_UNLOCK_CHANCE = 0.4;
+export const ARMOR_RAMP_PER_WAVE = 0.1;
 export const ARMOR_POINT_VALUE = 18;
 
 // Speed options

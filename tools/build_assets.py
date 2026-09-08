@@ -28,6 +28,9 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "Tiny Swords (Free Pack)")
 OUT = os.path.join(ROOT, "public", "assets")
+# Curated picks from the Kenney All-in-1 library (CC0), committed as build-time
+# sources; see vendor/kenney/CREDIT.txt.
+KEN = os.path.join(ROOT, "vendor", "kenney")
 
 ALPHA_THR = 10
 
@@ -140,7 +143,15 @@ def crop_to_bbox(im):
 
 def main():
     if os.path.exists(OUT):
-        shutil.rmtree(OUT)
+        # Clear the CONTENTS but keep the top-level directory itself. Replacing
+        # the directory (rmtree + makedirs) breaks a running vite dev server's
+        # public-dir index — it then serves index.html for every /assets/* URL
+        # until it is restarted. Removing the files in place avoids that.
+        for dirpath, dirnames, filenames in os.walk(OUT, topdown=False):
+            for fn in filenames:
+                os.remove(os.path.join(dirpath, fn))
+            for dn in dirnames:
+                shutil.rmtree(os.path.join(dirpath, dn), ignore_errors=True)
     os.makedirs(OUT, exist_ok=True)
 
     manifest = {
@@ -434,6 +445,27 @@ def main():
         rels = [save(c, f"fx/{name}_{i}.png") for i, c in enumerate(cells)]
         fx[name] = {"frames": rels, "cell": [cw, ch], "anchor": "center", "fps": fps, "loop": loop}
 
+    # ---- FX (Kenney All-in-1, CC0 — curated picks in vendor/kenney/fx) ----
+    # One-shot particle sequences as individually numbered frames (white
+    # silhouettes, tintable at draw time; the pixel explosion is pre-tinted).
+    kenney_fx = {
+        "kenney_burst":  ("pixelExplosion", 30),
+        "kenney_sparks": ("spark", 30),
+        "kenney_magic":  ("magic", 24),
+        "kenney_smoke":  ("smoke", 15),
+        "kenney_star":   ("star", 20),
+    }
+    for name, (prefix, fps) in kenney_fx.items():
+        files = sorted(f for f in os.listdir(os.path.join(KEN, "fx"))
+                       if f.startswith(prefix) and f.endswith(".png"))
+        if not files:
+            print(f"  ! missing kenney fx frames for {prefix}")
+            continue
+        frames = [load(os.path.join(KEN, "fx", f)) for f in files]
+        cw, ch, cells = normalize_frames(frames)
+        rels = [save(c, f"fx/{name}_{i}.png") for i, c in enumerate(cells)]
+        fx[name] = {"frames": rels, "cell": [cw, ch], "anchor": "center", "fps": fps, "loop": False}
+
     # ---- UI --------------------------------------------------------------
     ui = manifest["ui"]
     uie = os.path.join(SRC, "UI Elements", "UI Elements")
@@ -514,6 +546,16 @@ def main():
     # Pack entries the game does not field as enemies (no usable walk loop).
     ENEMY_SKIP = {"Forest Nymph Sitting"}
 
+    # Pack sheets that ship a multi-variant COMPOSITE on a single canvas
+    # (variant poses stacked on one canvas) instead of an animation sheet:
+    # extract the usable row bands and build a walk loop from them.
+    # key -> [(y0, y1, mirror), ...] on the full-width sheet.
+    SPECIAL_FRAMES = {
+        # Sandworm: three full-length worm poses stacked; mirror the two
+        # head-right poses so the head faces the same way in every frame.
+        "sandworm": [(15, 31, False), (32, 44, True), (49, 62, True)],
+    }
+
     # Frames per second by frame count (1 = static idle).
     FPS_BY_FRAMES = {1: 10, 2: 7, 3: 9, 4: 11}
 
@@ -535,11 +577,19 @@ def main():
             print(f"  ! missing enemy sheet {name}.png")
             return
         im = load(p)
-        frames_n, fw, fh = aseprite_meta(name)
-        if im.size != (frames_n * fw, fh):
-            print(f"  ! {name}: sheet {im.size} != {frames_n} frames x {fw}x{fh} per aseprite header")
-            return
-        frames = [im.crop((i * fw, 0, (i + 1) * fw, fh)) for i in range(frames_n)]
+        if key in SPECIAL_FRAMES:
+            frames = []
+            for y0, y1, mirror in SPECIAL_FRAMES[key]:
+                fr = im.crop((0, y0, im.width, y1 + 1))
+                if mirror:
+                    fr = fr.transpose(Image.FLIP_LEFT_RIGHT)
+                frames.append(fr)
+        else:
+            frames_n, fw, fh = aseprite_meta(name)
+            if im.size != (frames_n * fw, fh):
+                print(f"  ! {name}: sheet {im.size} != {frames_n} frames x {fw}x{fh} per aseprite header")
+                return
+            frames = [im.crop((i * fw, 0, (i + 1) * fw, fh)) for i in range(frames_n)]
         cw, ch, cells = normalize_frames(frames)
         rels = []
         for i, cell in enumerate(cells):
@@ -548,7 +598,7 @@ def main():
             rels.append(r)
         special[key] = {"frames": rels, "cell": [cw, ch],
                         "anchor": "bottom-center",
-                        "fps": FPS_BY_FRAMES.get(frames_n, 10), "loop": True}
+                        "fps": FPS_BY_FRAMES.get(len(frames), 10), "loop": True}
 
     for sheet in sorted(os.listdir(os.path.join(ENEMY, "pngs"))):
         if not sheet.endswith(".png"):
@@ -621,6 +671,43 @@ def main():
     }
     for key, src in MUSIC_MAP.items():
         r = copy_sound(f"sound/music/{key}.ogg", src)
+        if r:
+            music[key] = r
+
+    # ---- audio (Kenney All-in-1, CC0 — curated picks in vendor/kenney) ----
+    # UI polish + combat impacts + event jingles. Source layout:
+    #   sfx/<file>.ogg, jingles/<file>.ogg, music/<file>.ogg
+    def copy_kenney_sound(dest_rel, src_rel):
+        p = os.path.join(KEN, src_rel)
+        if not os.path.exists(p):
+            print(f"  ! missing kenney sound {src_rel}")
+            return None
+        d = os.path.join(OUT, dest_rel)
+        os.makedirs(os.path.dirname(d), exist_ok=True)
+        shutil.copyfile(p, d)
+        return dest_rel
+
+    KENNEY_SFX = {
+        # Replaces the synthesized "click" for every HUD interaction.
+        "click":         "sfx/click_001.ogg",        # Interface Sounds
+        "ui_confirm":    "sfx/confirmation_001.ogg", # Interface Sounds
+        "ui_error":      "sfx/error_001.ogg",        # Interface Sounds
+        "shatter":       "sfx/impactPlate_heavy_000.ogg",   # armor chip
+        "shatter_break": "sfx/impactGlass_heavy_000.ogg",   # shatter pool broken
+        "castle_hit":    "sfx/impactWood_heavy_000.ogg",    # castle takes damage
+        "heavy_hit":     "sfx/impactPunch_heavy_000.ogg",   # boss/elite kill
+        "jingle_clear":  "jingles/jingle_clear.ogg",        # Music Jingles (Retro)
+    }
+    for name, src in KENNEY_SFX.items():
+        r = copy_kenney_sound(f"sound/sfx/{name}.ogg", src)
+        if r:
+            sfx[name] = r
+
+    KENNEY_MUSIC = {
+        "defeat": "music/defeat.ogg",  # Music Loops "Game Over" — run-over screen
+    }
+    for key, src in KENNEY_MUSIC.items():
+        r = copy_kenney_sound(f"sound/music/{key}.ogg", src)
         if r:
             music[key] = r
 
@@ -762,6 +849,72 @@ def main():
         relic_icons[rid] = f"ui/relic_{rid}.png"
     manifest["relic_icons"] = relic_icons
 
+    # ---- icons (Kenney All-in-1, CC0 — Game Icons white sheet) -----------
+    # 50x50 flat white silhouettes matching the UI's visual language; tinted
+    # at draw time. The sheet is a libGDX-style atlas: sheet_white1x.png +
+    # sheet_white1x.xml. Also three standalone icons from Game Icons Expansion.
+    import re as _re
+    icons = {}
+    sheet = os.path.join(KEN, "icons", "sheet_white1x.png")
+    atlas = os.path.join(KEN, "icons", "sheet_white1x.xml")
+    if os.path.exists(sheet) and os.path.exists(atlas):
+        xml = open(atlas).read()
+        regions = {
+            m.group("name"): (int(m.group("x")), int(m.group("y")),
+                              int(m.group("w")), int(m.group("h")))
+            for m in _re.finditer(
+                r'<SubTexture name="(?P<name>[^"]+)" x="(?P<x>\d+)" y="(?P<y>\d+)" '
+                r'width="(?P<w>\d+)" height="(?P<h>\d+)"/>', xml)
+        }
+        img = load(sheet)
+        # manifest key -> icon file name in the sheet
+        icon_map = {
+            # top-right panel buttons
+            "pause": "pause.png", "stop": "stop.png",
+            "fast_forward": "fastForward.png",
+            "music_on": "musicOn.png", "music_off": "musicOff.png",
+            "home": "home.png",
+            "zoom_in": "zoomIn.png", "zoom_out": "zoomOut.png",
+            # general UI
+            "star": "star.png", "trophy": "trophy.png",
+            "medal": "medal1.png", "medal2": "medal2.png",
+            "plus": "plus.png", "minus": "minus.png",
+            "check": "checkmark.png", "warning": "warning.png",
+            "info": "information.png", "gear": "gear.png",
+            "target": "target.png", "locked": "locked.png",
+            "question": "question.png", "cross": "cross.png",
+            # staged for roadmap work: wave-intel traits, weather, events
+            "up": "up.png", "power": "power.png",
+        }
+        for key, fname in icon_map.items():
+            if fname not in regions:
+                print(f"  ! missing icon region {fname}")
+                continue
+            x, y, w, h = regions[fname]
+            tile = crop_to_bbox(img.crop((x, y, x + w, y + h)))
+            out = f"icons/{key}.png"
+            save(tile, out)
+            icons[key] = out
+    else:
+        print("  ! missing kenney icon sheet")
+    # standalone expansion icons (individual files, already cropped)
+    for key, fname in {"cloud": "cloud.png", "coin": "coin.png", "flag": "flag.png"}.items():
+        p = os.path.join(KEN, "icons", fname)
+        if not os.path.exists(p):
+            print(f"  ! missing kenney icon {fname}")
+            continue
+        tile = crop_to_bbox(load(p))
+        out = f"icons/{key}.png"
+        save(tile, out)
+        icons[key] = out
+    manifest["icons"] = icons
+
+    # Browser favicon — the gold coin, copied to the public root (NOT public/
+    # assets, which this script wipes on every run).
+    coin = os.path.join(OUT, "icons", "coin.png")
+    if os.path.exists(coin):
+        shutil.copyfile(coin, os.path.join(ROOT, "public", "favicon.png"))
+
     # ---- write manifest --------------------------------------------------
     mpath = os.path.join(OUT, "manifest.json")
     with open(mpath, "w") as f:
@@ -777,6 +930,7 @@ def main():
     print(f"  sound: {len(snd.get('sfx', {}))} sfx, {list(snd.get('music', {}).keys())} music")
     print(f"  gear: {len(manifest.get('gear', {}).get('icons', {}))} icons")
     print(f"  relic icons: {len(manifest.get('relic_icons', {}))}")
+    print(f"  kenney icons: {len(manifest.get('icons', {}))}")
 
 
 if __name__ == "__main__":

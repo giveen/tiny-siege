@@ -6,6 +6,36 @@ export interface DrawOpts {
   alpha?: number;
   filter?: string;
   offsetY?: number;
+  /** Fill a white silhouette with this color (cached per image+color). */
+  tint?: string;
+}
+
+/**
+ * Tint cache: white silhouettes (Kenney FX + icons) rendered as solid color.
+ * Keyed by image path + color so repeated draws reuse the canvas.
+ */
+const tintCache = new Map<string, HTMLCanvasElement>();
+
+export function tintedImage(
+  assets: Assets,
+  path: string,
+  color: string
+): HTMLCanvasElement {
+  const key = path + "|" + color;
+  let cv = tintCache.get(key);
+  if (!cv) {
+    const src = assets.img(path);
+    cv = document.createElement("canvas");
+    cv.width = src.naturalWidth || src.width;
+    cv.height = src.naturalHeight || src.height;
+    const c = cv.getContext("2d")!;
+    c.drawImage(src, 0, 0);
+    c.globalCompositeOperation = "source-in";
+    c.fillStyle = color;
+    c.fillRect(0, 0, cv.width, cv.height);
+    tintCache.set(key, cv);
+  }
+  return cv;
 }
 
 /**
@@ -22,7 +52,7 @@ export function drawSprite(
   o: DrawOpts = {}
 ): void {
   const i = Math.max(0, Math.min(def.frames.length - 1, frameIdx));
-  const img = assets.img(def.frames[i]);
+  const img = o.tint ? tintedImage(assets, def.frames[i], o.tint) : assets.img(def.frames[i]);
   const [cw, ch] = def.cell;
   const s = o.scale ?? 1;
   const oy = (def.anchor === "bottom-center" ? -(ch - 1) : -ch / 2) + (o.offsetY ?? 0);

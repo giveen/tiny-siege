@@ -1,7 +1,7 @@
 import { Game } from "./game";
 import type { Assets, StaticDef } from "./assets";
 import { asAsset } from "./assets";
-import { drawSprite } from "./sprite";
+import { drawSprite, tintedImage } from "./sprite";
 import { ENEMY_DEFS, enemyPreviewDef, type EnemyType } from "./enemy";
 import {
   TOWER_DEFS,
@@ -18,7 +18,7 @@ import {
   type UpgradeTrack,
 } from "./tower";
 import { RARITY_COLOR } from "./boons";
-import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE, ENDLESS_ELITE_INTERVAL } from "./config";
+import { WORLD_W, WORLD_H, MARGIN_R, MARGIN_B, CANVAS_W, CANVAS_H, SPOT_MOVE_COST, SIEGE_WAVE, ENDLESS_ELITE_INTERVAL, ARMOR_POINT_VALUE, ARMOR_UNLOCK_WAVE } from "./config";
 import { VICTORY_RUNES, VICTORY_CRATES, RELICS, RELIC_BRANCHES, relicLevel, relicPrereqMet, relicPrereqOf, fmtDuration } from "./meta";
 import {
   ACHIEVEMENTS,
@@ -73,6 +73,8 @@ interface Rect {
   h: number;
 }
 
+type HudLayout = ReturnType<Hud["computeLayout"]>;
+
 type ProgressTab = "ach" | "daily" | "weekly" | "bounty" | "rewards";
 
 const inRect = (p: { x: number; y: number }, r: Rect) =>
@@ -93,6 +95,8 @@ export class Hud {
   // Progress (menu) temp state
   progressTab: ProgressTab = "ach";
   private progressAchPage = 0;
+  /** Next-wave preview chips drawn this frame (canvas space) for hover tips. */
+  private previewChips: { rect: Rect; type: EnemyType; n: number; elite: boolean }[] = [];
 
   constructor(assets: Assets) {
     this.assets = assets;
@@ -103,15 +107,15 @@ export class Hud {
   private computeLayout(game: Game) {
     // Right-margin info panel (off the map): castle HP, gold, wave, start-wave,
     // the telegraphed next-wave preview, and controls.
-    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 568 };
+    const rp = { x: WORLD_W + 12, y: 12, w: MARGIN_R - 24, h: 736 };
     const ix = rp.x + 12;
     const iw = rp.w - 24;
     const castleHp = { x: ix, y: rp.y + 12, w: iw, h: 18 };
     const goldRect = { x: ix, y: rp.y + 42, w: iw, h: 26 };
     const waveRect = { x: ix, y: rp.y + 74, w: iw, h: 34 };
     const startWave = { x: ix, y: rp.y + 116, w: iw, h: 40 };
-    const previewRect = { x: ix, y: rp.y + 164, w: iw, h: 150 };
-    const speed = { x: ix, y: rp.y + 164 + 150 + 8, w: iw, h: 40 };
+    const previewRect = { x: ix, y: rp.y + 164, w: iw, h: 322 };
+    const speed = { x: ix, y: rp.y + 164 + 322 + 8, w: iw, h: 40 };
     const pause = { x: ix, y: speed.y + 48, w: iw, h: 40 };
     const mute = { x: ix, y: pause.y + 48, w: iw, h: 40 };
     const menu = { x: ix, y: mute.y + 48, w: iw, h: 40 };
@@ -222,74 +226,131 @@ export class Hud {
 
   /** Telegraph the next wave's enemy mix so a leak is a legible build choice. */
   private drawWavePreview(game: Game, ctx: CanvasRenderingContext2D, r: Rect): void {
+    this.previewChips = [];
+    // Inner box so the preview reads as its own section of the right panel.
     ctx.save();
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#8fd0ff";
-    ctx.font = "700 11px 'Segoe UI', sans-serif";
-    ctx.fillText("NEXT WAVE", r.x, r.y + 2);
+    this.roundRect(ctx, r, 8);
+    ctx.fillStyle = "rgba(8, 16, 24, 0.55)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(140, 190, 220, 0.25)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
     ctx.restore();
 
-    if (game.wavePhase !== "build" || game.nextWave.length === 0) {
-      ctx.save();
-      ctx.textAlign = "left";
-      ctx.fillStyle = "rgba(180,210,225,0.4)";
-      ctx.font = "600 12px 'Segoe UI', sans-serif";
-      ctx.fillText(game.wavePhase === "active" ? "…incoming…" : "—", r.x, r.y + 34);
-      ctx.restore();
-      return;
-    }
-
-    // Count enemies by type. Waves draw from a huge roster, so show the nine
-    // most common and summarize the rest.
-    const counts: { type: EnemyType; n: number }[] = [];
+    // Count by type (remembering elite entries); sorted by abundance.
+    const counts: { type: EnemyType; n: number; elite: boolean }[] = [];
     const seen = new Map<EnemyType, number>();
     for (const e of game.nextWave) {
       const i = seen.get(e.type);
       if (i === undefined) {
         seen.set(e.type, counts.length);
-        counts.push({ type: e.type, n: 1 });
+        counts.push({ type: e.type, n: 1, elite: !!e.elite });
       } else {
         counts[i].n++;
+        if (e.elite) counts[i].elite = true;
       }
     }
     counts.sort((a, b) => b.n - a.n);
-    const shown = counts.slice(0, 9);
-    const extra = counts.length - shown.length;
+    const total = game.nextWave.length;
 
-    // Chips sit below the title band; sprites anchor near the chip bottom so
-    // tall foes (fliers) never reach the "NEXT WAVE" label.
-    const chipW = r.w / 3;
-    const rowStep = 43;
-    shown.forEach((c, i) => {
-      const col = i % 3;
-      const row = Math.floor(i / 3);
-      const cx = r.x + col * chipW;
-      const cy = r.y + 18 + row * rowStep;
-      const def = enemyPreviewDef(this.assets, c.type);
-      drawSprite(ctx, this.assets, def, 0, cx + 13, cy + 33, { scale: 0.45 });
+    ctx.save();
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#8fd0ff";
+    ctx.font = "700 12px 'Segoe UI', sans-serif";
+    ctx.fillText("NEXT WAVE", r.x + 10, r.y + 19);
+    if (total > 0 && game.wavePhase === "build") {
+      ctx.textAlign = "right";
+      ctx.fillStyle = "rgba(220,240,255,0.7)";
+      ctx.font = "700 12px 'Segoe UI', sans-serif";
+      // When more types exist than fit in the grid, say so up top.
+      ctx.fillText(counts.length > 8 ? `${total} foes · ${counts.length} types` : `${total} foes`, r.x + r.w - 10, r.y + 19);
+    }
+    ctx.restore();
+
+    if (game.wavePhase !== "build" || total === 0) {
       ctx.save();
       ctx.textAlign = "left";
+      ctx.fillStyle = "rgba(180,210,225,0.45)";
+      ctx.font = "600 12px 'Segoe UI', sans-serif";
+      ctx.fillText(
+        game.wavePhase === "active" ? `…${game.enemies.length + game.spawnQueue.length} foes left…` : "—",
+        r.x + 10,
+        r.y + 46,
+      );
+      ctx.restore();
+      return;
+    }
+
+    const boss = counts.find((c) => c.type === "boss") ?? null;
+    const regular = counts.filter((c) => c.type !== "boss");
+    const padX = 8;
+    let y = r.y + 30;
+
+    // Boss callout: gold-bordered, big sprite, always visible — the single
+    // most important piece of the telegraph.
+    if (boss) {
+      const h = 56;
+      const bossRect = { x: r.x + padX, y, w: r.w - padX * 2, h };
+      this.previewChips.push({ rect: bossRect, type: "boss", n: boss.n, elite: false });
+      ctx.save();
+      this.roundRect(ctx, bossRect, 6);
+      ctx.fillStyle = "rgba(255, 210, 74, 0.10)";
+      ctx.fill();
+      ctx.strokeStyle = "#ffd24a";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+      drawSprite(ctx, this.assets, enemyPreviewDef(this.assets, "boss"), 0, r.x + padX + 36, y + h - 8, {
+        scale: 0.65,
+      });
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#ffd24a";
+      ctx.font = "700 15px 'Segoe UI', sans-serif";
+      ctx.fillText(`BOSS  ×${boss.n}`, r.x + padX + 70, y + 25);
+      ctx.fillStyle = "rgba(255,226,140,0.8)";
+      ctx.font = "600 10px 'Segoe UI', sans-serif";
+      ctx.fillText("huge — focus fire", r.x + padX + 70, y + 42);
+      ctx.restore();
+      y += h + 6;
+    }
+
+    // 2-column chip grid for the regular types (larger sprites than before).
+    const chipW = (r.w - padX * 2 - 6) / 2;
+    const chipH = 52;
+    const shown = regular.slice(0, 8);
+    shown.forEach((c, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const cx = r.x + padX + col * (chipW + 6);
+      const cy = y + row * (chipH + 4);
+      this.previewChips.push({ rect: { x: cx, y: cy, w: chipW, h: chipH }, type: c.type, n: c.n, elite: c.elite });
+      ctx.save();
+      this.roundRect(ctx, { x: cx, y: cy, w: chipW, h: chipH }, 6);
+      ctx.fillStyle = "rgba(255,255,255,0.04)";
+      ctx.fill();
+      ctx.restore();
+      drawSprite(ctx, this.assets, enemyPreviewDef(this.assets, c.type), 0, cx + 30, cy + chipH - 8, { scale: 0.7 });
+      ctx.save();
+      ctx.textAlign = "right";
       ctx.fillStyle = "#eaf6ff";
-      ctx.font = "700 13px 'Segoe UI', sans-serif";
-      ctx.fillText(`×${c.n}`, cx + 34, cy + 16);
+      ctx.font = "700 15px 'Segoe UI', sans-serif";
+      ctx.fillText(`×${c.n}`, cx + chipW - 8, cy + 21);
       const trait = this.enemyTraits(c.type);
+      const ty = cy + 39;
+      if (c.elite) {
+        ctx.fillStyle = "#ff9c9c";
+        ctx.font = "600 10px 'Segoe UI', sans-serif";
+        const tw = trait ? this.txtW(trait.label, "600 10px 'Segoe UI', sans-serif") : 0;
+        ctx.fillText("elite", cx + chipW - 8 - tw - 4, ty);
+      }
       if (trait) {
         ctx.fillStyle = trait.color;
-        ctx.font = "600 9px 'Segoe UI', sans-serif";
-        ctx.fillText(trait.label, cx + 34, cy + 30);
+        ctx.font = "600 10px 'Segoe UI', sans-serif";
+        ctx.fillText(trait.label, cx + chipW - 8, ty);
       }
       ctx.restore();
     });
-    if (extra > 0) {
-      const cx = r.x + (9 % 3) * chipW;
-      const cy = r.y + 18 + Math.floor(9 / 3) * rowStep;
-      ctx.save();
-      ctx.textAlign = "left";
-      ctx.fillStyle = "rgba(220,240,255,0.7)";
-      ctx.font = "700 12px 'Segoe UI', sans-serif";
-      ctx.fillText(`+${extra} more…`, cx + 13, cy + 22);
-      ctx.restore();
-    }
   }
 
   // ------------------------------------------------------------- helpers
@@ -319,7 +380,7 @@ export class Hud {
     ctx: CanvasRenderingContext2D,
     r: Rect,
     label: string,
-    opts: { bg?: string; fg?: string; active?: boolean; disabled?: boolean; small?: boolean } = {}
+    opts: { bg?: string; fg?: string; active?: boolean; disabled?: boolean; small?: boolean; icon?: { key: string; tint?: string } } = {}
   ): void {
     ctx.save();
     const bg = opts.disabled ? "rgba(60,70,80,0.7)" : opts.active ? "#e8b23c" : opts.bg ?? "#1f4a5e";
@@ -331,9 +392,29 @@ export class Hud {
     ctx.stroke();
     ctx.fillStyle = opts.disabled ? "rgba(200,210,220,0.5)" : opts.fg ?? "#eaf6ff";
     ctx.font = `${opts.small ? "600 12px" : "700 15px"} 'Segoe UI', sans-serif`;
-    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + 1);
+
+    // Optional white icon (Kenney) to the left of the label, laid out as one
+    // centered row: [icon][gap][label].
+    let img: HTMLCanvasElement | HTMLImageElement | null = null;
+    if (opts.icon) {
+      const path = this.assets.icon(opts.icon.key);
+      if (path) img = tintedImage(this.assets, path, opts.icon.tint ?? (opts.disabled ? "rgba(200,210,220,0.5)" : "#eaf6ff"));
+    }
+    const cy = r.y + r.h / 2;
+    if (img) {
+      const labelW = ctx.measureText(label).width;
+      const iconW = Math.min(r.h - 8, 18);
+      const gap = 6;
+      const totalW = iconW + gap + labelW;
+      const x0 = r.x + r.w / 2 - totalW / 2;
+      ctx.drawImage(img, x0, cy - iconW / 2, iconW, iconW);
+      ctx.textAlign = "left";
+      ctx.fillText(label, x0 + iconW + gap, cy + 1);
+    } else {
+      ctx.textAlign = "center";
+      ctx.fillText(label, r.x + r.w / 2, cy + 1);
+    }
     ctx.restore();
   }
 
@@ -439,13 +520,19 @@ export class Hud {
     // telegraphed next-wave composition
     this.drawWavePreview(game, ctx, L.previewRect);
 
-    // controls
-    this.button(ctx, L.speed, `${game.speed}×  (F)`, { active: game.speedIdx > 0, small: true });
-    this.button(ctx, L.pause, game.paused ? "▶  Resume" : "❚❚  Pause", { small: true });
-    this.button(ctx, L.mute, game.audioEnabled ? "♪  Sound" : "∅  Muted", { small: true });
-    this.button(ctx, L.menu, "⌂  Menu", { small: true });
-    this.button(ctx, L.zoomOut, "−  Zoom Out", { small: true, disabled: game.cam.zoom <= Game.CAM_ZOOM_MIN + 1e-3 });
-    this.button(ctx, L.zoomIn, "＋  Zoom In", { small: true, disabled: game.cam.zoom >= Game.CAM_ZOOM_MAX - 1e-3 });
+    // controls (Kenney white icons, tinted to the label color)
+    this.button(ctx, L.speed, `${game.speed}×  (F)`, { active: game.speedIdx > 0, small: true, icon: { key: "fast_forward" } });
+    this.button(ctx, L.pause, game.paused ? "Resume" : "Pause", {
+      small: true,
+      icon: game.paused ? undefined : { key: "pause" },
+    });
+    this.button(ctx, L.mute, game.audioEnabled ? "Sound" : "Muted", {
+      small: true,
+      icon: { key: game.audioEnabled ? "music_on" : "music_off" },
+    });
+    this.button(ctx, L.menu, "Menu", { small: true, icon: { key: "home" } });
+    this.button(ctx, L.zoomOut, "Zoom Out", { small: true, icon: { key: "zoom_out" }, disabled: game.cam.zoom <= Game.CAM_ZOOM_MIN + 1e-3 });
+    this.button(ctx, L.zoomIn, "Zoom In", { small: true, icon: { key: "zoom_in" }, disabled: game.cam.zoom >= Game.CAM_ZOOM_MAX - 1e-3 });
 
     // palette
     for (const t of TOWER_ORDER) {
@@ -678,19 +765,43 @@ export class Hud {
   handleClick(game: Game, p: { x: number; y: number }): boolean {
     const L = this.layout(game);
 
-    if (game.screen === "over") return this.handleOverClick(game, p);
+    if (game.screen === "over") return this.handleGameOverClick(game, p);
 
     // boon modal takes priority
-    if (game.wavePhase === "boon") {
-      for (let i = 0; i < L.cards.length; i++) {
-        if (inRect(p, L.cards[i]) && game.boonChoices[i]) {
-          game.applyBoon(game.boonChoices[i]);
-          return true;
-        }
-      }
-      return true; // swallow clicks while modal open
-    }
+    if (game.wavePhase === "boon") return this.handleBoonClick(game, p, L);
 
+    // pause toggle and menu work even while paused
+    if (this.handlePauseMenuClick(game, p, L)) return true;
+
+    // right panel (controls + start wave)
+    if (this.handleRightPanelClick(game, p, L)) return true;
+
+    // selected tower panel (per-stat upgrades + specialization)
+    if (game.selectedTower && L.sel) return this.handleTowerPanelClick(game, p, L);
+
+    // palette
+    if (this.handlePaletteClick(game, p, L)) return true;
+
+    // "start wave" hint area: clicking empty space while in build phase with no placement
+    // does nothing (world interaction handles it). Return false so world handles it.
+    return false;
+  }
+
+  private handleGameOverClick(game: Game, p: { x: number; y: number }): boolean {
+    return this.handleOverClick(game, p);
+  }
+
+  private handleBoonClick(game: Game, p: { x: number; y: number }, L: HudLayout): boolean {
+    for (let i = 0; i < L.cards.length; i++) {
+      if (inRect(p, L.cards[i]) && game.boonChoices[i]) {
+        game.applyBoon(game.boonChoices[i]);
+        return true;
+      }
+    }
+    return true; // swallow clicks while modal open
+  }
+
+  private handlePauseMenuClick(game: Game, p: { x: number; y: number }, L: HudLayout): boolean {
     // pause toggle and menu work even while paused
     if (inRect(p, L.pause)) {
       game.togglePause();
@@ -701,8 +812,10 @@ export class Hud {
       return true;
     }
     if (game.paused) return true;
+    return false;
+  }
 
-    // right panel (controls + start wave)
+  private handleRightPanelClick(game: Game, p: { x: number; y: number }, L: HudLayout): boolean {
     if (inRect(p, L.rp)) {
       if (inRect(p, L.speed)) {
         game.cycleSpeed();
@@ -726,8 +839,10 @@ export class Hud {
       }
       return true; // swallow clicks on the panel
     }
+    return false;
+  }
 
-    // selected tower panel (per-stat upgrades + specialization)
+  private handleTowerPanelClick(game: Game, p: { x: number; y: number }, L: ReturnType<Hud["computeLayout"]>): boolean {
     if (L.sel && game.selectedTower) {
       for (const u of L.sel.upgrades) {
         if (inRect(p, u.rect)) {
@@ -751,8 +866,10 @@ export class Hud {
       }
       if (inRect(p, L.sel.panel)) return true;
     }
+    return false;
+  }
 
-    // palette
+  private handlePaletteClick(game: Game, p: { x: number; y: number }, L: ReturnType<Hud["computeLayout"]>): boolean {
     for (const t of TOWER_ORDER) {
       if (inRect(p, L.palette[t])) {
         if (game.unlocked.has(t)) {
@@ -763,9 +880,6 @@ export class Hud {
         return true;
       }
     }
-
-    // "start wave" hint area: clicking empty space while in build phase with no placement
-    // does nothing (world interaction handles it). Return false so world handles it.
     return false;
   }
 
@@ -809,6 +923,11 @@ export class Hud {
     if (game.screen !== "game") return null;
 
     const L = this.layout(game);
+
+    // next-wave preview: hovering a chip explains that enemy type
+    for (const c of this.previewChips) {
+      if (inRect(p, c.rect)) return this.previewChipTip(game, c.type, c.n, c.elite);
+    }
 
     // boon modal: hovering a card explains it
     if (game.wavePhase === "boon") {
@@ -993,6 +1112,29 @@ export class Hud {
       lines.push({ t: `Armor ${Math.ceil(e.armor)} / ${e.armorMax} — must be stripped before HP.`, c: "#9fb6c9" });
     if (e.def.type === "boss") lines.push({ t: "Boss — slow, huge, and angry.", c: "#ffce5a" });
     return { title: e.displayName, accent: "#ffd24a", lines };
+  }
+
+  /** Next-wave preview chip hover: what to expect from this type in the coming wave. */
+  private previewChipTip(game: Game, type: EnemyType, n: number, elite: boolean): Tip {
+    const d = ENEMY_DEFS[type];
+    const lines: TipLine[] = [
+      { t: `×${n} in the next wave`, c: "#8fa8bd" },
+      { t: `~${d.hp} HP · ${d.speed} speed · worth ${d.reward} gold`, c: "#9fd8a8" },
+    ];
+    if (d.armor) {
+      const pts = d.armor * ARMOR_POINT_VALUE;
+      const w = game.wave + 1;
+      if (w < ARMOR_UNLOCK_WAVE)
+        lines.push({ t: `Armored type — but armor only arrives from wave ${ARMOR_UNLOCK_WAVE}`, c: "#9fb6c9" });
+      else if (type === "boss" || elite) lines.push({ t: `Armor ${pts} pts — shatters before HP`, c: "#9fb6c9" });
+      else lines.push({ t: `May arrive armored: ${pts} pts shatter pool`, c: "#9fb6c9" });
+    }
+    if (d.flying) lines.push({ t: "Flies — cannons can't hit it.", c: "#8fa8bd" });
+    if (d.healer) lines.push({ t: "Heals nearby foes.", c: "#ff8a8a" });
+    if (d.puddle) lines.push({ t: "Death leaves a toxic puddle on the path.", c: "#b08aff" });
+    if (type === "boss") lines.push({ t: "Boss — slow, huge, and angry.", c: "#ffce5a" });
+    if (elite) lines.push({ t: "Elite — tougher and pays more.", c: "#ff9c9c" });
+    return { title: d.name, accent: type === "boss" ? "#ffd24a" : "#dceeff", lines };
   }
 
   private tipCodex(game: Game, p: { x: number; y: number }): Tip | null {

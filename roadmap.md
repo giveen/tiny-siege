@@ -123,3 +123,24 @@ sources and full rationale). Ordered in recommended build sequence. Effort: S = 
 - **Juice every addition.** If a new system doesn't produce feedback, it isn't done.
 - **Distinctive take is the moat** — the survivor-hybrid genre is full of copycats; identity (Commanders,
   Chronicles, Legendaries) is what makes Tiny Siege *Tiny Siege*.
+
+ ---
+
+## Tooling — headless balance sim (built)
+
+`npm run sim` plays seeded runs through the in-game demo bot in plain Node (no browser, no rendering;
+the real simulation runs against a clean meta state). It answers the "needs a real playtest pass"
+question for the endless knobs, and CI runs it on every push (artifact: console report + per-run JSON).
+Details and flags are in the README.
+
+**First findings (baseline, 50 seeds, fresh player):** the difficulty wall sits on the wave 5 / wave 10
+boss waves — 100% of runs die by wave 10 (median 10, p90 11, best 15), with the castle at ~46% HP by
+wave 10 start and nothing to recover it. Pre-leveled relics (level 3+) wipe out pre-siege deaths and keep
+the castle at full health through wave 40, so the meta layer is currently *rescuing* a base curve that is
+too harsh for a first-time player. Consequences to act on (order is a suggestion):
+
+1. Soften the early base curve: gentler waves 4–9, a starting castle buffer, or a first-run handhold
+   (1.4) that also softens the curve, not just the tutorial.
+2. Revisit `ENDLESS_*` only after the base curve plays: the sim shows the endless knobs were never the
+   early problem.
+3. Keep the sim in CI so every balance change gets a before/after diff instead of a vibes check.

@@ -11,8 +11,10 @@ import {
   TOWER_ORDER,
   MAX_UPGRADE,
   upgradeCost,
+  tracksFor,
   SPECS,
   SPEC_UNLOCK_COST,
+  SPEC_UNLOCK_AT,
   MAX_SPEC,
   specUpgradeCost,
   type UpgradeTrack,
@@ -209,7 +211,11 @@ export class Game {
   rngSeed: number | null = null;
   private demoBuildTimer = 0;
   private demoBoonTimer = 0;
-  private demoBuildCount = 0;
+  private demoPhaseSteps = 0;
+  /** Attract-mode loop: seconds until a finished demo run restarts. */
+  private demoOverTimer = 4;
+  /** World stage the demo bot last saw — gates pad relocation after growth. */
+  private demoLastStage = 0;
 
   best = 0;
   meta: MetaState = loadMeta();
@@ -475,6 +481,15 @@ export class Game {
       // still tick light animations (menu / paused / over)
       this.time += dt;
       this.fxTick(dt, false);
+      // Attract mode loops: after a finished demo run, start a fresh one.
+      if (this.demo && (this.screen === "over" || this.screen === "victory")) {
+        this.demoOverTimer -= dt;
+        if (this.demoOverTimer <= 0) {
+          this.demoOverTimer = 4;
+          this.rngSeed = null; // vary the next attract run
+          this.startRun();
+        }
+      }
     }
 
     if (this.screenFade > 0) this.screenFade = Math.max(0, this.screenFade - dt * 2.5);
@@ -528,6 +543,11 @@ export class Game {
     this.wavePhase = "build";
     this.paused = false;
     this.speedIdx = 0;
+    // Demo bot state must not leak across runs (attract mode restarts).
+    this.demoPhaseSteps = 0;
+    this.demoBuildTimer = 0;
+    this.demoBoonTimer = 0;
+    this.demoLastStage = 0;
     // Pre-generate the first wave so its composition is telegraphed during build.
     this.nextWave = generateWave(1, this.rng);
     this.screen = "game";
@@ -610,24 +630,24 @@ export class Game {
       this.gameOver();
     }
 
-    // demo / attract mode
+    // demo / attract mode: an in-game bot plays the run (it also drives the
+    // headless balance harness, scripts/balance_sim.ts).
     if (this.demo && this.screen === "game") {
       if (this.wavePhase === "build") {
         this.demoBuildTimer -= dt;
         if (this.demoBuildTimer <= 0) {
           this.demoBuildTimer = 0.25;
-          const built = this.demoAutoBuild();
-          if (built) this.demoBuildCount++;
-          if (this.demoBuildCount >= 4 || this.gold < 50) {
-            this.demoBuildCount = 0;
-            this.startWave();
-          }
+          const acted = this.demoThink();
+          this.demoPhaseSteps = acted ? this.demoPhaseSteps + 1 : 0;
+          // Start when nothing left to buy — or after a planning budget, so
+          // the intermission can never soft-lock (e.g. no free pads left).
+          if (!acted || this.demoPhaseSteps >= 48) this.startWave();
         }
       } else if (this.wavePhase === "boon") {
         this.demoBoonTimer -= dt;
         if (this.demoBoonTimer <= 0 && this.boonChoices.length > 0) {
           this.demoBoonTimer = 0.8;
-          this.applyBoon(this.boonChoices[this.rng.int(0, this.boonChoices.length - 1)]);
+          this.applyBoon(this.demoPickBoon());
         }
       }
     }
@@ -643,15 +663,200 @@ export class Game {
     return Math.max(1, Math.round(upgradeCost(t.type, track, lvl) * this.metaCostMult));
   }
 
-  private demoAutoBuild(): boolean {
+  /** One bot decision: the best spend of gold this tick. Expansion first —
+   *  a new tower is worth more than an upgrade until the roster is full —
+   *  then the strongest upgrades. Keeps a small gold reserve so the wave
+   *  that just started can't bankrupt the board. Returns true if it spent. */
+  private demoThink(): boolean {
+    const reserve = 20;
+    const counts = new Map<TowerType, number>();
+    for (const t of this.towers) counts.set(t.type, (counts.get(t.type) ?? 0) + 1);
+    // 1) Support: a monastery beside the DPS makes every hit cheaper.
+    if (
+      this.unlocked.has("monastery") &&
+      this.gold >= this.towerCost("monastery") + reserve &&
+      (counts.get("monastery") ?? 0) < 2 &&
+      this.towers.length - (counts.get("monastery") ?? 0) >= 2
+    ) {
+      const spot = this.demoSpotNear(this.towers.filter((t) => t.type !== "monastery"));
+      if (spot) return this.buildTower("monastery", spot);
+    }
+    // 2) Expand: the best affordable tower type, up to sensible caps.
+    //    Front line first — pads nearest the spawn cover the section of the
+    //    growing route that towers can least reach from below.
+    const caps: Array<[TowerType, number]> = [
+      ["archer", 4],
+      ["cannon", 3],
+      ["lancer", 2],
+      ["ballista", 2],
+      ["wizard", 2],
+      ["alchemist", 2],
+      ["barracks", 1],
+    ];
+    for (const [type, cap] of caps) {
+      if (!this.unlocked.has(type)) continue;
+      if ((counts.get(type) ?? 0) >= cap) continue;
+      if (this.gold < this.towerCost(type) + reserve) continue;
+      const spots = this.world.buildSpots
+        .filter((s) => !this.towerAt(s.c, s.r))
+        .sort((a, b) => b.r - a.r);
+      if (spots.length === 0) return false; // no room left — nothing to build
+      return this.buildTower(type, spots[0]);
+    }
+    // 3) When the island grows, drag a spare back-line pad up into the new
+    //    front band so fresh towers can cover the new section of the route.
+    if (this.demoRelocate(reserve)) return true;
+    // 4) Deep runs: specialize and push spec levels (Sunder / Ironbreaker to
+    //    L3 is the real answer to armored foes).
+    if (this.demoSpecialize(reserve)) return true;
+    // 5) Roster fully developed: upgrade the strongest towers — power that
+    //    scales the rest of the run.
+    const upg = this.demoBestUpgrade();
+    if (upg) {
+      this.upgradeTower(upg.t, upg.track);
+      return true;
+    }
+    return false;
+  }
+
+  /** Specialize ready towers and level key spec lines. True if it spent. */
+  private demoSpecialize(reserve: number): boolean {
+    const specPick = (t: Tower): string | null => {
+      switch (t.type) {
+        case "archer":
+          return "volley";
+        case "lancer":
+          return this.wave >= 8 ? "sunder" : "charge";
+        case "cannon":
+          return "cluster";
+        case "monastery":
+          return "chant";
+        case "barracks":
+          return "harden";
+        case "wizard":
+          return "frost";
+        case "alchemist":
+          return "virulence";
+        case "ballista":
+          return "ironbreaker";
+      }
+    };
+    for (const t of this.towers) {
+      if (t.spec !== null || t.totalUpgrades < SPEC_UNLOCK_AT) continue;
+      const pick = specPick(t);
+      if (!pick) continue;
+      if (this.gold < SPEC_UNLOCK_COST + reserve) continue;
+      this.specializeTower(t, pick);
+      return true;
+    }
+    // Spec lines that matter most get their levels pushed to max: the armor
+    // strikers, then crowd control, then anything else specialized.
+    const order = (t: Tower): number => {
+      if (t.spec === "sunder" || t.spec === "ironbreaker") return 0;
+      if (t.spec === "frost" || t.spec === "chant" || t.spec === "harden") return 1;
+      return 2;
+    };
+    for (const t of [...this.towers].filter((t) => t.spec !== null).sort((a, b) => order(a) - order(b))) {
+      if (t.specLvl >= MAX_SPEC) continue;
+      if (this.gold < specUpgradeCost(t.type, t.specLvl) + reserve) continue;
+      this.upgradeSpec(t);
+      return true;
+    }
+    return false;
+  }
+
+  /** After the island grows, relocate the back-most empty pad to the first
+   *  free grass cell in the new front band. */
+  private demoRelocate(reserve: number): boolean {
+    if (this.world.stage < 1 || this.world.stage <= this.demoLastStage) return false;
+    this.demoLastStage = this.world.stage;
+    if (this.towers.length < 5) return false;
+    if (this.gold < SPOT_MOVE_COST + reserve) return false;
+    const frontRow = this.world.minRow;
+    // Victim: the back-most empty pad, a few rows behind the front.
+    let victim: BuildSpot | null = null;
+    for (const s of [...this.world.buildSpots].sort((a, b) => a.r - b.r)) {
+      if (this.towerAt(s.c, s.r)) continue;
+      if (s.r - frontRow < 3) continue;
+      victim = s;
+      break;
+    }
+    if (!victim) return false;
+    for (let r = frontRow; r < frontRow + 8 && r <= victim.r; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!this.world.canRelocateTo(c, r)) continue;
+        this.gold -= SPOT_MOVE_COST;
+        this.world.moveSpot(victim, c, r);
+        this.addText(victim.x, victim.y - 30, `-${SPOT_MOVE_COST}g`, "#ffd24a");
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Best affordable upgrade: damage-first on DPS towers, with a per-level
+   *  penalty that spreads investment across the roster instead of maxing
+   *  one tower. */
+  private demoBestUpgrade(): { t: Tower; track: UpgradeTrack } | null {
+    let best: { t: Tower; track: UpgradeTrack; score: number } | null = null;
+    for (const t of this.towers) {
+      for (const track of tracksFor(t.type)) {
+        const lvl = t.upg[track];
+        if (lvl >= MAX_UPGRADE) continue;
+        if (this.gold < this.upgradeCostFor(t, track, lvl)) continue;
+        const w = track === "damage" ? 1 : track === "rate" ? 0.7 : 0.45;
+        const support = t.type === "monastery" || t.type === "barracks" ? 0.85 : 1;
+        const score = w * support + t.totalUpgrades * 0.06 - lvl * 0.25;
+        if (!best || score > best.score) best = { t, track, score };
+      }
+    }
+    if (!best) return null;
+    return { t: best.t, track: best.track };
+  }
+
+  /** Empty pad closest to the given towers' centroid (for support builds). */
+  private demoSpotNear(targets: Tower[]): BuildSpot | null {
     const spots = this.world.buildSpots.filter((s) => !this.towerAt(s.c, s.r));
-    if (spots.length === 0) return false;
-    const types = TOWER_ORDER.filter((t) => this.unlocked.has(t));
-    const type = this.rng.pick(types);
-    if (this.gold < this.towerCost(type)) return false;
-    // bias toward spots with enemies nearby for satisfying fights
-    const spot = this.rng.pick(spots);
-    return this.buildTower(type, spot);
+    if (spots.length === 0) return null;
+    if (targets.length === 0) return this.rng.pick(spots);
+    const cx = targets.reduce((a, t) => a + t.x, 0) / targets.length;
+    const cy = targets.reduce((a, t) => a + t.y, 0) / targets.length;
+    let best = spots[0];
+    let bd = Infinity;
+    for (const s of spots) {
+      const d = Math.hypot(s.x - cx, s.y - cy);
+      if (d < bd) {
+        bd = d;
+        best = s;
+      }
+    }
+    return best;
+  }
+
+  /** State-aware boon choice: roster first, stat boons deep in the run,
+   *  heals when the castle is hurt, cursed gold only when comfortably alive. */
+  private demoPickBoon(): Boon {
+    let best = this.boonChoices[0];
+    let bs = this.demoBoonScore(best);
+    for (const b of this.boonChoices) {
+      const s = this.demoBoonScore(b);
+      if (s > bs) {
+        bs = s;
+        best = b;
+      }
+    }
+    return best;
+  }
+
+  private demoBoonScore(b: Boon): number {
+    if (b.id.startsWith("unlock_")) return this.wave < 12 ? 10 : 3;
+    const hurt = 1 - this.castle.hp / this.castle.maxHp;
+    if (b.id === "repair" || b.id === "reinforce") return 1 + hurt * 8;
+    if (b.id === "cursed_gold") return hurt < 0.45 ? 2.5 : -10;
+    if (b.id === "adrenaline") return 1.5;
+    if (["war_chest", "bounty", "mint", "tax"].includes(b.id)) return 2.5;
+    // Stat boons (damage / speed / range / special) pay off more as the run deepens.
+    return 3 + this.wave * 0.05;
   }
 
   private fxTick(dt: number, sim: boolean): void {
@@ -1259,6 +1464,13 @@ export class Game {
   }
   spawnSlashFx(x: number, y: number, angle: number, scale = 1): void {
     this.mkFx("slash", x, y, 0.18, scale, { angle, color: "#eaf6ff" });
+  }
+  /** Shatter pool broken: cold steel sparks + a ring at the foe. */
+  spawnShatterFx(x: number, y: number): void {
+    const f = this.mkFx("fire", x, y, 0.35, 0.8);
+    f.attach(this.assets.manifest.fx.kenney_sparks, 40);
+    f.tint = "#bfe3ff";
+    this.mkFx("ring", x, y, 0.35, 0.5, { color: "#9fd0ff" });
   }
   addText(x: number, y: number, text: string, color: string): void {
     this.mkFx("float", x, y, 0.9, 1, { text, color });

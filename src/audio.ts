@@ -7,9 +7,12 @@
 const SFX_NAMES = [
   "shoot", "spear", "cannon", "explosion", "hit", "die", "coin",
   "build", "upgrade", "sell", "boon", "castle", "wave", "over",
+  // Kenney All-in-1 (CC0): UI polish, combat impacts, event jingle.
+  "click", "ui_confirm", "ui_error",
+  "shatter", "shatter_break", "castle_hit", "heavy_hit", "jingle_clear",
 ] as const;
 
-export type SfxName = (typeof SFX_NAMES)[number] | "click";
+export type SfxName = (typeof SFX_NAMES)[number];
 
 const MASTER_VOL = 0.55;
 const MUSIC_VOL = 0.4;
@@ -90,6 +93,7 @@ export class Audio {
       ...SFX_NAMES.map((n) => [n, this.base + "sound/sfx/" + n + ".ogg"] as [string, string]),
       ["music_forest", this.base + "sound/music/forest.ogg"],
       ["music_cave", this.base + "sound/music/cave.ogg"],
+      ["music_defeat", this.base + "sound/music/defeat.ogg"],
     ];
     let allOk = true;
     await Promise.all(
@@ -131,7 +135,7 @@ export class Audio {
   }
 
   // ------------------------------------------------------------- music
-  /** Start (or switch to) a looping BGM track. Key: "forest" | "cave". */
+  /** Start (or switch to) a looping BGM track. Key: "forest" | "cave" | "defeat". */
   music(key: string): void {
     if (!this.ctx) {
       this.pendingMusic = key;

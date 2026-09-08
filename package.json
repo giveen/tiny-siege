@@ -9,7 +9,9 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sim": "node scripts/sim_build.mjs",
+    "sim:ci": "node scripts/sim_build.mjs --seeds 10 --cap-seconds 1200 --max-wave 90 --json balance-sim.json"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

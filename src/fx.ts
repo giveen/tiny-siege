@@ -22,6 +22,7 @@ interface FxInit {
   text?: string;
   fx?: string; // which particle sheet for animated kinds
   angle?: number;
+  tint?: string; // fill a white sprite silhouette with this color
 }
 
 export class Fx {
@@ -34,6 +35,7 @@ export class Fx {
   color: string;
   text: string;
   angle: number;
+  tint?: string;
   private sprite: Sprite | null = null;
   private def: AssetDef | null = null;
 
@@ -46,6 +48,7 @@ export class Fx {
     this.color = init.color ?? "#ffffff";
     this.text = init.text ?? "";
     this.angle = init.angle ?? 0;
+    this.tint = init.tint;
   }
 
   attach(def: AssetDef, fpsOverride?: number): void {
@@ -80,6 +83,7 @@ export class Fx {
           drawSprite(ctx, assets, this.def, this.sprite.frameIdx, this.x, this.y, {
             scale: this.scale * (0.6 + p * 0.8),
             alpha,
+            tint: this.tint,
           });
         }
         break;

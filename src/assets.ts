@@ -60,6 +60,11 @@ export interface Manifest {
   };
   /** Relic icons (same pack, repurposed): relic id -> file. */
   relic_icons?: Record<string, string>;
+  /**
+   * Flat white icon silhouettes (Kenney Game Icons, CC0), tinted at draw
+   * time: key -> file. See sprite.tintedImage().
+   */
+  icons?: Record<string, string>;
   ui: {
     bars: Record<string, StaticDef>;
     buttons: Record<string, StaticDef>;
@@ -134,6 +139,7 @@ export class Assets {
     for (const f of Object.values(m.special)) f.frames.forEach(add);
     Object.values(m.gear?.icons ?? {}).forEach(add);
     Object.values(m.relic_icons ?? {}).forEach(add);
+    Object.values(m.icons ?? {}).forEach(add);
     const u = m.ui;
     for (const b of Object.values(u.bars)) add(b.image);
     for (const b of Object.values(u.buttons)) add(b.image);
@@ -215,6 +221,11 @@ export class Assets {
 
   special(key: string): AssetDef {
     return this.manifest.special[key];
+  }
+
+  /** Kenney white icon path (or undefined if the icon is not in the manifest). */
+  icon(key: string): string | undefined {
+    return this.manifest.icons?.[key];
   }
 }
 

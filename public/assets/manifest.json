@@ -2982,6 +2982,91 @@
    "anchor": "center",
    "fps": 48,
    "loop": false
+  },
+  "kenney_burst": {
+   "frames": [
+    "fx/kenney_burst_0.png",
+    "fx/kenney_burst_1.png",
+    "fx/kenney_burst_2.png",
+    "fx/kenney_burst_3.png",
+    "fx/kenney_burst_4.png",
+    "fx/kenney_burst_5.png",
+    "fx/kenney_burst_6.png",
+    "fx/kenney_burst_7.png",
+    "fx/kenney_burst_8.png"
+   ],
+   "cell": [
+    96,
+    91
+   ],
+   "anchor": "center",
+   "fps": 30,
+   "loop": false
+  },
+  "kenney_sparks": {
+   "frames": [
+    "fx/kenney_sparks_0.png",
+    "fx/kenney_sparks_1.png",
+    "fx/kenney_sparks_2.png",
+    "fx/kenney_sparks_3.png",
+    "fx/kenney_sparks_4.png",
+    "fx/kenney_sparks_5.png",
+    "fx/kenney_sparks_6.png"
+   ],
+   "cell": [
+    512,
+    512
+   ],
+   "anchor": "center",
+   "fps": 30,
+   "loop": false
+  },
+  "kenney_magic": {
+   "frames": [
+    "fx/kenney_magic_0.png",
+    "fx/kenney_magic_1.png",
+    "fx/kenney_magic_2.png",
+    "fx/kenney_magic_3.png",
+    "fx/kenney_magic_4.png"
+   ],
+   "cell": [
+    512,
+    504
+   ],
+   "anchor": "center",
+   "fps": 24,
+   "loop": false
+  },
+  "kenney_smoke": {
+   "frames": [
+    "fx/kenney_smoke_0.png",
+    "fx/kenney_smoke_1.png",
+    "fx/kenney_smoke_2.png",
+    "fx/kenney_smoke_3.png",
+    "fx/kenney_smoke_4.png"
+   ],
+   "cell": [
+    512,
+    466
+   ],
+   "anchor": "center",
+   "fps": 15,
+   "loop": false
+  },
+  "kenney_star": {
+   "frames": [
+    "fx/kenney_star_0.png",
+    "fx/kenney_star_1.png",
+    "fx/kenney_star_2.png",
+    "fx/kenney_star_3.png"
+   ],
+   "cell": [
+    512,
+    512
+   ],
+   "anchor": "center",
+   "fps": 20,
+   "loop": false
   }
  },
  "ui": {
@@ -4373,14 +4458,16 @@
   },
   "sandworm": {
    "frames": [
-    "enemies/sandworm_0.png"
+    "enemies/sandworm_0.png",
+    "enemies/sandworm_1.png",
+    "enemies/sandworm_2.png"
    ],
    "cell": [
     64,
-    61
+    14
    ],
    "anchor": "bottom-center",
-   "fps": 10,
+   "fps": 9,
    "loop": true
   },
   "shadow_man": {
@@ -4847,11 +4934,20 @@
    "boon": "sound/sfx/boon.ogg",
    "castle": "sound/sfx/castle.ogg",
    "wave": "sound/sfx/wave.ogg",
-   "over": "sound/sfx/over.ogg"
+   "over": "sound/sfx/over.ogg",
+   "click": "sound/sfx/click.ogg",
+   "ui_confirm": "sound/sfx/ui_confirm.ogg",
+   "ui_error": "sound/sfx/ui_error.ogg",
+   "shatter": "sound/sfx/shatter.ogg",
+   "shatter_break": "sound/sfx/shatter_break.ogg",
+   "castle_hit": "sound/sfx/castle_hit.ogg",
+   "heavy_hit": "sound/sfx/heavy_hit.ogg",
+   "jingle_clear": "sound/sfx/jingle_clear.ogg"
   },
   "music": {
    "forest": "sound/music/forest.ogg",
-   "cave": "sound/music/cave.ogg"
+   "cave": "sound/music/cave.ogg",
+   "defeat": "sound/music/defeat.ogg"
   }
  },
  "gear": {
@@ -4911,5 +5007,34 @@
   "lookouts": "ui/relic_lookouts.png",
   "drums": "ui/relic_drums.png",
   "fortune": "ui/relic_fortune.png"
+ },
+ "icons": {
+  "pause": "icons/pause.png",
+  "stop": "icons/stop.png",
+  "fast_forward": "icons/fast_forward.png",
+  "music_on": "icons/music_on.png",
+  "music_off": "icons/music_off.png",
+  "home": "icons/home.png",
+  "zoom_in": "icons/zoom_in.png",
+  "zoom_out": "icons/zoom_out.png",
+  "star": "icons/star.png",
+  "trophy": "icons/trophy.png",
+  "medal": "icons/medal.png",
+  "medal2": "icons/medal2.png",
+  "plus": "icons/plus.png",
+  "minus": "icons/minus.png",
+  "check": "icons/check.png",
+  "warning": "icons/warning.png",
+  "info": "icons/info.png",
+  "gear": "icons/gear.png",
+  "target": "icons/target.png",
+  "locked": "icons/locked.png",
+  "question": "icons/question.png",
+  "cross": "icons/cross.png",
+  "up": "icons/up.png",
+  "power": "icons/power.png",
+  "cloud": "icons/cloud.png",
+  "coin": "icons/coin.png",
+  "flag": "icons/flag.png"
  }
 }

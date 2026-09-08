@@ -43,9 +43,11 @@ picked per spawn — so every monster in the pack shows up across a run.
   wave 50 is a full boss assault.
 - **Healers** — a rotating pool of menders that keep nearby foes topped up.
 - **Per-enemy stats and shatter armor** — every spawn rolls its own base HP (and armor) around
-  the type's base, so no two identical creatures are quite alike. Armored foes carry a shatter
-  pool of armor points (the blue bar) that must be stripped to zero before any of their HP can
-  be dealt; Sunder and Ironbreaker bolts pierce it.
+  the type's base, so no two identical creatures are quite alike. Armor is a late-game layer:
+  nothing is armored before wave 10, and from there the share of armored foes that arrive with
+  a full shatter pool climbs each wave until it's universal (bosses and elites from wave 10 on
+  always carry theirs). The pool — the blue bar — must be stripped to zero before any HP can be
+  dealt; Sunder and Ironbreaker bolts pierce it.
 - **Flyers and poison puddlers** — some creatures fly, and the toxic sludge bursts into a
   corrosive puddle that poisons other foes on death.
 
@@ -88,7 +90,35 @@ npm run build      # typecheck + production build to dist/
 npm run preview    # serve the production build
 npm run typecheck  # tsc only
 npm run assets     # regenerate the processed asset tree (needs Python 3 + PIL + numpy)
+npm run sim        # headless balance sim (see below)
 ```
+
+## Balance sim (headless playtesting)
+
+`npm run sim` plays N seeded runs through the game's own demo bot **in plain Node** — no
+browser, no rendering. It drives the real simulation (towers, projectiles, waves, boons,
+map growth, pad relocation) with a clean meta state, and reports where runs die:
+
+```bash
+npm run sim                                  # 50 seeds, base curve (fresh player)
+npm run sim -- --seeds 20 --meta 3           # relics pre-leveled to 3 ("experienced player")
+npm run sim -- --seeds 3 --diagnose          # per-run detail: board, boons, survivors
+npm run sim -- --json out.json               # machine-readable results (diffed in CI)
+```
+
+Output: death-wave histogram, Siege-clear rate, endless-depth distribution, a per-wave
+pressure curve (avg castle HP / gold / towers at each wave start), a determinism check
+(one seed is replayed and must reproduce exactly), and an attract-mode check (after each
+finished run the harness drives the real `frame()` — the browser's RAF path, including
+rendering against the stub canvas — and confirms the demo auto-restarts in ~4s).
+Re-run it after touching any tuning constant in `src/config.ts`, and diff the JSON.
+
+**Current baseline** (50 seeds, fresh player): 100% of runs die before the Siege — the
+wall sits on the wave 5 / wave 10 boss waves (median death wave 10, p90 11, best 15),
+with the castle already at ~46% HP by wave 10 start and nothing to recover it. Pre-leveled
+relics (level 3+) remove all pre-Siege deaths and keep the castle at full health through
+wave 40 — the meta layer is currently *rescuing* a base curve that is too hard for a
+first-time player.
 
 ## Asset pipeline
 
