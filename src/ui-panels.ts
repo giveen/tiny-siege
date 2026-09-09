@@ -23,6 +23,23 @@
 
 import type { Game } from "./game";
 import {
+  GEAR_BY_ID,
+  GEAR_SLOTS,
+  LOOTBOX_COST,
+  SLOT_LABEL,
+  TIER_COLORS,
+  TIER_MAX,
+  gearBonusText,
+  gearPercent,
+  gearUpgradeCost,
+  nextLockedStat,
+  scrapValue,
+  statLabel,
+  type GearInstance,
+} from "./gear";
+import { TOWER_DEFS, TOWER_ORDER } from "./tower";
+import type { TowerType } from "./types";
+import {
   RELICS,
   RELIC_BRANCHES,
   relicLevel,
@@ -43,7 +60,7 @@ import {
 } from "./progress";
 import { resyncMenuFocus, uiAnnounce } from "./ui-dom";
 
-type PanelId = "help" | "codex" | "progress";
+type PanelId = "help" | "codex" | "progress" | "armory";
 
 interface PanelState {
   game: Game;
@@ -68,6 +85,7 @@ const PANEL_CSS = `
   }
   #panel-overlay[hidden] { display: none; }
   .pp {
+    position: relative;
     width: min(1040px, 96vw);
     height: min(860px, 94vh);
     display: flex;
@@ -299,6 +317,201 @@ const PANEL_CSS = `
   .scell .ok { margin-top: 4px; color: #6fe06f; font-weight: 700; }
   .streak-foot { text-align: center; color: #8fb8c8; font-size: 14px; }
   .streak-btn { display: block; margin: 12px auto 0; }
+
+  /* ---- armory -------------------------------------------------------- */
+  .armory-bar { align-items: center; }
+  .armory-bar .gold { margin-left: auto; }
+  .armory-section {
+    margin: 14px 0 10px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #bfe6ef;
+  }
+  .gear-list { margin-bottom: 8px; }
+  .grow {
+    display: grid;
+    grid-template-columns: 44px 1fr auto auto auto;
+    gap: 2px 10px;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .grow:hover { background: rgba(255, 255, 255, 0.06); }
+  .grow.selected {
+    background: rgba(255, 210, 74, 0.12);
+    border-color: #ffd24a;
+  }
+  .grow.dim { opacity: 0.55; }
+  .gear-icon {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    background: #0a1822;
+    border: 1px solid #1d3a48;
+    border-radius: 8px;
+  }
+  .grow-name {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 15px;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .grow-tier {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font: 800 13px ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  .grow-bonus {
+    grid-column: 4;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #9fd8a8;
+    white-space: nowrap;
+  }
+  .grow-sub {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: 12px;
+    color: #8fb8c8;
+  }
+  .grow-hint {
+    grid-column: 5;
+    grid-row: 1 / span 2;
+    align-self: center;
+    justify-self: end;
+    font-size: 12px;
+    color: #8fb8c8;
+    white-space: nowrap;
+  }
+  .grow-hint.sel-hint { color: #ffd24a; font-weight: 700; }
+  .grow-hint.dim { color: #5d7482; }
+  .grow-btn {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .grow-btn:focus-visible {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 6px 12px;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    clip-path: inset(0);
+    border: 2px solid #ffd24a;
+    border-radius: 8px;
+    background: #12333d;
+    color: #eaf6ff;
+    font: 700 13px "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+    justify-self: end;
+    grid-column: 5;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+  .slotcols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .slotcol h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #bfe6ef;
+  }
+  .slotcell {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 2px 8px;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid rgba(180, 210, 225, 0.12);
+    border-radius: 10px;
+    color: #eaf6ff;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .slotcell .gear-icon { grid-row: 1 / span 3; }
+  .slotcell .slot-name {
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .slotcell.filled { border-color: rgba(180, 210, 225, 0.25); }
+  .slotcell.compatible {
+    border-color: #ffd24a;
+    background: rgba(255, 210, 74, 0.08);
+  }
+  .slotcell:focus-visible { outline: 3px solid #ffd24a; outline-offset: 2px; }
+  .smithgrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  @media (min-width: 860px) {
+    .smithgrid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Supply Crate reveal */
+  .reveal {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(5, 9, 13, 0.92);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    padding: 20px;
+  }
+  .reveal-title {
+    font: 800 20px "Segoe UI", system-ui, sans-serif;
+    letter-spacing: 1px;
+    color: #d2a24c;
+  }
+  .reveal-rare { font-size: 22px; font-weight: 900; color: #ffd24a; }
+  .reveal-icon {
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    margin: 6px 0;
+  }
+  .reveal-name { font-size: 24px; font-weight: 800; }
+  .reveal-tier { font-size: 18px; font-weight: 900; }
+  .reveal-bonus { font-size: 15px; font-weight: 700; color: #9fd8a8; }
+  .reveal-locked { font-size: 13px; color: rgba(159, 216, 168, 0.7); }
+  .reveal-foot { margin-top: 8px; font-size: 14px; color: #8fb8c8; }
 `;
 
 /** Initialize the panel layer. Call once, alongside initUiDom. */
@@ -362,6 +575,70 @@ export function initUiPanels(game: Game): void {
         g.sfx("coin");
         uiAnnounce("Daily reward claimed.");
       } else g.sfx("click");
+    } else if (act === "armory-tab" && arg) {
+      g.hud.armoryTab = arg === "smith" ? "smith" : "vault";
+      g.hud.selectedGearUid = null;
+      g.hud.crateReveal = null;
+      g.sfx("click");
+    } else if (act === "buy-crate") {
+      const inst = g.buyLootbox();
+      if (inst) {
+        g.hud.crateReveal = inst;
+        g.hud.selectedGearUid = null;
+        g.hud.armoryTab = "vault";
+        g.sfx(inst.tier >= 4 ? "castle" : "boon");
+        uiAnnounce(`Supply crate opened: ${GEAR_BY_ID.get(inst.def)?.name ?? "gear"}.`);
+      } else {
+        g.sfx("click");
+      }
+    } else if (act === "dismiss-reveal") {
+      g.hud.crateReveal = null;
+      g.sfx("click");
+    } else if (act === "select-piece" && arg) {
+      // Vault: select / deselect a banked piece.
+      g.hud.selectedGearUid = g.hud.selectedGearUid === arg ? null : arg;
+      g.sfx("click");
+    } else if (act === "recycle-pick" && arg) {
+      // Smith: first click selects, second confirms the recycle.
+      if (g.hud.selectedGearUid === arg) {
+        const gained = g.recycleGear(arg);
+        g.hud.selectedGearUid = null;
+        g.sfx(gained > 0 ? "coin" : "click");
+        if (gained > 0) uiAnnounce(`Recycled for ${gained} scrap.`);
+      } else {
+        g.hud.selectedGearUid = arg;
+        g.sfx("click");
+      }
+    } else if (act === "upgrade-pick" && arg) {
+      const ok = g.upgradeGear(arg);
+      g.hud.selectedGearUid = null;
+      g.sfx(ok ? "boon" : "click");
+      if (ok) uiAnnounce("Gear upgraded.");
+    } else if (act === "slot") {
+      const sep = arg.indexOf(":");
+      if (sep < 1) return;
+      const tower = arg.slice(0, sep) as TowerType;
+      const slot = arg.slice(sep + 1) as (typeof GEAR_SLOTS)[number];
+      let equippedNow = false;
+      if (g.hud.selectedGearUid) {
+        const sel = g.meta.gear.owned.find((o) => o.uid === g.hud.selectedGearUid);
+        const selDef = sel ? GEAR_BY_ID.get(sel.def) : null;
+        if (sel && selDef && selDef.tower === tower && selDef.slot === slot) {
+          g.equipGear(sel.uid, tower, slot);
+          g.hud.selectedGearUid = null;
+          g.sfx("coin");
+          uiAnnounce(`Equipped ${selDef.name} on the ${TOWER_DEFS[tower].name}.`);
+          equippedNow = true;
+        }
+      }
+      if (!equippedNow) {
+        if (g.equippedFor(tower, slot)) {
+          g.unequipGear(tower, slot);
+          g.sfx("click");
+        } else {
+          g.sfx("click");
+        }
+      }
     }
     // Re-render now: actions change the data the panel shows, and the
     // frame-driven sync may be seconds away on a throttled tab.
@@ -377,8 +654,8 @@ export function uiPanelsSync(): void {
   if (!s) return;
   const g = s.game;
 
-  const open: PanelId | "armory" | null = g.menuPanelOpen();
-  const domOpen = open === "help" || open === "codex" || open === "progress" ? open : null;
+  const open: PanelId | null = g.menuPanelOpen();
+  const domOpen: PanelId | null = open; // all four panels render in DOM
 
   // Suppress the canvas twin of the panel the DOM renders (armory stays canvas).
   g.hud.suppressedPanel = domOpen;
@@ -430,6 +707,20 @@ function signature(s: PanelState): string {
       `${g.progress.login.streakDay}|${canClaimLogin(g.progress)}`
     );
   }
+  if (s.shown === "armory") {
+    const g = s.game;
+    const owned = g.meta.gear.owned
+      .filter((o) => GEAR_BY_ID.has(o.def))
+      .map((o) => `${o.uid}:${o.def}:${o.tier}`)
+      .join(",");
+    let eq = "";
+    for (const t of TOWER_ORDER)
+      for (const sl of GEAR_SLOTS) eq += `${t}${sl}:${g.meta.gear.equipped[t]?.[sl] ?? ""};`;
+    return (
+      `a|${g.hud.armoryTab}|${g.meta.crates}|${g.meta.scrap}|${owned}|${eq}|` +
+      `${g.hud.selectedGearUid ?? "-"}|${g.hud.crateReveal ? g.hud.crateReveal.uid : "-"}`
+    );
+  }
   return "help";
 }
 
@@ -438,7 +729,11 @@ function rebuild(s: PanelState, id: PanelId): void {
   s.root.innerHTML = "";
   if (id === "help") buildHelp(s, g);
   else if (id === "codex") buildCodex(s, g);
-  else buildProgress(s, g);
+  else if (id === "progress") buildProgress(s, g);
+  else buildArmory(s, g);
+
+  // The Supply Crate reveal sits on top of the armory panel.
+  if (id === "armory" && g.hud.crateReveal) buildCrateReveal(s, g);
 }
 
 // ------------------------------------------------------------------ help
@@ -834,6 +1129,296 @@ function text(tag: string, cls: string, content: string): HTMLElement {
   n.className = cls;
   n.textContent = content;
   return n;
+}
+
+// ------------------------------------------------------------------ armory
+
+/** Shared: an icon <img> for a gear def (drops the node when no icon). */
+function gearIcon(g: Game, def: { icon: string }): HTMLImageElement | null {
+  const icons = g.assets.manifest.gear?.icons ?? {};
+  const src = icons[def.icon];
+  if (!src) return null;
+  const img = document.createElement("img");
+  img.className = "gear-icon";
+  img.alt = "";
+  img.src = src;
+  return img;
+}
+
+function gearRow(
+  g: Game,
+  inst: GearInstance,
+  right: HTMLElement,
+  action: { action: string; arg: string },
+  selected: boolean,
+  disabled: boolean
+): HTMLElement {
+  const def = GEAR_BY_ID.get(inst.def)!;
+  const row = document.createElement("div");
+  // The whole row is clickable (canvas parity); the inner button is the
+  // keyboard/screen-reader path. The delegated handler resolves the
+  // nearest [data-action], so both targets fire exactly one action.
+  row.dataset.action = action.action;
+  row.dataset.arg = action.arg;
+  row.className = "grow" + (selected ? " selected" : "") + (disabled ? " dim" : "");
+  const icon = gearIcon(g, def);
+  if (icon) row.appendChild(icon);
+  row.appendChild(text("div", "grow-name", def.name));
+  const tier = text("span", "grow-tier", `T${inst.tier}`);
+  tier.style.color = TIER_COLORS[inst.tier] ?? "#c9d6e2";
+  const bonus = text("div", "grow-bonus", gearBonusText(def, inst.tier));
+  row.appendChild(text("div", "grow-sub", `${SLOT_LABEL[def.slot]} · ${TOWER_DEFS[def.tower].name}`));
+  row.appendChild(tier);
+  row.appendChild(bonus);
+  row.appendChild(right);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "grow-btn";
+  btn.dataset.action = action.action;
+  btn.dataset.arg = action.arg;
+  btn.disabled = disabled;
+  const verb =
+    action.action === "recycle-pick" ? "Recycle" : action.action === "upgrade-pick" ? "Upgrade" : "Select";
+  btn.setAttribute("aria-label", `${verb} ${def.name} (tier ${inst.tier})`);
+  row.appendChild(btn);
+  return row;
+}
+
+function buildArmory(s: PanelState, g: Game): void {
+  const vault = g.hud.armoryTab === "vault";
+  const head = document.createElement("div");
+  head.className = "pp-head";
+  const h2 = document.createElement("h2");
+  h2.textContent = "THE ARMORY";
+  h2.setAttribute("tabindex", "-1");
+  head.appendChild(h2);
+
+  const eqCount = new Set<string>();
+  for (const t of TOWER_ORDER) for (const sl of GEAR_SLOTS) {
+    const u = g.meta.gear.equipped[t]?.[sl];
+    if (u) eqCount.add(u);
+  }
+  const vaultCount = g.meta.gear.owned.filter(
+    (o) => GEAR_BY_ID.has(o.def) && !eqCount.has(o.uid)
+  ).length;
+  const status = text(
+    "div",
+    "pp-runes",
+    vault
+      ? `◆ ${vaultCount} piece${vaultCount === 1 ? "" : "s"} in the vault · ${eqCount.size} equipped  ·  ▣ ${g.meta.crates} crates`
+      : `⚙ ${g.meta.scrap} scrap  ·  ▣ ${g.meta.crates} crates`
+  );
+  head.appendChild(status);
+  const note = document.createElement("p");
+  note.className = "pp-note";
+  note.textContent = vault
+    ? "Win gear by opening Supply Crates — clear waves to earn crates. Click a piece, then click its slot to equip. It carries into every siege."
+    : "Recycle spare gear for scrap (click a piece, then click it again), then spend scrap to upgrade pieces to higher tiers. Equipped pieces can be upgraded in place.";
+  head.appendChild(note);
+  s.root.appendChild(head);
+
+  const scroll = document.createElement("div");
+  scroll.className = "pp-scroll";
+
+  const tabBar = document.createElement("div");
+  tabBar.className = "tabbar armory-bar";
+  for (const [id, label] of [
+    ["vault", "The Vault"],
+    ["smith", "The Blacksmith"],
+  ] as const) {
+    const b = document.createElement("button");
+    b.type = "button";
+    if (id === g.hud.armoryTab) b.className = "active";
+    b.dataset.action = "armory-tab";
+    b.dataset.arg = id;
+    b.textContent = label;
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", id === g.hud.armoryTab ? "true" : "false");
+    tabBar.appendChild(b);
+  }
+  const crate = document.createElement("button");
+  crate.type = "button";
+  crate.className = "gold";
+  crate.dataset.action = "buy-crate";
+  crate.textContent = `▣ Open Supply Crate · ${LOOTBOX_COST} crates`;
+  crate.disabled = g.meta.crates < LOOTBOX_COST;
+  tabBar.appendChild(crate);
+  scroll.appendChild(tabBar);
+
+  const sortGear = (a: GearInstance, b: GearInstance) => {
+    const da = GEAR_BY_ID.get(a.def)!;
+    const db = GEAR_BY_ID.get(b.def)!;
+    if (da.tower !== db.tower) return TOWER_ORDER.indexOf(da.tower) - TOWER_ORDER.indexOf(db.tower);
+    if (da.slot !== db.slot) return GEAR_SLOTS.indexOf(da.slot) - GEAR_SLOTS.indexOf(db.slot);
+    return b.tier - a.tier;
+  };
+  const vaultList = g.meta.gear.owned
+    .filter((o) => GEAR_BY_ID.has(o.def) && !eqCount.has(o.uid))
+    .sort(sortGear);
+  const upgradeList = g.meta.gear.owned.filter((o) => GEAR_BY_ID.has(o.def)).sort(sortGear);
+  const sel = g.hud.selectedGearUid;
+  const selDef = sel ? GEAR_BY_ID.get(g.meta.gear.owned.find((o) => o.uid === sel)?.def ?? "") : null;
+
+  if (vault) {
+    const list = document.createElement("div");
+    list.className = "plist gear-list";
+    if (vaultList.length === 0) {
+      list.appendChild(text("p", "streak-foot", "The vault is empty — open Supply Crates to win gear."));
+    }
+    for (const inst of vaultList) {
+      const def = GEAR_BY_ID.get(inst.def)!;
+      const hint =
+        sel === inst.uid
+          ? text("span", "grow-hint", "selected — click a matching slot")
+          : text("span", "grow-hint", `equips on the ${TOWER_DEFS[def.tower].name}`);
+      list.appendChild(gearRow(g, inst, hint, { action: "select-piece", arg: inst.uid }, sel === inst.uid, false));
+    }
+    scroll.appendChild(list);
+
+    const loadout = text("div", "armory-section", "TOWER LOADOUTS");
+    scroll.appendChild(loadout);
+    const cols = document.createElement("div");
+    cols.className = "slotcols";
+    for (const t of TOWER_ORDER) {
+      const col = document.createElement("div");
+      col.className = "slotcol";
+      col.appendChild(text("h4", "", TOWER_DEFS[t].name));
+      for (const sl of GEAR_SLOTS) {
+        const cur = g.equippedFor(t, sl);
+        const def = cur ? GEAR_BY_ID.get(cur.def) : null;
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className =
+          "slotcell" +
+          (cur ? " filled" : "") +
+          (selDef && selDef.tower === t && selDef.slot === sl ? " compatible" : "");
+        cell.dataset.action = "slot";
+        cell.dataset.arg = `${t}:${sl}`;
+        if (cur && def) {
+          const icon = gearIcon(g, def);
+          if (icon) cell.appendChild(icon);
+          cell.appendChild(text("div", "slot-name", def.name));
+          const tier = text("span", "grow-tier", `T${cur.tier}`);
+          tier.style.color = TIER_COLORS[cur.tier] ?? "#c9d6e2";
+          cell.appendChild(tier);
+          cell.appendChild(text("div", "grow-bonus", gearBonusText(def, cur.tier)));
+          cell.setAttribute("aria-label", `${SLOT_LABEL[sl]}: ${def.name} — click to unequip`);
+        } else {
+          cell.textContent = `${SLOT_LABEL[sl]} — empty`;
+          cell.setAttribute("aria-label", `${SLOT_LABEL[sl]}: empty${selDef && selDef.tower === t && selDef.slot === sl ? ", click to equip selected" : ""}`);
+        }
+        col.appendChild(cell);
+      }
+      cols.appendChild(col);
+    }
+    scroll.appendChild(cols);
+  } else {
+    const grid = document.createElement("div");
+    grid.className = "smithgrid";
+
+    const rec = document.createElement("div");
+    rec.appendChild(text("div", "armory-section", "RECYCLE — click a piece, then click it again"));
+    for (const inst of vaultList) {
+      const right =
+        sel === inst.uid
+          ? text("span", "grow-hint sel-hint", "click again to recycle")
+          : text("span", "grow-hint", `recycle for ${scrapValue(inst)} ⚙`);
+      rec.appendChild(
+        gearRow(
+          g,
+          inst,
+          right,
+          { action: "recycle-pick", arg: inst.uid },
+          sel === inst.uid,
+          false
+        )
+      );
+    }
+    if (vaultList.length === 0) rec.appendChild(text("p", "streak-foot", "Nothing to recycle."));
+    grid.appendChild(rec);
+
+    const up = document.createElement("div");
+    up.appendChild(text("div", "armory-section", "UPGRADE — spend scrap to raise a tier"));
+    for (const inst of upgradeList) {
+      const maxed = inst.tier >= TIER_MAX;
+      const cost = maxed ? 0 : gearUpgradeCost(inst);
+      const affordable = !maxed && g.meta.scrap >= cost;
+      const prog = maxed ? `T${inst.tier} MAX` : `T${inst.tier} → T${inst.tier + 1}`;
+      const right = maxed
+        ? text("span", "grow-hint", "fully upgraded")
+        : text("span", "grow-hint" + (affordable ? "" : " dim"), `⚙ ${cost}`);
+      const row = gearRow(
+        g,
+        inst,
+        right,
+        { action: "upgrade-pick", arg: inst.uid },
+        false,
+        maxed
+      );
+      const name = row.querySelector(".grow-name") as HTMLElement;
+      name.appendChild(document.createTextNode(`  ${prog}`));
+      up.appendChild(row);
+    }
+    if (upgradeList.length === 0) up.appendChild(text("p", "streak-foot", "No gear yet — open Supply Crates first."));
+    grid.appendChild(up);
+    scroll.appendChild(grid);
+  }
+  s.root.appendChild(scroll);
+
+  const foot = document.createElement("div");
+  foot.className = "pp-foot";
+  const close = document.createElement("button");
+  close.type = "button";
+  close.dataset.action = "close";
+  close.textContent = "Close";
+  foot.appendChild(close);
+  s.root.appendChild(foot);
+}
+
+/** Supply Crate gacha reveal — covers the panel until dismissed. */
+function buildCrateReveal(s: PanelState, g: Game): void {
+  const inst = g.hud.crateReveal;
+  if (!inst) return;
+  const def = GEAR_BY_ID.get(inst.def);
+  if (!def) {
+    g.hud.crateReveal = null;
+    return;
+  }
+  const tcolor = TIER_COLORS[inst.tier] ?? "#c9d6e2";
+  const reveal = document.createElement("div");
+  reveal.className = "reveal";
+  reveal.dataset.action = "dismiss-reveal";
+  reveal.setAttribute("role", "dialog");
+  reveal.setAttribute("aria-label", "Supply crate opened");
+
+  reveal.appendChild(text("div", "reveal-title", "SUPPLY CRATE OPENED"));
+  if (inst.tier >= 4) {
+    reveal.appendChild(text("div", "reveal-rare", inst.tier === 5 ? "★ LEGENDARY DROP ★" : "◆ RARE DROP ◆"));
+  }
+  const icon = gearIcon(g, def);
+  if (icon) {
+    icon.className = "gear-icon reveal-icon";
+    reveal.appendChild(icon);
+  }
+  reveal.appendChild(text("div", "reveal-name", def.name));
+  const tierline = text("div", "reveal-tier", `TIER ${inst.tier}  ·  ${SLOT_LABEL[def.slot]}`);
+  tierline.style.color = tcolor;
+  reveal.appendChild(tierline);
+  reveal.appendChild(
+    text("div", "reveal-bonus", `${gearBonusText(def, inst.tier)} — boosts every ${TOWER_DEFS[def.tower].name}`)
+  );
+  const locked = nextLockedStat(def, inst.tier);
+  if (locked) {
+    reveal.appendChild(
+      text(
+        "div",
+        "reveal-locked",
+        `+${gearPercent(locked, locked.unlockTier)}% ${statLabel(def.tower, locked.stat)} unlocks at T${locked.unlockTier}`
+      )
+    );
+  }
+  reveal.appendChild(text("div", "reveal-foot", "Banked to your vault — click anywhere to continue."));
+  s.root.appendChild(reveal);
 }
 
 function claimBtn(label: string, cls: string, action: { action: string; arg: string } | null): HTMLButtonElement {

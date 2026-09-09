@@ -181,23 +181,25 @@ built in phases — each phase lands and ships independently:
   page the open panel's list, PageUp/PageDown switch its tabs. `?landing=1`
   (product param, ships in production) plays the attract loop behind a visible
   title + Play hero — the player can take over a fresh run mid-showcase.
-- **Phase 3 (in progress):** rebuild the static screens (end screens, help,
-  codex, armory, progress) as styled DOM — fully copyable, zoomable,
+- **Phase 3 (done):** rebuild the static screens (end screens, help, codex,
+  armory, progress) as styled DOM — fully copyable, zoomable,
   screen-reader-traversable, per-item keyboard selection. The in-game HUD, world
-  and boon cards stay canvas (the 60fps surface). Done: end screens (Phase 1),
-  then Help / Codex / Progress via `src/ui-panels.ts` — the game stays the
-  source of truth (`menuPanelOpen()`), a frame-driven `uiPanelsSync()` shows
-  and re-renders the DOM to match, and actions call the same game methods as
-  the canvas handlers. This also fixed real bugs the canvas layout had: the
-  Codex panel (1140px wide on a 1024px canvas) was clipped to ~1.5 of its
-  branch columns, and the Progress close button sat below the canvas edge —
-  both unusable in the canvas version. Remaining: the Armory (its select→
-  confirm and crate-reveal interactions are the last slice).
+  and boon cards stay canvas (the 60fps surface). End screens landed in
+  Phase 1; Help / Codex / Progress / Armory in `src/ui-panels.ts` — the game
+  stays the source of truth (`menuPanelOpen()`), a frame-driven
+  `uiPanelsSync()` shows and re-renders the DOM to match, and actions call the
+  same game methods as the canvas handlers (equip/unequip via tower-slot
+  buttons, two-click recycle, scrap upgrades, Supply Crate gacha with a DOM
+  reveal). This also fixed real bugs the canvas layout had: the Codex panel
+  (1140px wide on a 1024px canvas) was clipped to ~1.5 of its branch
+  columns, and the Progress close button sat below the canvas edge — both
+  unusable in the canvas version. The DOM armory also drops the canvas
+  list-paging in favor of scrolling lists.
 - **Phase 4 (open):** landing-page polish once the site grows a real page
   around the game (SEO meta, share cards, the hero becomes the page header).
 
 Known limitations (accepted): on a throttled/hidden tab the panel DOM only
 builds on the next frame, so panel actions resync immediately instead of
-waiting for one; the smith tab's Upgrade list keeps its own paging (arrows
-page the Recycle list); the Armory is still canvas-only until its Phase-3
-slice.
+waiting for one; the canvas twins of the DOM panels remain in the code
+(behind `hud.suppressedPanel`) as a rendering fallback if the DOM layer is
+ever removed.

@@ -83,18 +83,20 @@ export class Hud {
   assets: Assets;
   private layoutCache: ReturnType<Hud["computeLayout"]>;
   // Armory (menu) temp state
-  private selectedGearUid: string | null = null;
+  /** Public: the DOM armory (ui-panels) shares this selection state. */
+  selectedGearUid: string | null = null;
   private armoryPage = 0;
   /** Public: the ?smith debug param jumps straight to the Blacksmith tab. */
   armoryTab: "vault" | "smith" = "vault";
   /** Top-level menu button to draw a focus ring around (DOM keyboard focus). */
   menuFocus: "start" | "help" | "codex" | "armory" | "progress" | null = null;
   /** Phase 3: which canvas panel the DOM layer (ui-panels) renders instead. */
-  suppressedPanel: "help" | "codex" | "progress" | null = null;
+  suppressedPanel: "help" | "codex" | "progress" | "armory" | null = null;
   private smithPageRecycle = 0;
   private smithPageUpgrade = 0;
-  /** Last opened Supply Crate, shown in a reveal overlay until dismissed. */
-  private crateReveal: GearInstance | null = null;
+  /** Last opened Supply Crate, shown in a reveal overlay until dismissed.
+   *  Public: the DOM armory (ui-panels) renders the same reveal. */
+  crateReveal: GearInstance | null = null;
   // Progress (menu) temp state
   progressTab: ProgressTab = "ach";
   private progressAchPage = 0;
@@ -1393,7 +1395,7 @@ export class Hud {
     ctx.fillText(`Best run: ${game.best} waves`, CANVAS_W / 2, CANVAS_H - 40);
     ctx.restore();
 
-    if (game._showArmory) this.drawArmory(game, ctx);
+    if (game._showArmory && this.suppressedPanel !== "armory") this.drawArmory(game, ctx);
     else if (game._showCodex && this.suppressedPanel !== "codex") this.drawCodex(game, ctx);
     else if (game._showProgress && this.suppressedPanel !== "progress") this.drawProgress(game, ctx);
     else if (game._showHelp && this.suppressedPanel !== "help") this.drawHelp(ctx);
