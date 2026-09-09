@@ -158,3 +158,37 @@ the meta layer keeps its job. Item 2 (ENDLESS knobs) remains open; item 3 is liv
 counter — projectile homing/hit checks (which use `visualY`) therefore depended on how many entities
 earlier runs in the same process had spawned. Fixed by deriving the phase from `pathDist`
 (deterministic per run); the harness's determinism replay catches regressions of exactly this class.
+
+## UI debt — full-canvas problem (in progress)
+
+Everything (menus, codex, armory, end screens) is drawn to a canvas: no copyable
+text, no keyboard path, nothing for screen readers or a landing page to hang on.
+The fix is a thin DOM layer *around* the canvas (the renderer stays 100% canvas),
+built in phases — each phase lands and ships independently:
+
+- **Phase 0 (done):** `src/ui-dom.ts` bridge — a focusable (visually hidden) Play
+  button + an `aria-live` region the game announces into (run start, wave starts
+  with boss flags, boon offers, run results). No DOM access at import time, so the
+  headless sim bundle is untouched; a11y snapshots now read the page natively.
+- **Phase 1 (done):** shareable runs — a real end-screen card (over/victory,
+  non-demo runs) with the run summary as selectable text + Play Again / Main
+  Menu / Copy summary / Copy link buttons, and an in-run seed chip. `runSeed`
+  records the seed the RNG actually drew, so `?seed=N` links (kept as a product
+  param) replay any run exactly.
+- **Phase 2 (done):** keyboard + landing. A DOM menu button group (Play / How to
+  Play / Codex / Armory / Progress) with roving arrow-key focus, mirrored by a
+  gold focus ring on the canvas buttons; Escape closes open sub-panels, arrows
+  page the open panel's list, PageUp/PageDown switch its tabs. `?landing=1`
+  (product param, ships in production) plays the attract loop behind a visible
+  title + Play hero — the player can take over a fresh run mid-showcase.
+- **Phase 3 (open):** rebuild the static screens (end screens, help, codex,
+  armory, progress) as styled DOM — fully copyable, zoomable,
+  screen-reader-traversable, per-item keyboard selection. The in-game HUD, world
+  and boon cards stay canvas (the 60fps surface).
+- **Phase 4 (open):** landing-page polish once the site grows a real page
+  around the game (SEO meta, share cards, the hero becomes the page header).
+
+Known Phase-2 limitations (accepted, Phase 3 removes them): individual list
+items (relic rows, gear pieces, achievements) are still canvas-click-only —
+keyboard reaches the panels, tabs and pages, not the rows; the smith tab's
+Upgrade list keeps its own paging (arrows page the Recycle list).

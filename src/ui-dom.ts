@@ -1,19 +1,21 @@
 /**
- * DOM accessibility bridge (Phase 0+1 of the UI-debt work).
+ * DOM accessibility bridge (Phases 0-2 of the UI-debt work).
  *
  * The game draws everything to a canvas, so screen readers, keyboard
  * users, and any future landing-page chrome have nothing in the DOM to
  * grab onto. This module adds a thin DOM layer *around* the canvas:
  *
- *  - a visually-hidden but focusable <button> that starts a run (Tab to
- *    it, Enter to play) — the future landing page can reuse it as the
- *    real "Play" button;
+ *  - a visually-hidden but focusable menu button group (Play, How to
+ *    Play, Codex, Armory, Progress) with roving arrow-key focus — the
+ *    keyboard twin of the canvas menu, and the hook a landing page
+ *    reuses for its real "Play" button;
  *  - an aria-live region the game announces state changes into (wave
- *    starts, boon offers, run results);
+ *    starts, boon offers, run results, panel changes);
  *  - Phase 1: a real end-screen card (over/victory) with the run
  *    summary as selectable text plus Copy summary / Copy link (?seed=N)
- *    / Play again / Menu buttons, and a small in-run "copy seed" chip
- *    so a bug report can carry a reproducible link.
+ *    / Play again / Menu buttons, and a small in-run "copy seed" chip;
+ *  - Phase 2: a visible landing hero (?landing) — title + Play over
+ *    the attract loop.
  *
  * Browser-only by construction: main.ts calls initUiDom(); the module
  * itself touches no DOM at import time, so the headless sim's bundle
@@ -22,13 +24,22 @@
  */
 
 interface Bridge {
-  game: { screen: string; startRun: () => void; toMenu: () => void };
+  game: {
+    screen: string;
+    landing: boolean;
+    startRun: () => void;
+    toMenu: () => void;
+    landingPlay: () => void;
+    menuOpenPanel: (id: "help" | "codex" | "armory" | "progress") => void;
+    menuPanelOpen: () => "help" | "codex" | "armory" | "progress" | null;
+    setMenuFocus: (id: string | null) => void;
+  };
   live: HTMLElement;
+  nav: HTMLElement;
   playBtn: HTMLButtonElement;
-  /** End-screen card container (hidden unless a run just ended). */
   overlay: HTMLElement;
-  /** In-run "copy seed" chip (hidden unless a run is in progress). */
   chip: HTMLButtonElement;
+  hero: HTMLElement | null;
 }
 
 let bridge: Bridge | null = null;
@@ -136,6 +147,52 @@ const OVERLAY_CSS = `
   }
   #seed-chip[hidden] { display: none; }
   #seed-chip:focus-visible { outline: 2px solid #ffd24a; outline-offset: 1px; }
+  #landing-hero {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(4, 20, 26, 0.55);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    color: #eaf6ff;
+    text-align: center;
+    padding: 24px;
+  }
+  #landing-hero[hidden] { display: none; }
+  #landing-hero h1 {
+    margin: 0;
+    font-size: clamp(40px, 9vw, 64px);
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #ffd24a;
+  }
+  #landing-hero .lh-sub {
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 600;
+    color: #bfe6ef;
+  }
+  #landing-hero .lh-note {
+    font-size: 14px;
+    color: #8fb8c8;
+    max-width: 360px;
+    line-height: 1.5;
+  }
+  #landing-hero #landing-play {
+    margin-top: 14px;
+    padding: 14px 46px;
+    border-radius: 10px;
+    border: 2px solid #7a4d12;
+    background: #c98a2e;
+    color: #1a1206;
+    font: 800 22px "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+  }
+  #landing-hero #landing-play:hover { background: #e0a13a; }
+  #landing-hero #landing-play:focus-visible { outline: 3px solid #ffd24a; outline-offset: 3px; }
 `;
 
 /** Wire the DOM layer to a running game. Safe to call at most once. */
@@ -153,17 +210,78 @@ export function initUiDom(game: Bridge["game"]): void {
   live.setAttribute("aria-atomic", "true");
   document.body.appendChild(live);
 
-  const playBtn = document.createElement("button");
-  playBtn.type = "button";
-  playBtn.id = "a11y-play";
-  playBtn.className = "a11y-sr-only";
-  playBtn.textContent = "Play Tiny Siege";
-  playBtn.setAttribute("aria-label", "Start a new run");
-  // Only acts from the menu: tabbing to it mid-run must not restart the run.
-  playBtn.addEventListener("click", () => {
-    if (game.screen === "menu") game.startRun();
+  // Menu button group: the keyboard/screen-reader twin of the canvas
+  // menu. Visually hidden, but focusable — arrows rove between the
+  // buttons, Enter/Space (native button activation) triggers the same
+  // actions as the canvas buttons.
+  const nav = document.createElement("nav");
+  nav.id = "menu-nav";
+  nav.className = "a11y-sr-only";
+  nav.setAttribute("aria-label", "Main menu");
+  document.body.appendChild(nav);
+
+  const mkMenuBtn = (
+    id: string,
+    label: string,
+    aria: string,
+    act: () => void
+  ): HTMLButtonElement => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.id = id === "play" ? "a11y-play" : `menu-${id}`;
+    b.className = "a11y-sr-only";
+    b.textContent = label;
+    b.setAttribute("aria-label", aria);
+    b.addEventListener("click", act);
+    nav.appendChild(b);
+    return b;
+  };
+  const playBtn = mkMenuBtn("play", "Play Tiny Siege", "Start a new run", () => {
+    const g = bridge;
+    if (!g) return;
+    if (g.game.landing) g.game.landingPlay();
+    else if (g.game.screen === "menu") g.game.startRun();
   });
-  document.body.appendChild(playBtn);
+  mkMenuBtn("help", "How to Play", "Open How to Play", () => bridge?.game.menuOpenPanel("help"));
+  mkMenuBtn("codex", "The Codex", "Open The Codex", () => bridge?.game.menuOpenPanel("codex"));
+  mkMenuBtn("armory", "The Armory", "Open The Armory", () => bridge?.game.menuOpenPanel("armory"));
+  mkMenuBtn("progress", "Achievements and Missions", "Open Achievements and Missions", () =>
+    bridge?.game.menuOpenPanel("progress")
+  );
+
+  // Roving focus: arrows move between the menu buttons (top level only —
+  // while a sub-panel is open the arrows page it instead, so we let the
+  // key bubble to the game's handler).
+  nav.addEventListener("keydown", (e) => {
+    const g = bridge;
+    if (!g) return;
+    if (g.game.screen !== "menu" || g.game.landing || g.game.menuPanelOpen() !== null) return;
+    if (e.key !== "ArrowRight" && e.key !== "ArrowDown" && e.key !== "ArrowLeft" && e.key !== "ArrowUp") return;
+    const list = [...nav.querySelectorAll<HTMLButtonElement>("button")];
+    const i = list.indexOf(document.activeElement as HTMLButtonElement);
+    if (i === -1) return;
+    const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+    list[(i + dir + list.length) % list.length].focus();
+    e.preventDefault();
+  });
+
+  const focusIdOf = (el: Element | null): string | null => {
+    if (!el) return null;
+    if (el.id === "a11y-play") return "start";
+    if (el.id.startsWith("menu-")) return el.id.slice(5);
+    return null;
+  };
+  nav.addEventListener("focusin", () => {
+    const g = bridge;
+    if (g) g.game.setMenuFocus(focusIdOf(document.activeElement));
+  });
+  nav.addEventListener("focusout", (e) => {
+    const to = e.relatedTarget as Node | null;
+    if (!to || !nav.contains(to)) {
+      const g = bridge;
+      if (g) g.game.setMenuFocus(null);
+    }
+  });
 
   const overlay = document.createElement("div");
   overlay.id = "end-overlay";
@@ -176,7 +294,7 @@ export function initUiDom(game: Bridge["game"]): void {
   chip.hidden = true;
   document.body.appendChild(chip);
 
-  bridge = { game, live, playBtn, overlay, chip };
+  bridge = { game, live, nav, playBtn, overlay, chip, hero: null };
   uiAnnounce("Tiny Siege loaded. Press the Play button to start a new run.");
 }
 
@@ -323,6 +441,63 @@ function positionChip(): void {
   const chip = b.chip;
   chip.style.left = `${r.right - chip.offsetWidth - 8}px`;
   chip.style.top = `${r.top + 8}px`;
+}
+
+// ---------------------------------------------------------------- Phase 2
+
+/** Re-apply the focus ring from the current DOM focus (e.g. after a
+ *  sub-panel closes while its opener button still holds focus). */
+export function resyncMenuFocus(): void {
+  if (bridge === null) return;
+  const ae = document.activeElement;
+  if (ae instanceof HTMLButtonElement && ae.id === "a11y-play") {
+    bridge.game.setMenuFocus("start");
+  } else if (ae instanceof HTMLButtonElement && ae.id.startsWith("menu-")) {
+    bridge.game.setMenuFocus(ae.id.slice(5));
+  } else {
+    bridge.game.setMenuFocus(null);
+  }
+}
+
+/** Show the landing hero (?landing): title + Play over the attract loop. */
+export function showLandingHero(): void {
+  if (bridge === null) return;
+  if (!bridge.hero) {
+    const hero = document.createElement("div");
+    hero.id = "landing-hero";
+
+    const h1 = document.createElement("h1");
+    h1.textContent = "TINY SIEGE";
+    hero.appendChild(h1);
+
+    const sub = document.createElement("p");
+    sub.className = "lh-sub";
+    sub.textContent = "a tower-defense roguelite";
+    hero.appendChild(sub);
+
+    const note = document.createElement("p");
+    note.className = "lh-note";
+    note.textContent =
+      "The demo bot is playing behind this. Watch the run, or take the controls.";
+    hero.appendChild(note);
+
+    const play = document.createElement("button");
+    play.type = "button";
+    play.id = "landing-play";
+    play.textContent = "⚔  Play";
+    play.setAttribute("aria-label", "Start your own run");
+    play.addEventListener("click", () => bridge?.game.landingPlay());
+    hero.appendChild(play);
+
+    document.body.appendChild(hero);
+    bridge.hero = hero;
+  }
+  bridge.hero.hidden = false;
+  uiAnnounce("The demo is playing. Press Play to start your own run.");
+}
+
+export function hideLandingHero(): void {
+  if (bridge?.hero) bridge.hero.hidden = true;
 }
 
 async function copyText(text: string): Promise<boolean> {

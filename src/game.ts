@@ -74,6 +74,9 @@ import {
   hideEndScreen,
   showSeedChip,
   hideSeedChip,
+  showLandingHero,
+  hideLandingHero,
+  resyncMenuFocus,
   type EndScreenData,
 } from "./ui-dom";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
@@ -214,6 +217,9 @@ export class Game {
   // demo / attract mode (enabled via ?demo or ?start in the URL)
   demo = false;
   autoStart = false;
+  /** Landing-page mode (?landing, kept in production): the attract loop
+   *  plays behind a visible title + Play hero until the player takes over. */
+  landing = false;
   /** ?stage=N — start the island already grown to stage N (verification). */
   debugStage = 0;
   /** ?burn[=N] — archer arrows ignite (verification). */
@@ -302,6 +308,12 @@ export class Game {
     const seedParam = params.get("seed");
     if (seedParam && !Number.isNaN(parseInt(seedParam, 10))) this.rngSeed = parseInt(seedParam, 10);
     this.demo = params.has("demo");
+    // ?landing — landing-page mode: the attract loop plays behind a visible
+    // title + Play hero (a product param like ?demo; kept in production).
+    if (params.has("landing")) {
+      this.landing = true;
+      this.demo = true;
+    }
     // `import.meta.env` is undefined in the headless sim's plain-rolldown
     // bundle (no Vite define), so optional-chain through it.
     const dev = import.meta.env?.DEV ?? false;
@@ -461,8 +473,64 @@ export class Game {
           setTimeout(() => this.debugClick(cx, cy), 700);
         }
       }
-
     }
+
+    if (this.landing) showLandingHero();
+  }
+
+  // ------------------------------------------------- menu keyboard (Phase 2)
+
+  /** Which menu sub-panel is open (null = top-level menu). */
+  menuPanelOpen(): "help" | "codex" | "armory" | "progress" | null {
+    if (this._showHelp) return "help";
+    if (this._showCodex) return "codex";
+    if (this._showArmory) return "armory";
+    if (this._showProgress) return "progress";
+    return null;
+  }
+
+  /** Open a menu sub-panel from the DOM layer (mirrors the canvas buttons). */
+  menuOpenPanel(id: "help" | "codex" | "armory" | "progress"): void {
+    if (this.screen !== "menu") return;
+    // Mirrors the canvas routing: while a sub-panel is open, the top-level
+    // menu buttons are not reachable, so ignore further open requests.
+    if (this.menuPanelOpen() !== null) return;
+    this.hud.menuFocus = null;
+    this.hud.openPanel(this, id);
+    this.sfx("click");
+    const titles = {
+      help: "How to Play",
+      codex: "The Codex",
+      armory: "The Armory",
+      progress: "Achievements and Missions",
+    } as const;
+    uiAnnounce(`${titles[id]} opened. Arrows page, PageUp/PageDown switch tabs, Escape closes.`);
+  }
+
+  /** Close the open menu sub-panel (Escape / DOM). Resyncs the focus ring. */
+  closeMenuPanel(): void {
+    if (this.screen !== "menu" || this.menuPanelOpen() === null) return;
+    this.hud.closePanel(this);
+    this.sfx("click");
+    resyncMenuFocus();
+    uiAnnounce("Back to the menu.");
+  }
+
+  /** Focus-ring mirror from the DOM menu buttons (set by the a11y layer). */
+  setMenuFocus(id: string | null): void {
+    const ok =
+      this.screen === "menu" && !this.landing && this.menuPanelOpen() === null;
+    this.hud.menuFocus =
+      ok && (id === "start" || id === "help" || id === "codex" || id === "armory" || id === "progress") ? id : null;
+  }
+
+  /** Landing hero "Play": dismiss the hero and start a fresh human run. */
+  landingPlay(): void {
+    if (!this.landing) return;
+    this.landing = false;
+    hideLandingHero();
+    this.demo = false;
+    this.startRun();
   }
 
   /** Synthesize a pointer click at canvas coordinates (verification / dev tool). */
@@ -1566,6 +1634,29 @@ export class Game {
     if (this.input.key("Equal") && !this._ziKey) this.zoomStep(1);
     if (this.input.key("Minus") && !this._zoKey) this.zoomStep(-1);
     if (this.input.key("Escape") && !this._eKey) this.cancelAction();
+    // Menu keyboard controls (Phase 2): Escape closes an open sub-panel;
+    // arrow keys page its list; PageUp/PageDown switch its tabs.
+    if (this.screen === "menu" && this.menuPanelOpen() !== null) {
+      if (this.input.key("Escape") && !this._eKey) this.closeMenuPanel();
+      if (this.input.key("ArrowRight") && !this._arrowRKey) this.hud.panelPage(this, 1);
+      if (this.input.key("ArrowLeft") && !this._arrowLKey) this.hud.panelPage(this, -1);
+      if (this.input.key("ArrowDown") && !this._arrowDKey) this.hud.panelPage(this, 1);
+      if (this.input.key("ArrowUp") && !this._arrowUKey) this.hud.panelPage(this, -1);
+      if (this.input.key("PageDown") && !this._pgDnKey) {
+        const msg = this.hud.panelTab(this, 1);
+        if (msg) {
+          this.sfx("click");
+          uiAnnounce(msg);
+        }
+      }
+      if (this.input.key("PageUp") && !this._pgUpKey) {
+        const msg = this.hud.panelTab(this, -1);
+        if (msg) {
+          this.sfx("click");
+          uiAnnounce(msg);
+        }
+      }
+    }
     if (this.input.key("Space") && !this._spaceKey && this.screen === "game" && !this.paused && this.wavePhase === "build")
       this.startWave();
     const numMap: Record<string, TowerType> = {
@@ -1591,6 +1682,12 @@ export class Game {
     this._zoKey = this.input.key("Minus");
     this._eKey = this.input.key("Escape");
     this._spaceKey = this.input.key("Space");
+    this._arrowLKey = this.input.key("ArrowLeft");
+    this._arrowRKey = this.input.key("ArrowRight");
+    this._arrowUKey = this.input.key("ArrowUp");
+    this._arrowDKey = this.input.key("ArrowDown");
+    this._pgUpKey = this.input.key("PageUp");
+    this._pgDnKey = this.input.key("PageDown");
 
     // Right-click cancels the current action. Its own gate — the left-click
     // gate below would return early and swallow a lone right press.
@@ -1640,6 +1737,12 @@ export class Game {
   _spaceKey = false;
   _ziKey = false;
   _zoKey = false;
+  _arrowLKey = false;
+  _arrowRKey = false;
+  _arrowUKey = false;
+  _arrowDKey = false;
+  _pgUpKey = false;
+  _pgDnKey = false;
   _numKeys: Record<string, boolean> = {};
 
   private worldInteract(x: number, y: number): void {
@@ -1760,6 +1863,7 @@ export class Game {
     flushPersist(); // settle any pending rune/crate/stat writes before the menu
     hideEndScreen();
     hideSeedChip();
+    hideLandingHero();
     uiAnnounce("Back to the menu.");
     this.audio.music("forest");
     this.sfx("click");
@@ -2327,6 +2431,7 @@ export class Game {
     cancelAnimationFrame(this.raf);
     hideEndScreen();
     hideSeedChip();
+    hideLandingHero();
     this.input.destroy();
   }
 }

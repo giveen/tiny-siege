@@ -88,6 +88,8 @@ export class Hud {
   private armoryPage = 0;
   /** Public: the ?smith debug param jumps straight to the Blacksmith tab. */
   armoryTab: "vault" | "smith" = "vault";
+  /** Top-level menu button to draw a focus ring around (DOM keyboard focus). */
+  menuFocus: "start" | "help" | "codex" | "armory" | "progress" | null = null;
   private smithPageRecycle = 0;
   private smithPageUpgrade = 0;
   /** Last opened Supply Crate, shown in a reveal overlay until dismissed. */
@@ -1363,6 +1365,25 @@ export class Hud {
       ctx.restore();
     }
 
+    // Keyboard focus ring: mirrors DOM focus on the menu-nav buttons
+    // (Phase 2). Suppressed while a sub-panel or the landing hero is up.
+    if (
+      this.menuFocus &&
+      !game._showHelp &&
+      !game._showCodex &&
+      !game._showArmory &&
+      !game._showProgress &&
+      !game.landing
+    ) {
+      const fr = r[this.menuFocus];
+      ctx.save();
+      ctx.strokeStyle = "#ffd24a";
+      ctx.lineWidth = 3;
+      this.roundRect(ctx, { x: fr.x - 6, y: fr.y - 6, w: fr.w + 12, h: fr.h + 12 } as Rect, 12);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // best
     ctx.save();
     ctx.textAlign = "center";
@@ -1471,6 +1492,90 @@ export class Hud {
       this.progressAchPage = 0;
       game.sfx("click");
     }
+  }
+
+  // ------------------------------------------------- menu keyboard (Phase 2)
+
+  /** Open a menu sub-panel. Mirrors handleMenuClick's open branches so the
+   *  DOM/keyboard entry points behave exactly like canvas clicks. */
+  openPanel(game: Game, id: "help" | "codex" | "armory" | "progress"): void {
+    if (id === "help") {
+      game._showHelp = true;
+    } else if (id === "codex") {
+      game._showCodex = true;
+    } else if (id === "armory") {
+      game._showArmory = true;
+      this.selectedGearUid = null;
+      this.armoryPage = 0;
+      this.armoryTab = "vault";
+      this.smithPageRecycle = 0;
+      this.smithPageUpgrade = 0;
+    } else {
+      game._showProgress = true;
+      this.progressTab = "ach";
+      this.progressAchPage = 0;
+    }
+  }
+
+  /** Close whichever menu sub-panel is open (Escape / DOM "close"). */
+  closePanel(game: Game): void {
+    if (game._showHelp) {
+      game._showHelp = false;
+    } else if (game._showCodex) {
+      game._showCodex = false;
+    } else if (game._showArmory) {
+      game._showArmory = false;
+      this.selectedGearUid = null;
+      this.crateReveal = null;
+    } else if (game._showProgress) {
+      game._showProgress = false;
+    }
+  }
+
+  /** Page the open panel's primary list (arrow keys). No-op where the panel
+   *  has no paging (help, codex, or a non-achievements progress tab). */
+  panelPage(game: Game, dir: 1 | -1): void {
+    if (game._showArmory) {
+      const L = this.armoryLayout(game);
+      if (this.armoryTab === "smith") {
+        // Arrows page the Recycle list; the Upgrade list keeps its own paging.
+        this.smithPageRecycle = Math.min(L.rPages - 1, Math.max(0, this.smithPageRecycle + dir));
+      } else {
+        this.armoryPage = Math.min(L.pages - 1, Math.max(0, this.armoryPage + dir));
+      }
+    } else if (game._showProgress && this.progressTab === "ach") {
+      const L = this.progressLayout(game);
+      this.progressAchPage = Math.min(L.achPages - 1, Math.max(0, this.progressAchPage + dir));
+    }
+  }
+
+  /** Cycle the open panel's tabs (PageUp/PageDown). Returns an announceable
+   *  message when the tab changed, else null. */
+  panelTab(game: Game, dir: 1 | -1): string | null {
+    if (game._showArmory) {
+      const next = this.armoryTab === "vault" ? (dir > 0 ? "smith" : "vault") : dir > 0 ? "vault" : "smith";
+      if (next === this.armoryTab) return null;
+      this.armoryTab = next;
+      this.selectedGearUid = null;
+      this.crateReveal = null;
+      return next === "vault" ? "Armory: Vault tab" : "Armory: Blacksmith tab";
+    }
+    if (game._showProgress) {
+      const order: { id: ProgressTab; label: string }[] = [
+        { id: "ach", label: "Achievements" },
+        { id: "daily", label: "Daily" },
+        { id: "weekly", label: "Weekly" },
+        { id: "bounty", label: "Bounty" },
+        { id: "rewards", label: "Rewards" },
+      ];
+      const i = order.findIndex((t) => t.id === this.progressTab);
+      const n = order[(i + dir + order.length) % order.length];
+      if (n.id === this.progressTab) return null;
+      this.progressTab = n.id;
+      this.progressAchPage = 0;
+      return `${n.label} tab`;
+    }
+    return null;
   }
 
   private overRects() {
