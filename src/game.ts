@@ -95,6 +95,7 @@ import {
   ROWS,
   START_GOLD,
   START_CASTLE_HP,
+  CASTLE_REGEN_PCT,
   SPOT_MOVE_COST,
   WAVE_CLEAR_GOLD,
   KILL_GOLD_BASE,
@@ -936,6 +937,12 @@ export class Game {
     // Menders relic: patch the castle up after every wave.
     const mend = metaCastleRegen(relicLevel(this.meta, "menders"));
     if (mend > 0) this.healCastle(mend);
+    // Base castle mending (no relic needed): a small rampart repair after
+    // every wave so early leaks don't ratchet a fresh run into a death
+    // spiral. Stacks under the Menders relic; negligible vs late-wave leaks.
+    const baseMend = Math.round(this.castle.maxHp * CASTLE_REGEN_PCT);
+    const mended = this.healCastle(baseMend);
+    if (mended > 0) this.addText(this.castle.x, this.castle.y - 60, `+${mended} castle`, "#8fd0ff");
 
     bumpStat(this.progress, "wavesCleared");
 

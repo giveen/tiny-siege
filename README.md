@@ -113,12 +113,24 @@ finished run the harness drives the real `frame()` — the browser's RAF path, i
 rendering against the stub canvas — and confirms the demo auto-restarts in ~4s).
 Re-run it after touching any tuning constant in `src/config.ts`, and diff the JSON.
 
-**Current baseline** (50 seeds, fresh player): 100% of runs die before the Siege — the
-wall sits on the wave 5 / wave 10 boss waves (median death wave 10, p90 11, best 15),
-with the castle already at ~46% HP by wave 10 start and nothing to recover it. Pre-leveled
-relics (level 3+) remove all pre-Siege deaths and keep the castle at full health through
-wave 40 — the meta layer is currently *rescuing* a base curve that is too hard for a
-first-time player.
+**Current baseline** (50 seeds, fresh player): 88% of runs die before the Siege. An
+early tuning pass removed the wave 5 / wave 10 walls (they were a death spiral: leaks
+never healed, and armored heavies arrived before any armor counter existed). The levers,
+all validated with this sim:
+
+- castle starts at 125 HP and mends 5% of max after every cleared wave
+  (`START_CASTLE_HP`, `CASTLE_REGEN_PCT`) — early leaks stop ratcheting into a death spiral
+- boss armor pools 5 → 3 tiers, and the armored heavy families (junkyard, shell) unlock
+  only from waves 7 / 10, after armor counters become reachable
+- from wave 10 on (when armor pools appear), the boon offer is guaranteed to include an
+  armor-counter unlock (lancer/ballista) if the player has none yet
+
+The remaining base-curve wall is the **wave 15 boss** (median death wave 15, p90 20,
+best 22); the castle holds ~70% at wave 15/20 start thanks to the mending. Pre-leveled
+relics (level 3) remove **all** pre-Siege deaths (0/50, castle at 100% through the
+sim's 30-minute cap) — the meta layer still does the rescuing, exactly as intended:
+a fresh player now gets a fair 10+ minute first run and learns that relics are what
+carry a run past the wave 15 boss.
 
 ## Asset pipeline
 

@@ -12,15 +12,15 @@
   "results": [
     {
       "seed": 7,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 382.9666666667557,
-      "kills": 101,
-      "boonsChosen": 9,
-      "towersAtEnd": 7,
-      "castleHpPctAtEnd": -0.32571428571428573,
+      "simSeconds": 909.1999999998304,
+      "kills": 205,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.13194444444444445,
       "samples": [
         {
           "wave": 1,
@@ -36,66 +36,96 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.66,
+          "castleHpPct": 0.776,
           "gold": 0,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.7217391304347827,
+          "castleHpPct": 0.824,
           "gold": 16,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.6212121212121212,
+          "castleHpPct": 0.7638888888888888,
           "gold": 4,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.21710526315789475,
-          "gold": 13,
+          "castleHpPct": 0.3125,
+          "gold": 0,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.33714285714285713,
-          "gold": 2,
-          "towers": 5
+          "castleHpPct": 0.3611111111111111,
+          "gold": 5,
+          "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.33714285714285713,
-          "gold": 2,
-          "towers": 6
+          "castleHpPct": 0.6527777777777778,
+          "gold": 4,
+          "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.33714285714285713,
-          "gold": 9,
+          "castleHpPct": 0.7013888888888888,
+          "gold": 22,
           "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.15428571428571428,
-          "gold": 1,
+          "castleHpPct": 0.5833333333333334,
+          "gold": 3,
           "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.04861111111111111,
+          "gold": 22,
+          "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.09722222222222222,
+          "gold": 22,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.14583333333333334,
+          "gold": 20,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.4375,
+          "gold": 22,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.4861111111111111,
+          "gold": 22,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 8,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 499.43333333351507,
-      "kills": 106,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.43,
+      "simSeconds": 1035.999999999715,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 15,
+      "castleHpPctAtEnd": -0.024096385542168676,
       "samples": [
         {
           "wave": 1,
@@ -129,48 +159,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.06,
-          "gold": 0,
+          "castleHpPct": 0.296,
+          "gold": 1,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.06,
-          "gold": 18,
+          "castleHpPct": 0.344,
+          "gold": 6,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.06,
-          "gold": 5,
+          "castleHpPct": 0.392,
+          "gold": 9,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.41,
-          "gold": 12,
+          "castleHpPct": 0.44,
+          "gold": 6,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.41,
-          "gold": 6,
+          "castleHpPct": 0.768,
+          "gold": 20,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.144,
+          "gold": 5,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.3194444444444444,
+          "gold": 15,
+          "towers": 11
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.3680555555555556,
+          "gold": 11,
+          "towers": 12
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.4166666666666667,
+          "gold": 7,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.5542168674698795,
+          "gold": 2,
+          "towers": 15
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 9,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 594.3333333334501,
-      "kills": 108,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.21,
+      "simSeconds": 1163.1333333329328,
+      "kills": 209,
+      "boonsChosen": 14,
+      "towersAtEnd": 14,
+      "castleHpPctAtEnd": -0.4436111111111112,
       "samples": [
         {
           "wave": 1,
@@ -204,48 +264,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 20,
+          "castleHpPct": 0.472,
+          "gold": 11,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.63,
-          "gold": 6,
+          "castleHpPct": 0.8,
+          "gold": 4,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.63,
-          "gold": 6,
+          "castleHpPct": 0.848,
+          "gold": 22,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.63,
-          "gold": 20,
+          "castleHpPct": 0.896,
+          "gold": 21,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.63,
-          "gold": 10,
+          "castleHpPct": 0.944,
+          "gold": 15,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.40064,
+          "gold": 15,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.44864,
+          "gold": 7,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.5838888888888889,
+          "gold": 1,
+          "towers": 12
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.6325,
+          "gold": 9,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.6811111111111111,
+          "gold": 23,
+          "towers": 14
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 10,
-      "finalWave": 10,
-      "ended": "died",
+      "finalWave": 20,
+      "ended": "cap",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 522.3000000001823,
-      "kills": 106,
-      "boonsChosen": 9,
-      "towersAtEnd": 7,
-      "castleHpPctAtEnd": -0.030303030303030304,
+      "simSeconds": 1800.0333333323535,
+      "kills": 321,
+      "boonsChosen": 19,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": 0.9328,
       "samples": [
         {
           "wave": 1,
@@ -267,60 +357,120 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.8,
+          "castleHpPct": 0.888,
           "gold": 10,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.8,
+          "castleHpPct": 0.936,
           "gold": 12,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.21739130434782608,
-          "gold": 2,
+          "castleHpPct": 0.688,
+          "gold": 0,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.5217391304347826,
-          "gold": 1,
+          "castleHpPct": 0.736,
+          "gold": 3,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.5217391304347826,
-          "gold": 2,
+          "castleHpPct": 0.784,
+          "gold": 21,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.6060606060606061,
-          "gold": 3,
-          "towers": 6
+          "castleHpPct": 0.832,
+          "gold": 0,
+          "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.6060606060606061,
-          "gold": 17,
-          "towers": 7
+          "castleHpPct": 0.88,
+          "gold": 2,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.33664,
+          "gold": 3,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.38464,
+          "gold": 0,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.7126399999999999,
+          "gold": 2,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.76064,
+          "gold": 21,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.80864,
+          "gold": 10,
+          "towers": 13
+        },
+        {
+          "wave": 16,
+          "castleHpPct": 0.46079999999999993,
+          "gold": 24,
+          "towers": 13
+        },
+        {
+          "wave": 17,
+          "castleHpPct": 0.5087999999999999,
+          "gold": 32,
+          "towers": 13
+        },
+        {
+          "wave": 18,
+          "castleHpPct": 0.8368,
+          "gold": 22,
+          "towers": 13
+        },
+        {
+          "wave": 19,
+          "castleHpPct": 0.8847999999999999,
+          "gold": 3,
+          "towers": 13
+        },
+        {
+          "wave": 20,
+          "castleHpPct": 0.9328,
+          "gold": 15,
+          "towers": 13
         }
       ],
-      "restartMs": 4000
+      "restartMs": -1
     },
     {
       "seed": 11,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 451.1333333334766,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.81,
+      "simSeconds": 935.9333333331394,
+      "kills": 210,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.2152777777777778,
       "samples": [
         {
           "wave": 1,
@@ -354,33 +504,63 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 7,
+          "castleHpPct": 0.472,
+          "gold": 11,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.28,
-          "gold": 22,
+          "castleHpPct": 0.52,
+          "gold": 7,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.28,
-          "gold": 5,
+          "castleHpPct": 0.6458333333333334,
+          "gold": 2,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.28,
-          "gold": 4,
+          "castleHpPct": 0.6944444444444444,
+          "gold": 3,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.28,
-          "gold": 13,
+          "castleHpPct": 0.7430555555555556,
+          "gold": 22,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.20833333333333334,
+          "gold": 5,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.2569444444444444,
+          "gold": 6,
+          "towers": 11
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.3055555555555556,
+          "gold": 2,
+          "towers": 12
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.3541666666666667,
+          "gold": 1,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.4027777777777778,
+          "gold": 21,
+          "towers": 13
         }
       ],
       "restartMs": 4000
@@ -392,10 +572,10 @@
       "reachedSiege": false,
       "endlessDepth": 0,
       "simSeconds": 114.99999999999604,
-      "kills": 35,
+      "kills": 33,
       "boonsChosen": 4,
       "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.34,
+      "castleHpPctAtEnd": -0.168,
       "samples": [
         {
           "wave": 1,
@@ -417,13 +597,13 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.8,
+          "castleHpPct": 0.888,
           "gold": 14,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.38,
+          "castleHpPct": 0.6,
           "gold": 0,
           "towers": 4
         }
@@ -432,15 +612,15 @@
     },
     {
       "seed": 13,
-      "finalWave": 5,
+      "finalWave": 10,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 118.59999999999583,
-      "kills": 34,
-      "boonsChosen": 4,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.4172,
+      "simSeconds": 484.9666666668369,
+      "kills": 104,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.013120000000000005,
       "samples": [
         {
           "wave": 1,
@@ -456,36 +636,66 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 2,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.41,
+          "castleHpPct": 0.624,
           "gold": 11,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.41,
+          "castleHpPct": 0.672,
           "gold": 8,
           "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.05824000000000001,
+          "gold": 20,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.38624,
+          "gold": 4,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.43424,
+          "gold": 6,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.48224,
+          "gold": 22,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.53024,
+          "gold": 7,
+          "towers": 8
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 14,
-      "finalWave": 6,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 154.36666666666048,
-      "kills": 49,
-      "boonsChosen": 5,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.15,
+      "simSeconds": 960.8333333331168,
+      "kills": 207,
+      "boonsChosen": 14,
+      "towersAtEnd": 14,
+      "castleHpPctAtEnd": -0.21710843373493988,
       "samples": [
         {
           "wave": 1,
@@ -513,30 +723,84 @@
         },
         {
           "wave": 5,
-          "castleHpPct": 0.79,
+          "castleHpPct": 0.88,
           "gold": 7,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.07,
-          "gold": 9,
+          "castleHpPct": 0.352,
+          "gold": 4,
           "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.4,
+          "gold": 21,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.448,
+          "gold": 9,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.496,
+          "gold": 21,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.625,
+          "gold": 20,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.23027777777777775,
+          "gold": 13,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.27888888888888885,
+          "gold": 21,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.43469879518072285,
+          "gold": 11,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.48289156626506025,
+          "gold": 4,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.6137349397590361,
+          "gold": 21,
+          "towers": 14
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 15,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 519.9666666668511,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.2878787878787879,
+      "simSeconds": 992.9333333330876,
+      "kills": 207,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.3132530120481928,
       "samples": [
         {
           "wave": 1,
@@ -552,66 +816,96 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 0,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 14,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.992,
           "gold": 13,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.09,
-          "gold": 22,
+          "castleHpPct": 0.568,
+          "gold": 20,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.09,
-          "gold": 18,
+          "castleHpPct": 0.616,
+          "gold": 21,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.22608695652173913,
-          "gold": 4,
+          "castleHpPct": 0.7291666666666666,
+          "gold": 0,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.3484848484848485,
-          "gold": 18,
+          "castleHpPct": 0.7777777777777778,
+          "gold": 21,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.3484848484848485,
-          "gold": 5,
+          "castleHpPct": 0.8263888888888888,
+          "gold": 1,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.2916666666666667,
+          "gold": 1,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.3402777777777778,
+          "gold": 14,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.4879518072289157,
+          "gold": 0,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.536144578313253,
+          "gold": 11,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.7951807228915663,
+          "gold": 2,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 16,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 515.0333333335223,
-      "kills": 106,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.47,
+      "simSeconds": 1182.1999999995821,
+      "kills": 205,
+      "boonsChosen": 14,
+      "towersAtEnd": 14,
+      "castleHpPctAtEnd": -0.28,
       "samples": [
         {
           "wave": 1,
@@ -627,66 +921,96 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 0,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 18,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.74,
+          "castleHpPct": 0.936,
           "gold": 16,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.02,
-          "gold": 9,
+          "castleHpPct": 0.408,
+          "gold": 2,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.02,
-          "gold": 2,
+          "castleHpPct": 0.688,
+          "gold": 20,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.37,
+          "castleHpPct": 0.736,
           "gold": 0,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.37,
-          "gold": 15,
+          "castleHpPct": 0.784,
+          "gold": 7,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.37,
-          "gold": 0,
+          "castleHpPct": 0.64,
+          "gold": 20,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.016,
+          "gold": 15,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.064,
+          "gold": 0,
+          "towers": 11
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.112,
+          "gold": 20,
+          "towers": 12
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.16,
+          "gold": 20,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.488,
+          "gold": 8,
+          "towers": 14
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 17,
-      "finalWave": 10,
-      "ended": "died",
+      "finalWave": 20,
+      "ended": "cap",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 464.96666666682097,
-      "kills": 105,
-      "boonsChosen": 9,
-      "towersAtEnd": 7,
-      "castleHpPctAtEnd": -0.68,
+      "simSeconds": 1800.0333333323535,
+      "kills": 340,
+      "boonsChosen": 19,
+      "towersAtEnd": 17,
+      "castleHpPctAtEnd": 0.6626506024096386,
       "samples": [
         {
           "wave": 1,
@@ -720,48 +1044,108 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.63,
-          "gold": 4,
+          "castleHpPct": 0.296,
+          "gold": 2,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.63,
-          "gold": 13,
+          "castleHpPct": 0.344,
+          "gold": 9,
           "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.4,
-          "gold": 17,
+          "castleHpPct": 0.392,
+          "gold": 1,
           "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.16,
-          "gold": 2,
+          "castleHpPct": 0.5347222222222222,
+          "gold": 3,
           "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.16,
+          "castleHpPct": 0.5833333333333334,
           "gold": 0,
           "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.04861111111111111,
+          "gold": 22,
+          "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.09722222222222222,
+          "gold": 29,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.3888888888888889,
+          "gold": 12,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.5301204819277109,
+          "gold": 20,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.5783132530120482,
+          "gold": 31,
+          "towers": 13
+        },
+        {
+          "wave": 16,
+          "castleHpPct": 0.04819277108433735,
+          "gold": 14,
+          "towers": 15
+        },
+        {
+          "wave": 17,
+          "castleHpPct": 0.3072289156626506,
+          "gold": 12,
+          "towers": 16
+        },
+        {
+          "wave": 18,
+          "castleHpPct": 0.5662650602409639,
+          "gold": 2,
+          "towers": 17
+        },
+        {
+          "wave": 19,
+          "castleHpPct": 0.6144578313253012,
+          "gold": 2,
+          "towers": 17
+        },
+        {
+          "wave": 20,
+          "castleHpPct": 0.6626506024096386,
+          "gold": 2,
+          "towers": 17
         }
       ],
-      "restartMs": 4000
+      "restartMs": -1
     },
     {
       "seed": 18,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 499.4666666668484,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.2,
+      "simSeconds": 1201.3666666662314,
+      "kills": 206,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.3191666666666667,
       "samples": [
         {
           "wave": 1,
@@ -777,66 +1161,96 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 4,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 22,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.992,
           "gold": 15,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.44,
-          "gold": 3,
+          "castleHpPct": 0.744,
+          "gold": 5,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.5304347826086957,
-          "gold": 1,
-          "towers": 5
+          "castleHpPct": 0.616,
+          "gold": 3,
+          "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.5304347826086957,
-          "gold": 7,
-          "towers": 6
+          "castleHpPct": 0.7291666666666666,
+          "gold": 2,
+          "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.5304347826086957,
-          "gold": 18,
-          "towers": 7
+          "castleHpPct": 0.6111111111111112,
+          "gold": 21,
+          "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.5304347826086957,
-          "gold": 20,
+          "castleHpPct": 0.6597222222222222,
+          "gold": 6,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.125,
+          "gold": 9,
           "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.1736111111111111,
+          "gold": 8,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.4652777777777778,
+          "gold": 37,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.5138888888888888,
+          "gold": 23,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.8055555555555556,
+          "gold": 26,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 19,
-      "finalWave": 13,
-      "ended": "died",
+      "finalWave": 21,
+      "ended": "cap",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 708.1666666666799,
-      "kills": 159,
-      "boonsChosen": 12,
-      "towersAtEnd": 11,
-      "castleHpPctAtEnd": -0.10636363636363634,
+      "simSeconds": 1800.0333333323535,
+      "kills": 367,
+      "boonsChosen": 20,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": 0.43472727272727274,
       "samples": [
         {
           "wave": 1,
@@ -870,66 +1284,114 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.46643478260869564,
-          "gold": 3,
+          "castleHpPct": 0.38624,
+          "gold": 1,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.6024347826086957,
-          "gold": 2,
+          "castleHpPct": 0.3952777777777778,
+          "gold": 1,
           "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.6024347826086957,
-          "gold": 7,
+          "castleHpPct": 0.5356626506024097,
+          "gold": 15,
           "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.9067826086956522,
-          "gold": 4,
+          "castleHpPct": 0.7310843373493976,
+          "gold": 3,
           "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.768,
-          "gold": 0,
+          "castleHpPct": 0.8291099476439792,
+          "gold": 42,
           "towers": 7
         },
         {
           "wave": 11,
-          "castleHpPct": 0.336969696969697,
-          "gold": 24,
+          "castleHpPct": 0.49445026178010476,
+          "gold": 0,
           "towers": 8
         },
         {
           "wave": 12,
-          "castleHpPct": 0.04909090909090911,
-          "gold": 7,
+          "castleHpPct": 0.7300523560209424,
+          "gold": 8,
           "towers": 9
         },
         {
           "wave": 13,
-          "castleHpPct": 0.04909090909090911,
-          "gold": 35,
+          "castleHpPct": 0.8412565445026179,
+          "gold": 5,
           "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.8936125654450262,
+          "gold": 8,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.9459685863874346,
+          "gold": 16,
+          "towers": 13
+        },
+        {
+          "wave": 16,
+          "castleHpPct": 0.2969633507853403,
+          "gold": 28,
+          "towers": 13
+        },
+        {
+          "wave": 17,
+          "castleHpPct": 0.3493193717277487,
+          "gold": 25,
+          "towers": 13
+        },
+        {
+          "wave": 18,
+          "castleHpPct": 0.49872727272727274,
+          "gold": 1,
+          "towers": 13
+        },
+        {
+          "wave": 19,
+          "castleHpPct": 0.5487272727272727,
+          "gold": 5,
+          "towers": 13
+        },
+        {
+          "wave": 20,
+          "castleHpPct": 0.5987272727272728,
+          "gold": 17,
+          "towers": 13
+        },
+        {
+          "wave": 21,
+          "castleHpPct": 0.43472727272727274,
+          "gold": 25,
+          "towers": 13
         }
       ],
-      "restartMs": 4000
+      "restartMs": -1
     },
     {
       "seed": 20,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 565.6000000001429,
-      "kills": 103,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.007575757575757576,
+      "simSeconds": 1274.266666666165,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 14,
+      "castleHpPctAtEnd": -0.4457831325301205,
       "samples": [
         {
           "wave": 1,
@@ -951,45 +1413,75 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.8,
+          "castleHpPct": 0.888,
           "gold": 10,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.8,
+          "castleHpPct": 0.936,
           "gold": 17,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.43,
-          "gold": 20,
+          "castleHpPct": 0.408,
+          "gold": 8,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.23,
-          "gold": 10,
+          "castleHpPct": 0.456,
+          "gold": 15,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.34782608695652173,
-          "gold": 3,
+          "castleHpPct": 0.504,
+          "gold": 2,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.36363636363636365,
-          "gold": 21,
+          "castleHpPct": 0.6319444444444444,
+          "gold": 10,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.6287878787878788,
-          "gold": 4,
+          "castleHpPct": 0.6805555555555556,
+          "gold": 10,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.14583333333333334,
+          "gold": 21,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.19444444444444445,
+          "gold": 15,
+          "towers": 11
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.4861111111111111,
+          "gold": 16,
+          "towers": 12
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.6144578313253012,
+          "gold": 8,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.6626506024096386,
+          "gold": 21,
+          "towers": 14
         }
       ],
       "restartMs": 4000
@@ -1000,11 +1492,11 @@
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 472.4000000001602,
-      "kills": 105,
+      "simSeconds": 444.46666666680466,
+      "kills": 102,
       "boonsChosen": 9,
       "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.47,
+      "castleHpPctAtEnd": -0.030120481927710843,
       "samples": [
         {
           "wave": 1,
@@ -1020,50 +1512,50 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 4,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 16,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.74,
+          "castleHpPct": 0.936,
           "gold": 1,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.02,
-          "gold": 7,
+          "castleHpPct": 0.408,
+          "gold": 0,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.37,
-          "gold": 7,
+          "castleHpPct": 0.5486111111111112,
+          "gold": 0,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.37,
-          "gold": 6,
+          "castleHpPct": 0.4375,
+          "gold": 5,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.37,
-          "gold": 7,
+          "castleHpPct": 0.572289156626506,
+          "gold": 2,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.37,
-          "gold": 26,
+          "castleHpPct": 0.4759036144578313,
+          "gold": 0,
           "towers": 8
         }
       ],
@@ -1071,15 +1563,15 @@
     },
     {
       "seed": 22,
-      "finalWave": 15,
+      "finalWave": 13,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 1132.566666666294,
-      "kills": 206,
-      "boonsChosen": 14,
-      "towersAtEnd": 13,
-      "castleHpPctAtEnd": -0.4945454545454547,
+      "simSeconds": 811.0999999999196,
+      "kills": 164,
+      "boonsChosen": 12,
+      "towersAtEnd": 11,
+      "castleHpPctAtEnd": -0.025555555555555554,
       "samples": [
         {
           "wave": 1,
@@ -1095,96 +1587,84 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 3,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 18,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.95,
+          "castleHpPct": 0.824,
           "gold": 17,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.58,
-          "gold": 13,
+          "castleHpPct": 0.36512,
+          "gold": 6,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.58,
-          "gold": 5,
-          "towers": 5
+          "castleHpPct": 0.41312,
+          "gold": 21,
+          "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.93,
-          "gold": 5,
-          "towers": 6
+          "castleHpPct": 0.46112000000000003,
+          "gold": 7,
+          "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.93,
-          "gold": 17,
-          "towers": 7
+          "castleHpPct": 0.5947222222222223,
+          "gold": 16,
+          "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.93,
-          "gold": 7,
-          "towers": 8
+          "castleHpPct": 0.6433333333333333,
+          "gold": 1,
+          "towers": 7
         },
         {
           "wave": 11,
-          "castleHpPct": 0.29159999999999997,
-          "gold": 14,
-          "towers": 9
+          "castleHpPct": 0.1786111111111111,
+          "gold": 22,
+          "towers": 8
         },
         {
           "wave": 12,
-          "castleHpPct": 0.6416,
-          "gold": 0,
-          "towers": 10
+          "castleHpPct": 0.06833333333333333,
+          "gold": 8,
+          "towers": 9
         },
         {
           "wave": 13,
-          "castleHpPct": 0.7057391304347825,
-          "gold": 34,
+          "castleHpPct": 0.11694444444444445,
+          "gold": 16,
           "towers": 11
-        },
-        {
-          "wave": 14,
-          "castleHpPct": 0.610909090909091,
-          "gold": 23,
-          "towers": 12
-        },
-        {
-          "wave": 15,
-          "castleHpPct": 0.610909090909091,
-          "gold": 34,
-          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 23,
-      "finalWave": 5,
+      "finalWave": 10,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 94.73333333333052,
-      "kills": 36,
-      "boonsChosen": 4,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.11,
+      "simSeconds": 368.633333333411,
+      "kills": 104,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.27072,
       "samples": [
         {
           "wave": 1,
@@ -1200,36 +1680,66 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 2,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.61,
+          "castleHpPct": 0.784,
           "gold": 11,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.61,
+          "castleHpPct": 0.832,
           "gold": 5,
           "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.304,
+          "gold": 16,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.352,
+          "gold": 6,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.4,
+          "gold": 14,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.448,
+          "gold": 4,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.496,
+          "gold": 13,
+          "towers": 8
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 24,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 544.2000000001624,
-      "kills": 106,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.7043478260869566,
+      "simSeconds": 1115.2333333329764,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.51968,
       "samples": [
         {
           "wave": 1,
@@ -1245,66 +1755,96 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 2,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 22,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.992,
           "gold": 15,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.22608695652173913,
-          "gold": 2,
+          "castleHpPct": 0.464,
+          "gold": 4,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.22608695652173913,
-          "gold": 22,
-          "towers": 5
+          "castleHpPct": 0.792,
+          "gold": 0,
+          "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.02608695652173913,
-          "gold": 1,
-          "towers": 6
+          "castleHpPct": 0.84,
+          "gold": 0,
+          "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.02608695652173913,
-          "gold": 11,
-          "towers": 7
+          "castleHpPct": 0.888,
+          "gold": 12,
+          "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.02608695652173913,
-          "gold": 2,
+          "castleHpPct": 0.936,
+          "gold": 17,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.312,
+          "gold": 17,
           "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.36,
+          "gold": 8,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.408,
+          "gold": 20,
+          "towers": 10
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.456,
+          "gold": 20,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.784,
+          "gold": 2,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 25,
-      "finalWave": 5,
+      "finalWave": 7,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 109.39999999999635,
-      "kills": 35,
-      "boonsChosen": 4,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.1,
+      "simSeconds": 240.56666666665558,
+      "kills": 61,
+      "boonsChosen": 6,
+      "towersAtEnd": 5,
+      "castleHpPctAtEnd": -0.024,
       "samples": [
         {
           "wave": 1,
@@ -1335,21 +1875,33 @@
           "castleHpPct": 1,
           "gold": 12,
           "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.296,
+          "gold": 19,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.344,
+          "gold": 7,
+          "towers": 5
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 26,
-      "finalWave": 5,
+      "finalWave": 10,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 107.9666666666631,
-      "kills": 36,
-      "boonsChosen": 4,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.1,
+      "simSeconds": 458.1333333334822,
+      "kills": 105,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.296,
       "samples": [
         {
           "wave": 1,
@@ -1365,36 +1917,66 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.62,
+          "castleHpPct": 0.744,
           "gold": 7,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.62,
+          "castleHpPct": 0.792,
           "gold": 1,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.62,
+          "castleHpPct": 0.84,
           "gold": 11,
           "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.312,
+          "gold": 21,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.184,
+          "gold": 14,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.232,
+          "gold": 3,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.28,
+          "gold": 15,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.328,
+          "gold": 7,
+          "towers": 8
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 27,
-      "finalWave": 5,
+      "finalWave": 10,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 137.36666666666144,
-      "kills": 35,
-      "boonsChosen": 4,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.13043478260869565,
+      "simSeconds": 429.6666666667929,
+      "kills": 104,
+      "boonsChosen": 9,
+      "towersAtEnd": 8,
+      "castleHpPctAtEnd": -0.020833333333333332,
       "samples": [
         {
           "wave": 1,
@@ -1416,30 +1998,60 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.4,
+          "castleHpPct": 0.568,
           "gold": 4,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.4956521739130435,
+          "castleHpPct": 0.6875,
           "gold": 9,
           "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.2361111111111111,
+          "gold": 21,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.2847222222222222,
+          "gold": 2,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.1736111111111111,
+          "gold": 1,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.4652777777777778,
+          "gold": 3,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.5138888888888888,
+          "gold": 0,
+          "towers": 8
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 28,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 488.9333333335067,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 7,
-      "castleHpPctAtEnd": -0.2,
+      "simSeconds": 1040.1999999997113,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 14,
+      "castleHpPctAtEnd": -0.3855421686746988,
       "samples": [
         {
           "wave": 1,
@@ -1455,66 +2067,96 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 3,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 22,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.992,
           "gold": 7,
           "towers": 5
         },
         {
           "wave": 6,
-          "castleHpPct": 0.09,
-          "gold": 10,
+          "castleHpPct": 0.5555555555555556,
+          "gold": 8,
           "towers": 5
         },
         {
           "wave": 7,
-          "castleHpPct": 0.22608695652173913,
-          "gold": 6,
+          "castleHpPct": 0.6041666666666666,
+          "gold": 0,
           "towers": 6
         },
         {
           "wave": 8,
-          "castleHpPct": 0.22608695652173913,
-          "gold": 5,
-          "towers": 6
+          "castleHpPct": 0.6527777777777778,
+          "gold": 8,
+          "towers": 7
         },
         {
           "wave": 9,
-          "castleHpPct": 0.5304347826086957,
-          "gold": 8,
-          "towers": 6
+          "castleHpPct": 0.7013888888888888,
+          "gold": 19,
+          "towers": 8
         },
         {
           "wave": 10,
-          "castleHpPct": 0.5304347826086957,
-          "gold": 1,
-          "towers": 7
+          "castleHpPct": 0.75,
+          "gold": 13,
+          "towers": 9
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.2152777777777778,
+          "gold": 19,
+          "towers": 10
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.2638888888888889,
+          "gold": 24,
+          "towers": 11
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.3125,
+          "gold": 4,
+          "towers": 12
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.463855421686747,
+          "gold": 4,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.7228915662650602,
+          "gold": 36,
+          "towers": 14
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 29,
-      "finalWave": 10,
-      "ended": "died",
+      "finalWave": 20,
+      "ended": "cap",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 447.96666666680744,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.08695652173913043,
+      "simSeconds": 1800.0333333323535,
+      "kills": 341,
+      "boonsChosen": 19,
+      "towersAtEnd": 16,
+      "castleHpPctAtEnd": 0.6458333333333334,
       "samples": [
         {
           "wave": 1,
@@ -1536,60 +2178,120 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.94,
+          "castleHpPct": 1,
           "gold": 9,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.94,
+          "castleHpPct": 1,
           "gold": 15,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.3391304347826087,
-          "gold": 7,
+          "castleHpPct": 0.472,
+          "gold": 8,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.3391304347826087,
-          "gold": 1,
+          "castleHpPct": 0.8,
+          "gold": 0,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.3391304347826087,
-          "gold": 3,
+          "castleHpPct": 0.848,
+          "gold": 20,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.3391304347826087,
+          "castleHpPct": 0.896,
           "gold": 14,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.6434782608695652,
-          "gold": 1,
+          "castleHpPct": 0.944,
+          "gold": 4,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.32,
+          "gold": 8,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.368,
+          "gold": 18,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.416,
+          "gold": 21,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.744,
+          "gold": 7,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.792,
+          "gold": 2,
+          "towers": 13
+        },
+        {
+          "wave": 16,
+          "castleHpPct": 0.072,
+          "gold": 37,
+          "towers": 15
+        },
+        {
+          "wave": 17,
+          "castleHpPct": 0.2569444444444444,
+          "gold": 26,
+          "towers": 16
+        },
+        {
+          "wave": 18,
+          "castleHpPct": 0.5486111111111112,
+          "gold": 32,
+          "towers": 16
+        },
+        {
+          "wave": 19,
+          "castleHpPct": 0.5972222222222222,
+          "gold": 2,
+          "towers": 16
+        },
+        {
+          "wave": 20,
+          "castleHpPct": 0.6458333333333334,
+          "gold": 13,
+          "towers": 16
         }
       ],
-      "restartMs": 4000
+      "restartMs": -1
     },
     {
       "seed": 30,
-      "finalWave": 10,
-      "ended": "died",
+      "finalWave": 20,
+      "ended": "cap",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 556.4333333334846,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.67,
+      "simSeconds": 1800.0333333323535,
+      "kills": 323,
+      "boonsChosen": 19,
+      "towersAtEnd": 11,
+      "castleHpPctAtEnd": 1,
       "samples": [
         {
           "wave": 1,
@@ -1623,48 +2325,108 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 4,
+          "castleHpPct": 0.5625,
+          "gold": 9,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.28,
-          "gold": 5,
+          "castleHpPct": 0.8541666666666666,
+          "gold": 9,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.28,
-          "gold": 1,
+          "castleHpPct": 0.9027777777777778,
+          "gold": 7,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.17,
-          "gold": 5,
+          "castleHpPct": 0.9513888888888888,
+          "gold": 18,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.17,
-          "gold": 17,
+          "castleHpPct": 1,
+          "gold": 6,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.4652777777777778,
+          "gold": 1,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.5138888888888888,
+          "gold": 13,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.8055555555555556,
+          "gold": 25,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.8541666666666666,
+          "gold": 6,
+          "towers": 11
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.9027777777777778,
+          "gold": 27,
+          "towers": 11
+        },
+        {
+          "wave": 16,
+          "castleHpPct": 0.9513888888888888,
+          "gold": 10,
+          "towers": 11
+        },
+        {
+          "wave": 17,
+          "castleHpPct": 1,
+          "gold": 24,
+          "towers": 11
+        },
+        {
+          "wave": 18,
+          "castleHpPct": 1,
+          "gold": 0,
+          "towers": 11
+        },
+        {
+          "wave": 19,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 11
+        },
+        {
+          "wave": 20,
+          "castleHpPct": 1,
+          "gold": 3,
+          "towers": 11
         }
       ],
-      "restartMs": 4000
+      "restartMs": -1
     },
     {
       "seed": 31,
-      "finalWave": 7,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 260.59999999999167,
-      "kills": 59,
-      "boonsChosen": 6,
-      "towersAtEnd": 5,
-      "castleHpPctAtEnd": -0.023304347826086924,
+      "simSeconds": 1172.9666666662572,
+      "kills": 206,
+      "boonsChosen": 14,
+      "towersAtEnd": 15,
+      "castleHpPctAtEnd": -0.4435200000000001,
       "samples": [
         {
           "wave": 1,
@@ -1686,42 +2448,90 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.8240000000000001,
+          "castleHpPct": 0.9072,
           "gold": 14,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.6392,
+          "castleHpPct": 0.80736,
           "gold": 9,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.15269565217391307,
-          "gold": 4,
+          "castleHpPct": 0.34848,
+          "gold": 1,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.15269565217391307,
-          "gold": 17,
+          "castleHpPct": 0.39648,
+          "gold": 7,
           "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.72448,
+          "gold": 10,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.77248,
+          "gold": 0,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.65152,
+          "gold": 11,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.10815999999999996,
+          "gold": 4,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.15615999999999997,
+          "gold": 3,
+          "towers": 11
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.48416,
+          "gold": 14,
+          "towers": 12
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.81216,
+          "gold": 10,
+          "towers": 14
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.8601599999999999,
+          "gold": 2,
+          "towers": 15
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 32,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 440.80000000013507,
-      "kills": 108,
-      "boonsChosen": 9,
-      "towersAtEnd": 7,
-      "castleHpPctAtEnd": -0.034782608695652174,
+      "simSeconds": 1035.2999999997157,
+      "kills": 209,
+      "boonsChosen": 14,
+      "towersAtEnd": 14,
+      "castleHpPctAtEnd": -0.32736000000000015,
       "samples": [
         {
           "wave": 1,
@@ -1755,48 +2565,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.63,
-          "gold": 1,
+          "castleHpPct": 0.472,
+          "gold": 0,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 22,
-          "towers": 4
-        },
-        {
-          "wave": 8,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 22,
+          "castleHpPct": 0.52,
+          "gold": 4,
           "towers": 5
         },
         {
-          "wave": 9,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 7,
+          "wave": 8,
+          "castleHpPct": 0.568,
+          "gold": 4,
           "towers": 6
         },
         {
-          "wave": 10,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 4,
+          "wave": 9,
+          "castleHpPct": 0.896,
+          "gold": 15,
           "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.944,
+          "gold": 12,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.32,
+          "gold": 9,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.368,
+          "gold": 13,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.696,
+          "gold": 25,
+          "towers": 12
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.744,
+          "gold": 29,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.792,
+          "gold": 16,
+          "towers": 14
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 33,
-      "finalWave": 5,
+      "finalWave": 10,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 111.73333333332955,
-      "kills": 32,
-      "boonsChosen": 4,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.14760000000000006,
+      "simSeconds": 409.9666666667772,
+      "kills": 97,
+      "boonsChosen": 9,
+      "towersAtEnd": 6,
+      "castleHpPctAtEnd": -0.32055555555555565,
       "samples": [
         {
           "wave": 1,
@@ -1812,36 +2652,66 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.62,
+          "castleHpPct": 0.744,
           "gold": 1,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.62,
+          "castleHpPct": 0.792,
           "gold": 18,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.48599999999999993,
+          "castleHpPct": 0.7328,
           "gold": 0,
           "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.23167999999999994,
+          "gold": 8,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.26111111111111107,
+          "gold": 4,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.04694444444444441,
+          "gold": 14,
+          "towers": 4
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.09555555555555552,
+          "gold": 4,
+          "towers": 5
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.14416666666666664,
+          "gold": 16,
+          "towers": 6
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 34,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 421.5333333334531,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.23478260869565218,
+      "simSeconds": 1038.2666666663797,
+      "kills": 209,
+      "boonsChosen": 14,
+      "towersAtEnd": 12,
+      "castleHpPctAtEnd": -0.2931937172774869,
       "samples": [
         {
           "wave": 1,
@@ -1875,48 +2745,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 9,
+          "castleHpPct": 0.5625,
+          "gold": 1,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.28,
-          "gold": 20,
-          "towers": 5
+          "castleHpPct": 0.6807228915662651,
+          "gold": 5,
+          "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.4,
-          "gold": 16,
-          "towers": 6
+          "castleHpPct": 0.7289156626506024,
+          "gold": 19,
+          "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.4,
+          "castleHpPct": 0.7771084337349398,
           "gold": 5,
-          "towers": 7
+          "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.4956521739130435,
-          "gold": 4,
+          "castleHpPct": 0.8253012048192772,
+          "gold": 3,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.3674698795180723,
+          "gold": 25,
           "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.41566265060240964,
+          "gold": 24,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.5549738219895288,
+          "gold": 4,
+          "towers": 10
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.6073298429319371,
+          "gold": 11,
+          "towers": 11
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.6596858638743456,
+          "gold": 4,
+          "towers": 12
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 35,
-      "finalWave": 10,
-      "ended": "died",
+      "finalWave": 22,
+      "ended": "cap",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 460.50000000015075,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 7,
-      "castleHpPctAtEnd": -0.42,
+      "simSeconds": 1800.0333333323535,
+      "kills": 375,
+      "boonsChosen": 21,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": 0.5542168674698795,
       "samples": [
         {
           "wave": 1,
@@ -1944,54 +2844,126 @@
         },
         {
           "wave": 5,
-          "castleHpPct": 0.79,
+          "castleHpPct": 0.88,
           "gold": 20,
           "towers": 5
         },
         {
           "wave": 6,
-          "castleHpPct": 0.07,
-          "gold": 4,
+          "castleHpPct": 0.352,
+          "gold": 2,
           "towers": 6
         },
         {
           "wave": 7,
-          "castleHpPct": 0.07,
-          "gold": 11,
+          "castleHpPct": 0.5,
+          "gold": 13,
           "towers": 7
         },
         {
           "wave": 8,
-          "castleHpPct": 0.42,
-          "gold": 9,
+          "castleHpPct": 0.5486111111111112,
+          "gold": 4,
           "towers": 7
         },
         {
           "wave": 9,
-          "castleHpPct": 0.42,
-          "gold": 7,
+          "castleHpPct": 0.5972222222222222,
+          "gold": 6,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.42,
-          "gold": 9,
-          "towers": 7
+          "castleHpPct": 0.6458333333333334,
+          "gold": 5,
+          "towers": 9
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.1111111111111111,
+          "gold": 21,
+          "towers": 11
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.1597222222222222,
+          "gold": 22,
+          "towers": 12
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.4513888888888889,
+          "gold": 1,
+          "towers": 13
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.5,
+          "gold": 19,
+          "towers": 13
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.7916666666666666,
+          "gold": 6,
+          "towers": 13
+        },
+        {
+          "wave": 16,
+          "castleHpPct": 0.1736111111111111,
+          "gold": 0,
+          "towers": 13
+        },
+        {
+          "wave": 17,
+          "castleHpPct": 0.2222222222222222,
+          "gold": 18,
+          "towers": 13
+        },
+        {
+          "wave": 18,
+          "castleHpPct": 0.2708333333333333,
+          "gold": 6,
+          "towers": 13
+        },
+        {
+          "wave": 19,
+          "castleHpPct": 0.3194444444444444,
+          "gold": 22,
+          "towers": 13
+        },
+        {
+          "wave": 20,
+          "castleHpPct": 0.3680555555555556,
+          "gold": 15,
+          "towers": 13
+        },
+        {
+          "wave": 21,
+          "castleHpPct": 0.4166666666666667,
+          "gold": 4,
+          "towers": 13
+        },
+        {
+          "wave": 22,
+          "castleHpPct": 0.5542168674698795,
+          "gold": 17,
+          "towers": 13
         }
       ],
-      "restartMs": 4000
+      "restartMs": -1
     },
     {
       "seed": 36,
-      "finalWave": 7,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 191.66666666665836,
-      "kills": 63,
-      "boonsChosen": 6,
-      "towersAtEnd": 5,
-      "castleHpPctAtEnd": 0,
+      "simSeconds": 873.399999999863,
+      "kills": 207,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.4457831325301205,
       "samples": [
         {
           "wave": 1,
@@ -2025,30 +2997,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.391304347826087,
-          "gold": 19,
+          "castleHpPct": 0.5625,
+          "gold": 20,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.2,
+          "castleHpPct": 0.4583333333333333,
           "gold": 1,
           "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.3472222222222222,
+          "gold": 0,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.3958333333333333,
+          "gold": 8,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.6875,
+          "gold": 7,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.1527777777777778,
+          "gold": 8,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.2013888888888889,
+          "gold": 7,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.4930555555555556,
+          "gold": 36,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.5416666666666666,
+          "gold": 40,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.6626506024096386,
+          "gold": 30,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 37,
-      "finalWave": 5,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 132.5333333333284,
-      "kills": 34,
-      "boonsChosen": 4,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.26,
+      "simSeconds": 1060.2333333330264,
+      "kills": 204,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.24096385542168675,
       "samples": [
         {
           "wave": 1,
@@ -2064,36 +3084,96 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 9,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 2,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.46,
+          "castleHpPct": 0.712,
           "gold": 14,
           "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.184,
+          "gold": 3,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.232,
+          "gold": 22,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.3958333333333333,
+          "gold": 4,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.6875,
+          "gold": 1,
+          "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.7361111111111112,
+          "gold": 3,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.2013888888888889,
+          "gold": 21,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.4930555555555556,
+          "gold": 17,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.7847222222222222,
+          "gold": 6,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.8333333333333334,
+          "gold": 4,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.9156626506024096,
+          "gold": 9,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 38,
-      "finalWave": 11,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 603.233333333442,
-      "kills": 124,
-      "boonsChosen": 10,
-      "towersAtEnd": 9,
-      "castleHpPctAtEnd": -0.1,
+      "simSeconds": 1029.1333333330547,
+      "kills": 206,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.552,
       "samples": [
         {
           "wave": 1,
@@ -2127,54 +3207,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.41,
-          "gold": 22,
+          "castleHpPct": 0.472,
+          "gold": 6,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.41,
-          "gold": 17,
+          "castleHpPct": 0.8,
+          "gold": 3,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.76,
-          "gold": 16,
+          "castleHpPct": 0.944,
+          "gold": 20,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 1,
-          "gold": 9,
+          "castleHpPct": 0.8,
+          "gold": 2,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 1,
-          "gold": 1,
+          "castleHpPct": 0.848,
+          "gold": 2,
           "towers": 8
         },
         {
           "wave": 11,
-          "castleHpPct": 0.16,
-          "gold": 3,
+          "castleHpPct": 0.024,
+          "gold": 1,
           "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.072,
+          "gold": 18,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.12,
+          "gold": 2,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.168,
+          "gold": 7,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.216,
+          "gold": 15,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 39,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 595.0000000001162,
-      "kills": 108,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.034782608695652174,
+      "simSeconds": 1337.4666666661076,
+      "kills": 209,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.3950000000000001,
       "samples": [
         {
           "wave": 1,
@@ -2208,48 +3312,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 19,
+          "castleHpPct": 0.5625,
+          "gold": 16,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.63,
-          "gold": 22,
+          "castleHpPct": 0.6111111111111112,
+          "gold": 8,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.63,
-          "gold": 4,
+          "castleHpPct": 0.6597222222222222,
+          "gold": 22,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 3,
+          "castleHpPct": 0.7083333333333334,
+          "gold": 8,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 9,
+          "castleHpPct": 0.7569444444444444,
+          "gold": 6,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.2922222222222222,
+          "gold": 12,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.3408333333333333,
+          "gold": 16,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.3894444444444444,
+          "gold": 2,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.6811111111111111,
+          "gold": 3,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.7297222222222222,
+          "gold": 7,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 40,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 413.90000000011366,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 7,
-      "castleHpPctAtEnd": -0.4568000000000001,
+      "simSeconds": 948.1333333331283,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 12,
+      "castleHpPctAtEnd": -0.4555555555555557,
       "samples": [
         {
           "wave": 1,
@@ -2277,54 +3411,84 @@
         },
         {
           "wave": 5,
-          "castleHpPct": 0.8151999999999999,
+          "castleHpPct": 0.90016,
           "gold": 6,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.18159999999999996,
-          "gold": 4,
+          "castleHpPct": 0.44127999999999995,
+          "gold": 7,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.18159999999999996,
-          "gold": 9,
+          "castleHpPct": 0.48928,
+          "gold": 11,
           "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.18159999999999996,
-          "gold": 21,
+          "castleHpPct": 0.53728,
+          "gold": 3,
           "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.18159999999999996,
-          "gold": 11,
+          "castleHpPct": 0.6608333333333333,
+          "gold": 9,
           "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.18159999999999996,
-          "gold": 4,
+          "castleHpPct": 0.7094444444444444,
+          "gold": 5,
           "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.3147222222222222,
+          "gold": 8,
+          "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.3633333333333333,
+          "gold": 21,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.4119444444444444,
+          "gold": 3,
+          "towers": 10
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.4605555555555555,
+          "gold": 14,
+          "towers": 11
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.5091666666666667,
+          "gold": 37,
+          "towers": 12
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 41,
-      "finalWave": 6,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 199.46666666665791,
-      "kills": 47,
-      "boonsChosen": 5,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.1439999999999999,
+      "simSeconds": 1223.0333333328783,
+      "kills": 206,
+      "boonsChosen": 14,
+      "towersAtEnd": 12,
+      "castleHpPctAtEnd": -0.15916230366492148,
       "samples": [
         {
           "wave": 1,
@@ -2346,36 +3510,90 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.8240000000000001,
+          "castleHpPct": 0.9072,
           "gold": 9,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.8240000000000001,
+          "castleHpPct": 0.9552,
           "gold": 5,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.19040000000000007,
-          "gold": 2,
+          "castleHpPct": 0.49632000000000004,
+          "gold": 5,
           "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.66944,
+          "gold": 8,
+          "towers": 5
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.7174400000000001,
+          "gold": 0,
+          "towers": 6
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.8172222222222223,
+          "gold": 11,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.8658333333333333,
+          "gold": 19,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.30944444444444447,
+          "gold": 0,
+          "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.35805555555555557,
+          "gold": 17,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.5033734939759036,
+          "gold": 0,
+          "towers": 10
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.551566265060241,
+          "gold": 21,
+          "towers": 11
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.6730890052356021,
+          "gold": 0,
+          "towers": 12
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 42,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 416.73333333344925,
-      "kills": 108,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.56,
+      "simSeconds": 954.366666666456,
+      "kills": 209,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.045000000000000026,
       "samples": [
         {
           "wave": 1,
@@ -2409,48 +3627,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 20,
+          "castleHpPct": 0.752,
+          "gold": 9,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.28,
-          "gold": 22,
+          "castleHpPct": 0.624,
+          "gold": 0,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.28,
-          "gold": 0,
+          "castleHpPct": 0.7361111111111112,
+          "gold": 6,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.28,
-          "gold": 2,
+          "castleHpPct": 0.7847222222222222,
+          "gold": 20,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.28,
-          "gold": 7,
+          "castleHpPct": 0.8333333333333334,
+          "gold": 22,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.2986111111111111,
+          "gold": 7,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.3472222222222222,
+          "gold": 11,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.3958333333333333,
+          "gold": 9,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.4444444444444444,
+          "gold": 3,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.4930555555555556,
+          "gold": 21,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 43,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 464.83333333348753,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.5130434782608696,
+      "simSeconds": 949.4333333331272,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.5130555555555556,
       "samples": [
         {
           "wave": 1,
@@ -2472,45 +3720,75 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.8,
+          "castleHpPct": 0.888,
           "gold": 12,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.8,
+          "castleHpPct": 0.936,
           "gold": 11,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.21739130434782608,
-          "gold": 6,
+          "castleHpPct": 0.408,
+          "gold": 9,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.21739130434782608,
-          "gold": 1,
+          "castleHpPct": 0.456,
+          "gold": 4,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.21739130434782608,
-          "gold": 5,
+          "castleHpPct": 0.504,
+          "gold": 19,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.21739130434782608,
-          "gold": 8,
+          "castleHpPct": 0.552,
+          "gold": 7,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.21739130434782608,
-          "gold": 6,
+          "castleHpPct": 0.6,
+          "gold": 1,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.05663999999999999,
+          "gold": 0,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.10463999999999998,
+          "gold": 11,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.43263999999999997,
+          "gold": 22,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.48064,
+          "gold": 3,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.6116666666666667,
+          "gold": 22,
+          "towers": 13
         }
       ],
       "restartMs": 4000
@@ -2525,7 +3803,7 @@
       "kills": 33,
       "boonsChosen": 4,
       "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.61,
+      "castleHpPctAtEnd": -0.144,
       "samples": [
         {
           "wave": 1,
@@ -2547,13 +3825,13 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.74,
+          "castleHpPct": 0.84,
           "gold": 13,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.11,
+          "castleHpPct": 0.384,
           "gold": 0,
           "towers": 4
         }
@@ -2562,15 +3840,15 @@
     },
     {
       "seed": 45,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 533.4000000001722,
-      "kills": 105,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.83,
+      "simSeconds": 1106.2999999996512,
+      "kills": 207,
+      "boonsChosen": 14,
+      "towersAtEnd": 12,
+      "castleHpPctAtEnd": -0.592,
       "samples": [
         {
           "wave": 1,
@@ -2586,51 +3864,81 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 12,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 22,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.95,
+          "castleHpPct": 0.824,
           "gold": 15,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.23,
+          "castleHpPct": 0.576,
           "gold": 2,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.01,
-          "gold": 0,
+          "castleHpPct": 0.624,
+          "gold": 1,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.01,
-          "gold": 20,
+          "castleHpPct": 0.672,
+          "gold": 4,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.01,
-          "gold": 3,
+          "castleHpPct": 0.72,
+          "gold": 10,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.01,
-          "gold": 20,
+          "castleHpPct": 0.768,
+          "gold": 4,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.144,
+          "gold": 22,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.472,
+          "gold": 9,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.8,
+          "gold": 4,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.848,
+          "gold": 22,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.896,
+          "gold": 9,
+          "towers": 12
         }
       ],
       "restartMs": 4000
@@ -2641,11 +3949,11 @@
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 1101.1999999996558,
+      "simSeconds": 1062.2666666663579,
       "kills": 208,
       "boonsChosen": 14,
-      "towersAtEnd": 11,
-      "castleHpPctAtEnd": -0.44242424242424244,
+      "towersAtEnd": 12,
+      "castleHpPctAtEnd": -0.055833333333333374,
       "samples": [
         {
           "wave": 1,
@@ -2679,78 +3987,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.63,
-          "gold": 2,
+          "castleHpPct": 0.472,
+          "gold": 1,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.63,
-          "gold": 19,
-          "towers": 4
-        },
-        {
-          "wave": 8,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 2,
+          "castleHpPct": 0.52,
+          "gold": 3,
           "towers": 5
         },
         {
-          "wave": 9,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 16,
+          "wave": 8,
+          "castleHpPct": 0.568,
+          "gold": 13,
           "towers": 6
         },
         {
+          "wave": 9,
+          "castleHpPct": 0.616,
+          "gold": 5,
+          "towers": 7
+        },
+        {
           "wave": 10,
-          "castleHpPct": 0.6956521739130435,
-          "gold": 6,
-          "towers": 7
-        },
-        {
-          "wave": 11,
-          "castleHpPct": 0.05286956521739129,
-          "gold": 15,
-          "towers": 7
-        },
-        {
-          "wave": 12,
-          "castleHpPct": 0.05286956521739129,
-          "gold": 3,
+          "castleHpPct": 0.7291666666666666,
+          "gold": 5,
           "towers": 8
         },
         {
-          "wave": 13,
-          "castleHpPct": 0.19757575757575757,
-          "gold": 5,
+          "wave": 11,
+          "castleHpPct": 0.2644444444444444,
+          "gold": 16,
           "towers": 9
         },
         {
-          "wave": 14,
-          "castleHpPct": 0.19757575757575757,
-          "gold": 1,
+          "wave": 12,
+          "castleHpPct": 0.31305555555555553,
+          "gold": 21,
           "towers": 10
         },
         {
-          "wave": 15,
-          "castleHpPct": 0.19757575757575757,
-          "gold": 20,
+          "wave": 13,
+          "castleHpPct": 0.6047222222222222,
+          "gold": 9,
           "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.6533333333333333,
+          "gold": 21,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.5308333333333333,
+          "gold": 20,
+          "towers": 12
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 47,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 457.10000000014804,
-      "kills": 108,
-      "boonsChosen": 9,
-      "towersAtEnd": 9,
-      "castleHpPctAtEnd": -0.21,
+      "simSeconds": 1092.7666666663301,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.024096385542168676,
       "samples": [
         {
           "wave": 1,
@@ -2784,48 +4092,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 9,
+          "castleHpPct": 0.472,
+          "gold": 10,
           "towers": 5
         },
         {
           "wave": 7,
-          "castleHpPct": 0.28,
-          "gold": 21,
-          "towers": 6
+          "castleHpPct": 0.344,
+          "gold": 0,
+          "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.63,
-          "gold": 21,
-          "towers": 7
+          "castleHpPct": 0.392,
+          "gold": 0,
+          "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.63,
-          "gold": 22,
-          "towers": 8
+          "castleHpPct": 0.44,
+          "gold": 33,
+          "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.63,
-          "gold": 2,
+          "castleHpPct": 0.768,
+          "gold": 25,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.144,
+          "gold": 3,
+          "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.192,
+          "gold": 21,
           "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.3611111111111111,
+          "gold": 8,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.5060240963855421,
+          "gold": 23,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.5542168674698795,
+          "gold": 37,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 48,
-      "finalWave": 4,
+      "finalWave": 5,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 94.69999999999719,
-      "kills": 26,
-      "boonsChosen": 3,
+      "simSeconds": 131.6999999999951,
+      "kills": 31,
+      "boonsChosen": 4,
       "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.12,
+      "castleHpPctAtEnd": -0.2777777777777778,
       "samples": [
         {
           "wave": 1,
@@ -2847,7 +4185,13 @@
         },
         {
           "wave": 4,
-          "castleHpPct": 0.51,
+          "castleHpPct": 0.656,
+          "gold": 5,
+          "towers": 4
+        },
+        {
+          "wave": 5,
+          "castleHpPct": 0.3263888888888889,
           "gold": 5,
           "towers": 4
         }
@@ -2856,15 +4200,15 @@
     },
     {
       "seed": 49,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 426.5000000001237,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.09,
+      "simSeconds": 964.8333333331132,
+      "kills": 208,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.608,
       "samples": [
         {
           "wave": 1,
@@ -2898,33 +4242,63 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 3,
+          "castleHpPct": 0.472,
+          "gold": 2,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.63,
-          "gold": 0,
-          "towers": 5
+          "castleHpPct": 0.52,
+          "gold": 4,
+          "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.75,
-          "gold": 3,
-          "towers": 6
+          "castleHpPct": 0.848,
+          "gold": 2,
+          "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.75,
-          "gold": 1,
-          "towers": 7
+          "castleHpPct": 0.704,
+          "gold": 12,
+          "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.75,
-          "gold": 5,
+          "castleHpPct": 0.752,
+          "gold": 6,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.128,
+          "gold": 8,
           "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.456,
+          "gold": 3,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.504,
+          "gold": 9,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.832,
+          "gold": 14,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.88,
+          "gold": 16,
+          "towers": 13
         }
       ],
       "restartMs": 4000
@@ -2935,11 +4309,11 @@
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 1051.833333333034,
-      "kills": 208,
+      "simSeconds": 1005.6666666664094,
+      "kills": 207,
       "boonsChosen": 14,
-      "towersAtEnd": 10,
-      "castleHpPctAtEnd": -0.376969696969697,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.14112,
       "samples": [
         {
           "wave": 1,
@@ -2973,78 +4347,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.3664,
-          "gold": 0,
+          "castleHpPct": 0.54112,
+          "gold": 4,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.7164,
+          "castleHpPct": 0.58912,
           "gold": 5,
           "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.7164,
-          "gold": 21,
+          "castleHpPct": 0.63712,
+          "gold": 18,
           "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.7164,
-          "gold": 1,
+          "castleHpPct": 0.68512,
+          "gold": 0,
           "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.7707826086956522,
-          "gold": 8,
+          "castleHpPct": 0.73312,
+          "gold": 1,
           "towers": 7
         },
         {
           "wave": 11,
-          "castleHpPct": 0.128,
-          "gold": 7,
+          "castleHpPct": 0.18527999999999997,
+          "gold": 0,
           "towers": 8
         },
         {
           "wave": 12,
-          "castleHpPct": 0.128,
-          "gold": 5,
+          "castleHpPct": 0.23327999999999996,
+          "gold": 8,
           "towers": 9
         },
         {
           "wave": 13,
-          "castleHpPct": 0.128,
-          "gold": 6,
+          "castleHpPct": 0.56128,
+          "gold": 25,
           "towers": 10
         },
         {
           "wave": 14,
-          "castleHpPct": 0.128,
-          "gold": 1,
-          "towers": 10
+          "castleHpPct": 0.6092799999999999,
+          "gold": 28,
+          "towers": 12
         },
         {
           "wave": 15,
-          "castleHpPct": 0.263030303030303,
-          "gold": 6,
-          "towers": 10
+          "castleHpPct": 0.79392,
+          "gold": 25,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 51,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 418.1666666667837,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 9,
-      "castleHpPctAtEnd": -0.2992,
+      "simSeconds": 927.8999999998134,
+      "kills": 209,
+      "boonsChosen": 14,
+      "towersAtEnd": 14,
+      "castleHpPctAtEnd": -0.12384000000000003,
       "samples": [
         {
           "wave": 1,
@@ -3060,51 +4434,81 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 0,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 19,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.992,
           "gold": 21,
           "towers": 5
         },
         {
           "wave": 6,
-          "castleHpPct": 0.09,
-          "gold": 20,
+          "castleHpPct": 0.464,
+          "gold": 19,
           "towers": 5
         },
         {
           "wave": 7,
-          "castleHpPct": 0.09,
+          "castleHpPct": 0.792,
           "gold": 0,
           "towers": 6
         },
         {
           "wave": 8,
-          "castleHpPct": 0.44,
-          "gold": 3,
+          "castleHpPct": 0.84,
+          "gold": 5,
           "towers": 7
         },
         {
           "wave": 9,
-          "castleHpPct": 0.44,
-          "gold": 5,
+          "castleHpPct": 0.888,
+          "gold": 7,
           "towers": 8
         },
         {
           "wave": 10,
-          "castleHpPct": 0.44,
-          "gold": 3,
+          "castleHpPct": 0.936,
+          "gold": 20,
           "towers": 9
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.312,
+          "gold": 2,
+          "towers": 10
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.36,
+          "gold": 39,
+          "towers": 11
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.408,
+          "gold": 14,
+          "towers": 13
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.456,
+          "gold": 0,
+          "towers": 14
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.504,
+          "gold": 10,
+          "towers": 14
         }
       ],
       "restartMs": 4000
@@ -3115,11 +4519,11 @@
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 1251.0999999995195,
-      "kills": 210,
+      "simSeconds": 1177.899999999586,
+      "kills": 209,
       "boonsChosen": 14,
-      "towersAtEnd": 11,
-      "castleHpPctAtEnd": -0.4888000000000001,
+      "towersAtEnd": 14,
+      "castleHpPctAtEnd": -0.3298429319371728,
       "samples": [
         {
           "wave": 1,
@@ -3153,78 +4557,78 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 18,
+          "castleHpPct": 0.472,
+          "gold": 13,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.63,
+          "castleHpPct": 0.52,
           "gold": 0,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.63,
-          "gold": 20,
+          "castleHpPct": 0.6458333333333334,
+          "gold": 3,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.98,
-          "gold": 9,
+          "castleHpPct": 0.6944444444444444,
+          "gold": 2,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.98,
-          "gold": 10,
+          "castleHpPct": 0.7430555555555556,
+          "gold": 19,
           "towers": 8
         },
         {
           "wave": 11,
-          "castleHpPct": 0.2408,
-          "gold": 37,
+          "castleHpPct": 0.20833333333333334,
+          "gold": 14,
           "towers": 9
         },
         {
           "wave": 12,
-          "castleHpPct": 0.2408,
-          "gold": 32,
+          "castleHpPct": 0.37349397590361444,
+          "gold": 25,
           "towers": 10
         },
         {
           "wave": 13,
-          "castleHpPct": 0.2408,
-          "gold": 22,
-          "towers": 11
+          "castleHpPct": 0.518324607329843,
+          "gold": 28,
+          "towers": 12
         },
         {
           "wave": 14,
-          "castleHpPct": 0.2408,
-          "gold": 2,
-          "towers": 11
+          "castleHpPct": 0.5706806282722513,
+          "gold": 25,
+          "towers": 13
         },
         {
           "wave": 15,
-          "castleHpPct": 0.2408,
-          "gold": 8,
-          "towers": 11
+          "castleHpPct": 0.6230366492146597,
+          "gold": 26,
+          "towers": 14
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 53,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 579.7000000001301,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.2878787878787879,
+      "simSeconds": 1340.6666666661047,
+      "kills": 207,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.2283333333333335,
       "samples": [
         {
           "wave": 1,
@@ -3240,66 +4644,96 @@
         },
         {
           "wave": 3,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.896,
           "gold": 11,
           "towers": 4
         },
         {
           "wave": 4,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.944,
           "gold": 18,
           "towers": 4
         },
         {
           "wave": 5,
-          "castleHpPct": 0.81,
+          "castleHpPct": 0.992,
           "gold": 17,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.22608695652173913,
-          "gold": 14,
+          "castleHpPct": 0.464,
+          "gold": 6,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.3484848484848485,
-          "gold": 3,
-          "towers": 5
+          "castleHpPct": 0.512,
+          "gold": 4,
+          "towers": 4
         },
         {
           "wave": 8,
-          "castleHpPct": 0.3484848484848485,
-          "gold": 1,
-          "towers": 6
+          "castleHpPct": 0.56,
+          "gold": 9,
+          "towers": 5
         },
         {
           "wave": 9,
-          "castleHpPct": 0.3484848484848485,
-          "gold": 16,
-          "towers": 7
+          "castleHpPct": 0.6805555555555556,
+          "gold": 5,
+          "towers": 6
         },
         {
           "wave": 10,
-          "castleHpPct": 0.3484848484848485,
-          "gold": 3,
+          "castleHpPct": 0.7291666666666666,
+          "gold": 11,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.2644444444444444,
+          "gold": 9,
           "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.5561111111111111,
+          "gold": 15,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.8477777777777777,
+          "gold": 1,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.8963888888888888,
+          "gold": 19,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.9449999999999998,
+          "gold": 27,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 54,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 499.1666666668482,
-      "kills": 105,
-      "boonsChosen": 9,
-      "towersAtEnd": 7,
-      "castleHpPctAtEnd": -0.73,
+      "simSeconds": 1135.433333332958,
+      "kills": 206,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.3593600000000001,
       "samples": [
         {
           "wave": 1,
@@ -3327,54 +4761,84 @@
         },
         {
           "wave": 5,
-          "castleHpPct": 0.79,
+          "castleHpPct": 0.88,
           "gold": 1,
           "towers": 4
         },
         {
           "wave": 6,
-          "castleHpPct": 0.42,
-          "gold": 0,
+          "castleHpPct": 0.632,
+          "gold": 22,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.42,
-          "gold": 2,
-          "towers": 4
-        },
-        {
-          "wave": 8,
-          "castleHpPct": 0.42,
-          "gold": 8,
+          "castleHpPct": 0.96,
+          "gold": 9,
           "towers": 5
         },
         {
-          "wave": 9,
-          "castleHpPct": 0.11,
+          "wave": 8,
+          "castleHpPct": 1,
           "gold": 19,
           "towers": 6
         },
         {
-          "wave": 10,
-          "castleHpPct": 0.11,
-          "gold": 5,
+          "wave": 9,
+          "castleHpPct": 1,
+          "gold": 20,
           "towers": 7
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 1,
+          "gold": 8,
+          "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.45215999999999995,
+          "gold": 2,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.5001599999999999,
+          "gold": 15,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.384,
+          "gold": 0,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.712,
+          "gold": 4,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.76,
+          "gold": 21,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 55,
-      "finalWave": 5,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 129.29999999999524,
-      "kills": 36,
-      "boonsChosen": 4,
-      "towersAtEnd": 4,
-      "castleHpPctAtEnd": -0.02,
+      "simSeconds": 1094.0333333329957,
+      "kills": 205,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.2931937172774869,
       "samples": [
         {
           "wave": 1,
@@ -3402,24 +4866,84 @@
         },
         {
           "wave": 5,
-          "castleHpPct": 0.7,
+          "castleHpPct": 0.808,
           "gold": 1,
           "towers": 4
+        },
+        {
+          "wave": 6,
+          "castleHpPct": 0.3958333333333333,
+          "gold": 0,
+          "towers": 4
+        },
+        {
+          "wave": 7,
+          "castleHpPct": 0.4036144578313253,
+          "gold": 6,
+          "towers": 4
+        },
+        {
+          "wave": 8,
+          "castleHpPct": 0.45180722891566266,
+          "gold": 15,
+          "towers": 5
+        },
+        {
+          "wave": 9,
+          "castleHpPct": 0.35542168674698793,
+          "gold": 22,
+          "towers": 6
+        },
+        {
+          "wave": 10,
+          "castleHpPct": 0.6144578313253012,
+          "gold": 5,
+          "towers": 7
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.1566265060240964,
+          "gold": 6,
+          "towers": 8
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.41566265060240964,
+          "gold": 22,
+          "towers": 9
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.5549738219895288,
+          "gold": 12,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.6073298429319371,
+          "gold": 2,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.6596858638743456,
+          "gold": 16,
+          "towers": 13
         }
       ],
       "restartMs": 4000
     },
     {
       "seed": 56,
-      "finalWave": 10,
+      "finalWave": 15,
       "ended": "died",
       "reachedSiege": false,
       "endlessDepth": 0,
-      "simSeconds": 522.6666666668486,
-      "kills": 107,
-      "boonsChosen": 9,
-      "towersAtEnd": 8,
-      "castleHpPctAtEnd": -0.5304347826086957,
+      "simSeconds": 1197.1999999995685,
+      "kills": 210,
+      "boonsChosen": 14,
+      "towersAtEnd": 13,
+      "castleHpPctAtEnd": -0.208,
       "samples": [
         {
           "wave": 1,
@@ -3453,33 +4977,63 @@
         },
         {
           "wave": 6,
-          "castleHpPct": 0.28,
-          "gold": 5,
+          "castleHpPct": 0.752,
+          "gold": 9,
           "towers": 4
         },
         {
           "wave": 7,
-          "castleHpPct": 0.06,
-          "gold": 4,
+          "castleHpPct": 0.8,
+          "gold": 1,
           "towers": 5
         },
         {
           "wave": 8,
-          "castleHpPct": 0.06,
+          "castleHpPct": 0.848,
           "gold": 4,
           "towers": 6
         },
         {
           "wave": 9,
-          "castleHpPct": 0.06,
-          "gold": 6,
+          "castleHpPct": 0.896,
+          "gold": 2,
           "towers": 7
         },
         {
           "wave": 10,
-          "castleHpPct": 0.2,
-          "gold": 17,
+          "castleHpPct": 0.944,
+          "gold": 3,
           "towers": 8
+        },
+        {
+          "wave": 11,
+          "castleHpPct": 0.32,
+          "gold": 5,
+          "towers": 9
+        },
+        {
+          "wave": 12,
+          "castleHpPct": 0.368,
+          "gold": 8,
+          "towers": 10
+        },
+        {
+          "wave": 13,
+          "castleHpPct": 0.416,
+          "gold": 3,
+          "towers": 11
+        },
+        {
+          "wave": 14,
+          "castleHpPct": 0.464,
+          "gold": 14,
+          "towers": 12
+        },
+        {
+          "wave": 15,
+          "castleHpPct": 0.512,
+          "gold": 13,
+          "towers": 13
         }
       ],
       "restartMs": 4000

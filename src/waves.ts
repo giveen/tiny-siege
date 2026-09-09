@@ -35,12 +35,12 @@ const FAMILY_SCHEDULE: Array<readonly [FamilyKey, number, number, Tier]> = [
   ["chaos", 3, 4, 2],
   ["blobs", 3, 4, 1],
   ["plague", 4, 5, 1],
-  ["junkyard", 5, 6, 3], // armored scrap heavies
+  ["junkyard", 7, 6, 3], // armored scrap heavies (delayed to w7: armor counters unlock ~w8-10)
   ["night", 6, 3, 1],
   ["wisp", 6, 4, 2], // first flyers
   ["fire", 7, 4, 1],
   ["molten", 7, 4, 2],
-  ["shell", 8, 5, 3], // armored tortoises
+  ["shell", 10, 5, 3], // armored tortoises (delayed to w10: armor counters unlock ~w8-10)
   ["spectral", 9, 4, 2],
   ["clockwork", 10, 4, 2],
   ["undead", 11, 5, 3], // skeletons, reapers

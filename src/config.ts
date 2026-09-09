@@ -15,7 +15,12 @@ export const CANVAS_W = WORLD_W + MARGIN_R;
 export const CANVAS_H = WORLD_H + MARGIN_B;
 
 export const START_GOLD = 220;
-export const START_CASTLE_HP = 100;
+export const START_CASTLE_HP = 125;
+/** Portion of max castle HP mended after every cleared wave (base mending,
+ *  independent of the Menders relic). Keeps early leaks from ratcheting a
+ *  fresh run into a death spiral; at 3% it is negligible once late-wave
+ *  leaks deal tens of damage. Tuned with the balance sim (npm run sim). */
+export const CASTLE_REGEN_PCT = 0.05;
 
 /** Gold cost to relocate an unoccupied build pad to another grass cell. */
 export const SPOT_MOVE_COST = 50;

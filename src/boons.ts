@@ -1,6 +1,7 @@
 import type { Game } from "./game";
 import type { RNG } from "./rng";
 import type { TowerType } from "./types";
+import { ARMOR_UNLOCK_WAVE } from "./config";
 
 export type Rarity = "common" | "rare" | "epic";
 
@@ -412,6 +413,29 @@ export function rollBoons(game: Game, rng: RNG, n = 3): Boon[] {
       if (!used.has(b.id) && game.countBoon(b.id) < b.maxStacks) {
         used.add(b.id);
         result.push(b);
+      }
+    }
+  }
+  // Armor handhold: from ARMOR_UNLOCK_WAVE on, armored foes (and boss armor
+  // pools) can appear. A board with no sunder/ironbreaker cannot strip their
+  // pools, so guarantee the unlock of an armor-counter tower when neither is
+  // unlocked yet — the threat and the answer arrive in the same wave.
+  if (result.length > 0 && game.wave >= ARMOR_UNLOCK_WAVE) {
+    const hasStrippers = game.towers.some(
+      (t) =>
+        (t.type === "lancer" && t.spec === "sunder") ||
+        (t.type === "ballista" && t.spec === "ironbreaker"),
+    );
+    const offersUnlock = result.some((b) => b.id === "unlock_lancer" || b.id === "unlock_ballista");
+    if (!hasStrippers && !offersUnlock) {
+      const wantId = !game.unlocked.has("lancer")
+        ? "unlock_lancer"
+        : !game.unlocked.has("ballista")
+          ? "unlock_ballista"
+          : null;
+      if (wantId) {
+        const boon = BOONS.find((b) => b.id === wantId);
+        if (boon) result[result.length - 1] = boon;
       }
     }
   }

@@ -287,6 +287,7 @@ function runOne(
     }
     step.update(DT);
     t += DT;
+
     if (g.screen === "victory" && !res.reachedSiege) {
       res.reachedSiege = true;
       g.continueEndless();
@@ -432,6 +433,12 @@ function main(): void {
   console.log();
 
   // Determinism guard: one seeded run must reproduce itself exactly.
+  // (Game logic must never depend on process-level state: entity ids are a
+  // process-wide counter, so nothing in the sim may use them for logic —
+  // the flying-enemy bob used to, which made projectile homing depend on
+  // how many entities earlier runs in the same process had spawned.)
+  // --meta runs are strict too: the harness meta states never have an active
+  // research job, so tickResearch's Date.now() is a no-op in the sim.
   const { res: again } = runOne(assets, args.seedBase, args.capSeconds, args.maxWave, args.meta, false);
   const first = results[0];
   const detOk =
@@ -439,7 +446,7 @@ function main(): void {
     again.kills === first.kills &&
     again.ended === first.ended;
   console.log(
-    `Determinism check (seed ${args.seedBase} replayed): ${detOk ? "PASS" : `FAIL (first w${first.finalWave}/${again.kills}k vs replay w${again.finalWave}/${again.kills}k)`}`
+    `Determinism check (seed ${args.seedBase} replayed): ${detOk ? "PASS" : `FAIL (first w${first.finalWave}/${first.kills}k/${first.ended} vs replay w${again.finalWave}/${again.kills}k/${again.ended})`}`
   );
 
   const wallMs = Date.now() - t0;

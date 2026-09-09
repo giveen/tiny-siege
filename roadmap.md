@@ -144,3 +144,17 @@ too harsh for a first-time player. Consequences to act on (order is a suggestion
 2. Revisit `ENDLESS_*` only after the base curve plays: the sim shows the endless knobs were never the
    early problem.
 3. Keep the sim in CI so every balance change gets a before/after diff instead of a vibes check.
+
+**Tuning pass (done):** the early wall was a *death spiral* (leaks never healed) plus a pacing mismatch
+(armored heavies unlocked before any armor counter existed), not a raw-number problem — brute-force
+levers (start gold, enemy HP slope, upgrade potency) all left the wall in place. The fixes, each A/B'd
+with the sim: castle 100→125 + 5% mending per cleared wave (`CASTLE_REGEN_PCT`), boss armor pools
+5→3, junkyard/shell families delayed to waves 7/10, and a guaranteed armor-counter boon at wave 10.
+Result: the wave 5/10 walls are gone; the base-curve wall now sits on the **wave 15 boss** (median
+15, p90 20, best 22; 88% pre-siege deaths), and level-3 relics still clear all pre-siege deaths —
+the meta layer keeps its job. Item 2 (ENDLESS knobs) remains open; item 3 is live.
+
+**Bug found by the sim:** the flying-enemy bob phase was seeded from the enemy `id`, a process-wide
+counter — projectile homing/hit checks (which use `visualY`) therefore depended on how many entities
+earlier runs in the same process had spawned. Fixed by deriving the phase from `pathDist`
+(deterministic per run); the harness's determinism replay catches regressions of exactly this class.

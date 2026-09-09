@@ -281,7 +281,7 @@ function buildDefs(): Record<EnemyType, EnemyDef> {
     castleDamage: 60,
     reward: 100,
     scale: 2.3,
-    armor: 5,
+    armor: 3,
   };
   d.healer = {
     type: "healer",
@@ -507,7 +507,11 @@ export class Enemy {
     this.y = p.y;
     this.angle = p.angle;
     this.flipX = Math.cos(p.angle) < 0;
-    if (this.flying) this.bob = Math.sin(now * 5 + this.id * 0.7) * 5;
+    // Bob phase comes from pathDist (deterministic per run), NOT this.id —
+    // the id is a process-wide counter (see nextId), so seeding the bob off
+    // it made projectile homing/hit checks (which use visualY) depend on how
+    // many entities earlier runs spawned. Same seed, different process state.
+    if (this.flying) this.bob = Math.sin(now * 5 + this.pathDist * 0.05) * 5;
 
     this.hitFlash = Math.max(0, this.hitFlash - dt);
     this.sprite.update(dt);
