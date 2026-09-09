@@ -68,7 +68,14 @@ import {
   type ProgressState,
 } from "./progress";
 import { flushPersist } from "./persist";
-import { uiAnnounce } from "./ui-dom";
+import {
+  uiAnnounce,
+  showEndScreen,
+  hideEndScreen,
+  showSeedChip,
+  hideSeedChip,
+  type EndScreenData,
+} from "./ui-dom";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
 import {
   EMPTY_GEAR_BONUS,
@@ -212,6 +219,8 @@ export class Game {
   /** ?burn[=N] — archer arrows ignite (verification). */
   debugBurn = 0;
   rngSeed: number | null = null;
+  /** Seed actually driving the current run (set in startRun); null before the first run. */
+  runSeed: number | null = null;
   private demoBuildTimer = 0;
   private demoBoonTimer = 0;
   private demoPhaseSteps = 0;
@@ -452,6 +461,7 @@ export class Game {
           setTimeout(() => this.debugClick(cx, cy), 700);
         }
       }
+
     }
   }
 
@@ -517,6 +527,9 @@ export class Game {
   // ---------------------------------------------------------------- run
   startRun(): void {
     this.rng = this.rngSeed != null ? new RNG(this.rngSeed) : new RNG();
+    // The seed actually driving this run (URL seed or the RNG's random
+    // draw) — ?seed=N in a link replays it exactly.
+    this.runSeed = this.rng.seed;
     this.world = new World(this.assets, this.rng);
     if (this.debugStage > 0) this.world.growToStage(this.debugStage);
     this.cam = { x: 0, y: 0, zoom: 1 };
@@ -572,6 +585,8 @@ export class Game {
     this.audio.music("forest");
     this.sfx("wave");
     bumpStat(this.progress, "runsPlayed");
+    hideEndScreen();
+    if (!this.demo && this.runSeed != null) showSeedChip(this.runSeed);
   }
 
   // ---------------------------------------------------------------- sim
@@ -999,6 +1014,8 @@ export class Game {
     this.screen = "victory";
     flushPersist(); // the victory bank is the run's headline — persist now
     uiAnnounce("Victory! The Siege is broken.");
+    hideSeedChip();
+    if (!this.demo) this.showEndCard("victory");
     this.audio.music("forest"); // the calm after the siege
     this.sfx("over");
     if (this.wave > this.best) {
@@ -1233,6 +1250,8 @@ export class Game {
     setStatMax(this.progress, "bestEndlessWave", Math.max(0, this.wave - SIEGE_WAVE));
     flushPersist(); // this run's runes/crates/stats are final — persist now
     uiAnnounce(`The castle has fallen. You survived ${this.wave} waves.`);
+    hideSeedChip();
+    if (!this.demo) this.showEndCard("over");
   }
 
   // ---------------------------------------------------------------- combat
@@ -1739,6 +1758,8 @@ export class Game {
     this.selectedTower = null;
     this.paused = false;
     flushPersist(); // settle any pending rune/crate/stat writes before the menu
+    hideEndScreen();
+    hideSeedChip();
     uiAnnounce("Back to the menu.");
     this.audio.music("forest");
     this.sfx("click");
@@ -2288,8 +2309,24 @@ export class Game {
     ctx.restore();
   }
 
+  /** Build the DOM end-screen card's data from this run's final state. */
+  private showEndCard(kind: "over" | "victory"): void {
+    const d: EndScreenData = {
+      kind,
+      wave: this.wave,
+      kills: this.kills,
+      best: this.best,
+      towers: this.towers.length,
+      seed: this.runSeed,
+      endlessWave: Math.max(0, this.wave - SIEGE_WAVE),
+    };
+    showEndScreen(d);
+  }
+
   destroy(): void {
     cancelAnimationFrame(this.raf);
+    hideEndScreen();
+    hideSeedChip();
     this.input.destroy();
   }
 }
