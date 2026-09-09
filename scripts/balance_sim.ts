@@ -449,6 +449,13 @@ function main(): void {
     `Determinism check (seed ${args.seedBase} replayed): ${detOk ? "PASS" : `FAIL (first w${first.finalWave}/${first.kills}k/${first.ended} vs replay w${again.finalWave}/${again.kills}k/${again.ended})`}`
   );
 
+  if (process.env.SIM_CHECK_STORAGE === "1") {
+    const prog = localStorage.getItem("tinysiege.progress.v1");
+    const meta = localStorage.getItem("tinysiege.meta.v1");
+    console.log(
+      `STORAGE probe: progress=${prog ? `${prog.length}B kills=${(JSON.parse(prog) as { stats: Record<string, number> }).stats.kills ?? "?"}` : "MISSING"} meta=${meta ? `${meta.length}B` : "MISSING"}`
+    );
+  }
   const wallMs = Date.now() - t0;
   printReport(results, args, wallMs);
 

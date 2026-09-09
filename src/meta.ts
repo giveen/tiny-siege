@@ -4,6 +4,7 @@
 // attempt moves you closer to the build you're chasing. Stored in localStorage.
 
 import { emptyGearState, LOOTBOX_FORTUNE_MAX, lootboxOddsText, type GearState } from "./gear";
+import { queuePersist } from "./persist";
 
 export const META_KEY = "tinysiege.meta.v1";
 
@@ -261,12 +262,11 @@ export function loadMeta(): MetaState {
   return state;
 }
 
+/** Records `m` for the next batched write (see persist.ts). The recorder
+ *  reads the live object, so the flush persists the latest state even if
+ *  more runes/crates/research landed while the timer was pending. */
 export function saveMeta(m: MetaState): void {
-  try {
-    localStorage.setItem(META_KEY, JSON.stringify(m));
-  } catch {
-    /* ignore */
-  }
+  queuePersist(META_KEY, () => JSON.stringify(m));
 }
 
 export function relicLevel(m: MetaState, id: string): number {

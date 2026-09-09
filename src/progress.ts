@@ -6,6 +6,7 @@
 // its own localStorage key so the two systems can evolve independently.
 
 import type { RNG } from "./rng";
+import { queuePersist } from "./persist";
 
 export const PROGRESS_KEY = "tinysiege.progress.v1";
 
@@ -64,12 +65,11 @@ export function loadProgress(): ProgressState {
   return state;
 }
 
+/** Records `p` for the next batched write (see persist.ts) — never touches
+ *  localStorage directly, so per-kill stat bumps stay cheap. The recorder
+ *  reads the live object, so the flush persists the latest state. */
 export function saveProgress(p: ProgressState): void {
-  try {
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify(p));
-  } catch {
-    /* ignore */
-  }
+  queuePersist(PROGRESS_KEY, () => JSON.stringify(p));
 }
 
 export function bumpStat(p: ProgressState, key: string, n = 1): void {

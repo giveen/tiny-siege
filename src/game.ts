@@ -67,6 +67,7 @@ import {
   ACHIEVEMENTS,
   type ProgressState,
 } from "./progress";
+import { flushPersist } from "./persist";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
 import {
   EMPTY_GEAR_BONUS,
@@ -975,6 +976,7 @@ export class Game {
     // Victory bonus: a guaranteed top-tier piece from the Siege.
     this.bankGearDrop(makeGearDrop(gearTierForWave(SIEGE_WAVE), this.rng));
     this.screen = "victory";
+    flushPersist(); // the victory bank is the run's headline — persist now
     this.audio.music("forest"); // the calm after the siege
     this.sfx("over");
     if (this.wave > this.best) {
@@ -1207,6 +1209,7 @@ export class Game {
       }
     }
     setStatMax(this.progress, "bestEndlessWave", Math.max(0, this.wave - SIEGE_WAVE));
+    flushPersist(); // this run's runes/crates/stats are final — persist now
   }
 
   // ---------------------------------------------------------------- combat
@@ -1712,6 +1715,7 @@ export class Game {
     this.movingSpot = null;
     this.selectedTower = null;
     this.paused = false;
+    flushPersist(); // settle any pending rune/crate/stat writes before the menu
     this.audio.music("forest");
     this.sfx("click");
     refreshMissions(this.progress, this.rng);
