@@ -284,159 +284,172 @@ export class Game {
     this.screenFade = 1; // fade in from the loading backdrop
 
     const params = new URLSearchParams(location.search);
+    // Product URL params (kept in production): ?seed=N makes a run
+    // reproducible for bug reports; ?demo plays the attract-mode bot
+    // (the landing-page showcase). Everything else is a development tool
+    // (verification jumps, free gold/crates/gear, synthesized clicks) and
+    // is ignored by the production bundle.
     const seedParam = params.get("seed");
     if (seedParam && !Number.isNaN(parseInt(seedParam, 10))) this.rngSeed = parseInt(seedParam, 10);
-    this.autoStart = params.has("start");
     this.demo = params.has("demo");
-    // ?stage=N — start the island already grown to stage N (verification)
-    const stageParam = parseInt(params.get("stage") ?? "", 10);
-    if (!Number.isNaN(stageParam)) this.debugStage = Math.max(0, Math.min(9, stageParam));
-    // ?burn[=N] — archer arrows ignite for N dps (verification)
-    const burnParam = params.get("burn");
-    if (burnParam !== null) this.debugBurn = burnParam === "" ? 8 : Math.max(0, parseFloat(burnParam) || 0);
-    if ((this.debugStage > 0 || this.debugBurn > 0) && !this.autoStart && !this.demo) this.startRun();
-    const ffSeconds = parseFloat(params.get("ff") ?? "0") || 0;
+    // `import.meta.env` is undefined in the headless sim's plain-rolldown
+    // bundle (no Vite define), so optional-chain through it.
+    const dev = import.meta.env?.DEV ?? false;
+    let ffSeconds = 0; // ?ff=N fast-forward target (dev only)
+    if (dev) {
+      this.autoStart = params.has("start");
+      // ?stage=N — start the island already grown to stage N (verification)
+      const stageParam = parseInt(params.get("stage") ?? "", 10);
+      if (!Number.isNaN(stageParam)) this.debugStage = Math.max(0, Math.min(9, stageParam));
+      // ?burn[=N] — archer arrows ignite for N dps (verification)
+      const burnParam = params.get("burn");
+      if (burnParam !== null) this.debugBurn = burnParam === "" ? 8 : Math.max(0, parseFloat(burnParam) || 0);
+      if ((this.debugStage > 0 || this.debugBurn > 0) && !this.autoStart && !this.demo) this.startRun();
+      ffSeconds = parseFloat(params.get("ff") ?? "0") || 0;
+    }
     if (this.autoStart || this.demo) this.startRun();
 
-    // ?buildall — place one of every tower type (verification / dev tool)
-    if (params.has("buildall")) {
-      this.startRun();
-      this.unlocked = new Set(TOWER_ORDER);
-      this.gold = 9999;
-      const spots = [...this.world.buildSpots];
-      this.rng.shuffle(spots);
-      const types: TowerType[] = [...TOWER_ORDER];
-      for (let i = 0; i < types.length && i < spots.length; i++) this.buildTower(types[i], spots[i]);
-      for (let i = 0; i < 3; i++) {
-        const e = new Enemy(this, "rat", 3);
-        e.pathDist = 320 + i * 130;
-        const p = this.world.pointAt(e.pathDist);
-        e.x = p.x;
-        e.y = p.y;
-        this.enemies.push(e);
-      }
-    }
-
-    // ?specs[=N] — dev tool: give every built tower 3 free upgrade points and
-    // specialize each into a different line (cycles per type, offset N) for screenshots.
-    const specsParam = params.get("specs");
-    if (specsParam !== null && this.towers.length > 0) {
-      const off = Math.max(0, parseInt(specsParam ?? "", 10) || 0);
-      let k = 0;
-      for (const t of this.towers) {
+    if (dev) {
+      // ?buildall — place one of every tower type (verification / dev tool)
+      if (params.has("buildall")) {
+        this.startRun();
+        this.unlocked = new Set(TOWER_ORDER);
+        this.gold = 9999;
+        const spots = [...this.world.buildSpots];
+        this.rng.shuffle(spots);
+        const types: TowerType[] = [...TOWER_ORDER];
+        for (let i = 0; i < types.length && i < spots.length; i++) this.buildTower(types[i], spots[i]);
         for (let i = 0; i < 3; i++) {
-          const tracks: UpgradeTrack[] = ["damage", "rate", "range"];
-          this.upgradeTower(t, tracks[i % 3]);
-        }
-        const lines = SPECS[t.type];
-        this.specializeTower(t, lines[(k + off) % lines.length].id);
-        k++;
-      }
-    }
-
-    // ?show=type1,type2,...  — spawn a lineup of specific enemy types for inspection
-    // (runs after ?buildall; reuses an already-started run instead of resetting it)
-    const show = params.get("show");
-    if (show) {
-      if ((this.screen as Screen) !== "game") this.startRun();
-      // place a handful of archers so we can see them engage
-      const spots = [...this.world.buildSpots];
-      this.rng.shuffle(spots);
-      let placed = 0;
-      for (const s of spots) {
-        if (placed >= 3) break;
-        if (this.gold >= this.towerCost("archer") && !this.towerAt(s.c, s.r)) {
-          this.buildTower("archer", s);
-          placed++;
+          const e = new Enemy(this, "rat", 3);
+          e.pathDist = 320 + i * 130;
+          const p = this.world.pointAt(e.pathDist);
+          e.x = p.x;
+          e.y = p.y;
+          this.enemies.push(e);
         }
       }
-      const types = show.split(",").map((s) => s.trim()).filter(Boolean) as EnemyType[];
-      this.wavePhase = "active"; // soldiers must deploy for the lineup to be met
-      let d = 240;
-      for (const t of types) {
-        const e = new Enemy(this, t, 6);
-        e.pathDist = d;
-        const p = this.world.pointAt(d);
-        e.x = p.x;
-        e.y = p.y;
-        this.enemies.push(e);
-        d += 120;
-      }
-    }
 
-    // ?seltower[=N] — select the Nth tower (verifies the upgrade/specialize panel)
-    const selParam = params.get("seltower");
-    if (selParam !== null && this.towers.length > 0) {
-      const n = Math.max(0, parseInt(selParam ?? "", 10) || 0);
-      this.selectedTower = this.towers[n % this.towers.length] ?? this.towers[0];
-    }
-
-    // ?codex — open the meta Codex on the menu (verification / dev tool)
-    if (params.has("codex")) {
-      this._showCodex = true;
-    }
-    // ?armory — open the gear Armory on the menu (verification / dev tool)
-    // ?smith — same, but on the Blacksmith tab
-    if (params.has("armory") || params.has("smith")) {
-      this._showArmory = true;
-      if (params.has("smith")) this.hud.armoryTab = "smith";
-    }
-    // ?progress — open the Achievements/Missions/Rewards screen (verification / dev tool)
-    if (params.has("progress")) {
-      this._showProgress = true;
-    }
-    // ?crates=N — seed the Supply Crate balance (verification / dev tool)
-    const crateParam = params.get("crates");
-    if (crateParam) {
-      const n = parseInt(crateParam, 10);
-      if (Number.isFinite(n) && n >= 0) this.meta.crates = n;
-      saveMeta(this.meta);
-    }
-    // ?gearseed — bank a handful of random gear so the Armory has content
-    if (params.has("gearseed")) {
-      for (let i = 0; i < 8; i++) {
-        const inst = makeGearDrop(1 + Math.floor(this.rng.next() * 3), this.rng);
-        this.meta.gear.owned.push(inst);
-      }
-      // Demo-equip one piece per empty slot so filled slots are visible.
-      for (const inst of this.meta.gear.owned) {
-        const def = GEAR_BY_ID.get(inst.def);
-        if (!def) continue;
-        if (!this.meta.gear.equipped[def.tower]?.[def.slot]) {
-          this.equipGear(inst.uid, def.tower, def.slot);
+      // ?specs[=N] — dev tool: give every built tower 3 free upgrade points and
+      // specialize each into a different line (cycles per type, offset N) for screenshots.
+      const specsParam = params.get("specs");
+      if (specsParam !== null && this.towers.length > 0) {
+        const off = Math.max(0, parseInt(specsParam ?? "", 10) || 0);
+        let k = 0;
+        for (const t of this.towers) {
+          for (let i = 0; i < 3; i++) {
+            const tracks: UpgradeTrack[] = ["damage", "rate", "range"];
+            this.upgradeTower(t, tracks[i % 3]);
+          }
+          const lines = SPECS[t.type];
+          this.specializeTower(t, lines[(k + off) % lines.length].id);
+          k++;
         }
       }
-      saveMeta(this.meta);
-    }
-    // ?victory — jump straight to the victory screen (verification / dev tool)
-    if (params.has("victory")) {
-      this.startRun();
-      this.wave = SIEGE_WAVE;
-      this.runWon = true;
-      this.screen = "victory";
-    }
 
-    // ?waven=N — telegraph a specific wave's composition (verifies the preview)
-    const waven = parseInt(params.get("waven") ?? "", 10);
-    if (!Number.isNaN(waven) && waven > 0) {
-      this.startRun();
-      this.wave = waven - 1;
-      this.nextWave = generateWave(waven, this.rng);
-      this.wavePhase = "build";
-      this.screen = "game";
-    }
+      // ?show=type1,type2,...  — spawn a lineup of specific enemy types for inspection
+      // (runs after ?buildall; reuses an already-started run instead of resetting it)
+      const show = params.get("show");
+      if (show) {
+        if ((this.screen as Screen) !== "game") this.startRun();
+        // place a handful of archers so we can see them engage
+        const spots = [...this.world.buildSpots];
+        this.rng.shuffle(spots);
+        let placed = 0;
+        for (const s of spots) {
+          if (placed >= 3) break;
+          if (this.gold >= this.towerCost("archer") && !this.towerAt(s.c, s.r)) {
+            this.buildTower("archer", s);
+            placed++;
+          }
+        }
+        const types = show.split(",").map((s) => s.trim()).filter(Boolean) as EnemyType[];
+        this.wavePhase = "active"; // soldiers must deploy for the lineup to be met
+        let d = 240;
+        for (const t of types) {
+          const e = new Enemy(this, t, 6);
+          e.pathDist = d;
+          const p = this.world.pointAt(d);
+          e.x = p.x;
+          e.y = p.y;
+          this.enemies.push(e);
+          d += 120;
+        }
+      }
 
-    // ?ff=N — applied last so debug startRun blocks above don't reset the jump.
-    // Works with ?demo (drives the attract loop) or any started run.
-    if (ffSeconds > 0 && this.screen === "game") this.fastForward(ffSeconds);
+      // ?seltower[=N] — select the Nth tower (verifies the upgrade/specialize panel)
+      const selParam = params.get("seltower");
+      if (selParam !== null && this.towers.length > 0) {
+        const n = Math.max(0, parseInt(selParam ?? "", 10) || 0);
+        this.selectedTower = this.towers[n % this.towers.length] ?? this.towers[0];
+      }
 
-    // ?click=x,y — synthesize one canvas click at canvas coordinates after the
-    // first paint (verification / dev tool; lets URL flows drive any button).
-    const clickParam = params.get("click");
-    if (clickParam) {
-      const [cx, cy] = clickParam.split(",").map((s) => parseFloat(s));
-      if (Number.isFinite(cx) && Number.isFinite(cy)) {
-        setTimeout(() => this.debugClick(cx, cy), 700);
+      // ?codex — open the meta Codex on the menu (verification / dev tool)
+      if (params.has("codex")) {
+        this._showCodex = true;
+      }
+      // ?armory — open the gear Armory on the menu (verification / dev tool)
+      // ?smith — same, but on the Blacksmith tab
+      if (params.has("armory") || params.has("smith")) {
+        this._showArmory = true;
+        if (params.has("smith")) this.hud.armoryTab = "smith";
+      }
+      // ?progress — open the Achievements/Missions/Rewards screen (verification / dev tool)
+      if (params.has("progress")) {
+        this._showProgress = true;
+      }
+      // ?crates=N — seed the Supply Crate balance (verification / dev tool)
+      const crateParam = params.get("crates");
+      if (crateParam) {
+        const n = parseInt(crateParam, 10);
+        if (Number.isFinite(n) && n >= 0) this.meta.crates = n;
+        saveMeta(this.meta);
+      }
+      // ?gearseed — bank a handful of random gear so the Armory has content
+      if (params.has("gearseed")) {
+        for (let i = 0; i < 8; i++) {
+          const inst = makeGearDrop(1 + Math.floor(this.rng.next() * 3), this.rng);
+          this.meta.gear.owned.push(inst);
+        }
+        // Demo-equip one piece per empty slot so filled slots are visible.
+        for (const inst of this.meta.gear.owned) {
+          const def = GEAR_BY_ID.get(inst.def);
+          if (!def) continue;
+          if (!this.meta.gear.equipped[def.tower]?.[def.slot]) {
+            this.equipGear(inst.uid, def.tower, def.slot);
+          }
+        }
+        saveMeta(this.meta);
+      }
+      // ?victory — jump straight to the victory screen (verification / dev tool)
+      if (params.has("victory")) {
+        this.startRun();
+        this.wave = SIEGE_WAVE;
+        this.runWon = true;
+        this.screen = "victory";
+      }
+
+      // ?waven=N — telegraph a specific wave's composition (verifies the preview)
+      const waven = parseInt(params.get("waven") ?? "", 10);
+      if (!Number.isNaN(waven) && waven > 0) {
+        this.startRun();
+        this.wave = waven - 1;
+        this.nextWave = generateWave(waven, this.rng);
+        this.wavePhase = "build";
+        this.screen = "game";
+      }
+
+      // ?ff=N — applied last so debug startRun blocks above don't reset the jump.
+      // Works with ?demo (drives the attract loop) or any started run.
+      if (ffSeconds > 0 && this.screen === "game") this.fastForward(ffSeconds);
+
+      // ?click=x,y — synthesize one canvas click at canvas coordinates after the
+      // first paint (verification / dev tool; lets URL flows drive any button).
+      const clickParam = params.get("click");
+      if (clickParam) {
+        const [cx, cy] = clickParam.split(",").map((s) => parseFloat(s));
+        if (Number.isFinite(cx) && Number.isFinite(cy)) {
+          setTimeout(() => this.debugClick(cx, cy), 700);
+        }
       }
     }
   }
