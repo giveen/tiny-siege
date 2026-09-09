@@ -68,6 +68,7 @@ import {
   type ProgressState,
 } from "./progress";
 import { flushPersist } from "./persist";
+import { uiAnnounce } from "./ui-dom";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
 import {
   EMPTY_GEAR_BONUS,
@@ -566,6 +567,7 @@ export class Game {
     // Pre-generate the first wave so its composition is telegraphed during build.
     this.nextWave = generateWave(1, this.rng);
     this.screen = "game";
+    uiAnnounce("Run started. Build towers, then start the wave.");
     this.audio.unlock();
     this.audio.music("forest");
     this.sfx("wave");
@@ -913,6 +915,11 @@ export class Game {
     this.nextWave = [];
     this.waveTime = 0;
     this.wavePhase = "active";
+    uiAnnounce(
+      this.wave % 5 === 0
+        ? `Wave ${this.wave}. A boss approaches.`
+        : `Wave ${this.wave}.`
+    );
     this.placing = null;
     this.movingSpot = null;
     this.selectedTower = null;
@@ -977,6 +984,7 @@ export class Game {
     const boonBonus = metaBoonBonus(relicLevel(this.meta, "vanguard_scouts"));
     this.boonChoices = rollBoons(this, this.rng, 3 + boonBonus);
     this.wavePhase = "boon";
+    uiAnnounce("Wave cleared. Choose a boon.");
   }
 
   private onVictory(): void {
@@ -990,6 +998,7 @@ export class Game {
     this.bankGearDrop(makeGearDrop(gearTierForWave(SIEGE_WAVE), this.rng));
     this.screen = "victory";
     flushPersist(); // the victory bank is the run's headline — persist now
+    uiAnnounce("Victory! The Siege is broken.");
     this.audio.music("forest"); // the calm after the siege
     this.sfx("over");
     if (this.wave > this.best) {
@@ -1223,6 +1232,7 @@ export class Game {
     }
     setStatMax(this.progress, "bestEndlessWave", Math.max(0, this.wave - SIEGE_WAVE));
     flushPersist(); // this run's runes/crates/stats are final — persist now
+    uiAnnounce(`The castle has fallen. You survived ${this.wave} waves.`);
   }
 
   // ---------------------------------------------------------------- combat
@@ -1729,6 +1739,7 @@ export class Game {
     this.selectedTower = null;
     this.paused = false;
     flushPersist(); // settle any pending rune/crate/stat writes before the menu
+    uiAnnounce("Back to the menu.");
     this.audio.music("forest");
     this.sfx("click");
     refreshMissions(this.progress, this.rng);

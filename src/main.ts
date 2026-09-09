@@ -1,4 +1,5 @@
 import { Game } from "./game";
+import { initUiDom } from "./ui-dom";
 import { CANVAS_W, CANVAS_H } from "./config";
 
 const canvas = document.getElementById("game") as HTMLCanvasElement | null;
@@ -25,6 +26,9 @@ if (!canvas) {
   fit();
 
   const game = new Game(canvas);
+  // Thin DOM layer around the canvas: a focusable Play button + an
+  // aria-live region the game announces state changes into (see ui-dom.ts).
+  initUiDom(game);
   // dev handle for verification tools (stripped from production builds)
   if (import.meta.env.DEV) (window as any).__game = game;
   // The canvas now draws its own loading screen immediately (the loop starts
