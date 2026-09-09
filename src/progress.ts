@@ -10,6 +10,9 @@ import { queuePersist } from "./persist";
 
 export const PROGRESS_KEY = "tinysiege.progress.v1";
 
+/** Tabs of the Achievements & Missions screen. */
+export type ProgressTab = "ach" | "daily" | "weekly" | "bounty" | "rewards";
+
 export interface Reward {
   runes?: number;
   crates?: number;

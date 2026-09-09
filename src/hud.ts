@@ -33,6 +33,7 @@ import {
   isYesterday,
   type MissionInstance,
   type MissionDef,
+  type ProgressTab,
   type Reward,
 } from "./progress";
 import {
@@ -75,8 +76,6 @@ interface Rect {
 
 type HudLayout = ReturnType<Hud["computeLayout"]>;
 
-type ProgressTab = "ach" | "daily" | "weekly" | "bounty" | "rewards";
-
 const inRect = (p: { x: number; y: number }, r: Rect) =>
   p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
 
@@ -90,6 +89,8 @@ export class Hud {
   armoryTab: "vault" | "smith" = "vault";
   /** Top-level menu button to draw a focus ring around (DOM keyboard focus). */
   menuFocus: "start" | "help" | "codex" | "armory" | "progress" | null = null;
+  /** Phase 3: which canvas panel the DOM layer (ui-panels) renders instead. */
+  suppressedPanel: "help" | "codex" | "progress" | null = null;
   private smithPageRecycle = 0;
   private smithPageUpgrade = 0;
   /** Last opened Supply Crate, shown in a reveal overlay until dismissed. */
@@ -1393,9 +1394,9 @@ export class Hud {
     ctx.restore();
 
     if (game._showArmory) this.drawArmory(game, ctx);
-    else if (game._showCodex) this.drawCodex(game, ctx);
-    else if (game._showProgress) this.drawProgress(game, ctx);
-    else if (game._showHelp) this.drawHelp(ctx);
+    else if (game._showCodex && this.suppressedPanel !== "codex") this.drawCodex(game, ctx);
+    else if (game._showProgress && this.suppressedPanel !== "progress") this.drawProgress(game, ctx);
+    else if (game._showHelp && this.suppressedPanel !== "help") this.drawHelp(ctx);
 
     // tooltips go on top of everything (menu + codex + armory)
     this.drawTooltip(game, ctx);
@@ -1427,7 +1428,7 @@ export class Hud {
       "• Every cleared wave banks ◆ runes and supply crates (a lost run keeps them; winning pays +40 ◆ / +20 crates).",
       "• Spend runes in The Codex on relics (Crate Fortune research shifts Supply Crate odds — each level takes real time) — and open crates in the Armory for gear.",
       "",
-      "Keys: 1-6 build · Space start wave · P pause · F speed · M mute · ＋/− zoom · Esc cancel",
+      "Keys: 1-8 build · Space start wave · P pause · F speed · M mute · ＋/− zoom · Esc cancel",
       "Mouse: drag the map to slide around · wheel or the side-panel ＋/− buttons to zoom",
       "",
       "Click anywhere to close.",

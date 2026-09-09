@@ -79,6 +79,7 @@ import {
   resyncMenuFocus,
   type EndScreenData,
 } from "./ui-dom";
+import { uiPanelsSync } from "./ui-panels";
 import { defaultBuffs, type Buffs, type TowerType, type CastleState } from "./types";
 import {
   EMPTY_GEAR_BONUS,
@@ -566,6 +567,10 @@ export class Game {
     tickResearch(this.meta, Date.now());
 
     this.handleInput();
+
+    // Reconcile the DOM panels (help/codex/progress) with the menu state.
+    // No-op in the sim (the panel layer is only initialized in main.ts).
+    uiPanelsSync();
 
     if (this.screen === "game" && !this.paused) {
       const sdt = dt * this.speed;

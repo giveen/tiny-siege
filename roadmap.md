@@ -181,14 +181,23 @@ built in phases — each phase lands and ships independently:
   page the open panel's list, PageUp/PageDown switch its tabs. `?landing=1`
   (product param, ships in production) plays the attract loop behind a visible
   title + Play hero — the player can take over a fresh run mid-showcase.
-- **Phase 3 (open):** rebuild the static screens (end screens, help, codex,
-  armory, progress) as styled DOM — fully copyable, zoomable,
+- **Phase 3 (in progress):** rebuild the static screens (end screens, help,
+  codex, armory, progress) as styled DOM — fully copyable, zoomable,
   screen-reader-traversable, per-item keyboard selection. The in-game HUD, world
-  and boon cards stay canvas (the 60fps surface).
+  and boon cards stay canvas (the 60fps surface). Done: end screens (Phase 1),
+  then Help / Codex / Progress via `src/ui-panels.ts` — the game stays the
+  source of truth (`menuPanelOpen()`), a frame-driven `uiPanelsSync()` shows
+  and re-renders the DOM to match, and actions call the same game methods as
+  the canvas handlers. This also fixed real bugs the canvas layout had: the
+  Codex panel (1140px wide on a 1024px canvas) was clipped to ~1.5 of its
+  branch columns, and the Progress close button sat below the canvas edge —
+  both unusable in the canvas version. Remaining: the Armory (its select→
+  confirm and crate-reveal interactions are the last slice).
 - **Phase 4 (open):** landing-page polish once the site grows a real page
   around the game (SEO meta, share cards, the hero becomes the page header).
 
-Known Phase-2 limitations (accepted, Phase 3 removes them): individual list
-items (relic rows, gear pieces, achievements) are still canvas-click-only —
-keyboard reaches the panels, tabs and pages, not the rows; the smith tab's
-Upgrade list keeps its own paging (arrows page the Recycle list).
+Known limitations (accepted): on a throttled/hidden tab the panel DOM only
+builds on the next frame, so panel actions resync immediately instead of
+waiting for one; the smith tab's Upgrade list keeps its own paging (arrows
+page the Recycle list); the Armory is still canvas-only until its Phase-3
+slice.
